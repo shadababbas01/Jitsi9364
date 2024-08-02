@@ -12,6 +12,9 @@ import VisitorsList from './VisitorsList';
 import styles from './styles';
 
 
+//----------->>>>>> All components are defined in different sub files.
+//----------->>>>>> Previously all components were defined in ParticipantsPane file only.
+
 /**
  * Participants pane.
  *
@@ -36,6 +39,10 @@ const ParticipantsPane = () => {
                         <VisitorsList />
                         <LobbyParticipantList />
                         <MeetingParticipantList />
+ {/* Below line previously in this file but in 9364 it wasmoved to Breakout rooms */}
+    {/* const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
+    const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 2; */}
                     </>
                 ) }
                 data = { [] as ReadonlyArray<undefined> }

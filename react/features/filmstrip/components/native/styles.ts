@@ -8,7 +8,7 @@ export const AVATAR_SIZE = 50;
 
 const indicatorContainer = {
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: BaseTheme.shape.borderRadius,
     height: 24,
     margin: 2,
@@ -150,24 +150,24 @@ export default {
 
     thumbnailTopLeftIndicatorContainer: {
         ...indicatorContainer,
-        backgroundColor: 'unset',
+        // backgroundColor: 'unset',
         flexDirection: 'row',
         position: 'absolute',
         top: BaseTheme.spacing[1]
     },
 
     raisedHandIndicator: {
-        ...indicatorContainer,
-        backgroundColor: BaseTheme.palette.warning02
+        ...indicatorContainer
+       // backgroundColor: '#9c9696'
     },
 
     raisedHandIcon: {
-        color: BaseTheme.palette.uiBackground
+        color: '#9c9696'
     },
 
     thumbnailRaisedHand: {
         borderWidth: 2,
-        borderColor: BaseTheme.palette.warning02
+        borderColor: '#9c9696'
     },
 
     thumbnailDominantSpeaker: {

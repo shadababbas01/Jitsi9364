@@ -53,9 +53,9 @@ local function get_occupant_details(occupant)
     local presence = occupant:get_presence();
     local occupant_name;
     if presence then
-        occupant_name = presence:get_child("nick", NS_NICK) and presence:get_child("nick", NS_NICK):get_text() or 'Fellow Jitster';
+        occupant_name = presence:get_child("nick", NS_NICK) and presence:get_child("nick", NS_NICK):get_text() or '';
     else
-        occupant_name = 'Fellow Jitster'
+        occupant_name = ''
     end
     local _, _, occupant_id = jid.split(occupant.nick)
     if not occupant_id then

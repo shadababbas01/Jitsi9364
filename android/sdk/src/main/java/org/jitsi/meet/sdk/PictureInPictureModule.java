@@ -84,9 +84,9 @@ class PictureInPictureModule extends ReactContextBaseJavaModule {
      */
     @TargetApi(Build.VERSION_CODES.O)
     public void enterPictureInPicture() {
-        if (!isEnabled) {
-            return;
-        }
+        // if (!isEnabled) {
+        //     return;
+        // }
 
         if (!isSupported) {
             throw new IllegalStateException("Picture-in-Picture not supported");

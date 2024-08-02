@@ -6,6 +6,7 @@ import { SET_TILE_VIEW_DIMENSIONS } from './actionTypes';
 import styles from './components/native/styles';
 import { SQUARE_TILE_ASPECT_RATIO, TILE_MARGIN } from './constants';
 // import { getColumnCount, getTileViewParticipantCount } from './functions.native';
+import { getTileViewParticipantCount } from './functions.native';
 
 export * from './actions.any';
 var TILE_ASPECT_RATIO = 1;

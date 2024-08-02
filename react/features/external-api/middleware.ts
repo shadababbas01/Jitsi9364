@@ -181,7 +181,7 @@ MiddlewareRegistry.register(store => next => action => {
         const state = store.getState();
         const { defaultRemoteDisplayName } = state['features/base/config'];
         const { participant } = action;
-        const { fakeParticipant, id, local, name } = participant;
+        const { fakeParticipant, id, local, name , email} = participant;
 
         // The version of external api outside of middleware did not emit
         // the local participant being created.
@@ -193,6 +193,7 @@ MiddlewareRegistry.register(store => next => action => {
 
             APP.API.notifyUserJoined(id, {
                 displayName: name,
+                email: email,
                 formattedDisplayName: appendSuffix(
                     name || defaultRemoteDisplayName)
             });

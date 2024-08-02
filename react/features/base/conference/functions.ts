@@ -366,6 +366,7 @@ export function getVisitorOptions(stateful: IStateful, vnode: string, focusJid: 
 export function getConferenceTimestamp(stateful: IStateful) {
     const state = toState(stateful);
     const { conferenceTimestamp } = getConferenceState(state);
+    console.log("getConferenceTimeStamp: ", conferenceTimestamp)
 
     return conferenceTimestamp;
 }

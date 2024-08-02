@@ -24,7 +24,7 @@ import { isSpeakerStatsDisabled } from '../../../speaker-stats/functions';
 import ClosedCaptionButton from '../../../subtitles/components/native/ClosedCaptionButton';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import styles from '../../../video-menu/components/native/styles';
-import WhiteboardButton from '../../../whiteboard/components/native/WhiteboardButton';
+// import WhiteboardButton from '../../../whiteboard/components/native/WhiteboardButton';
 import { getMovableButtons } from '../../functions.native';
 
 import AudioOnlyButton from './AudioOnlyButton';
@@ -160,24 +160,24 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                         && <RaiseHandButton { ...buttonProps } />
                 }
                 {/* @ts-ignore */}
-                <Divider style = { styles.divider as ViewStyle } />
+                {/* <Divider style = { styles.divider as ViewStyle } />
                 <SecurityDialogButton { ...buttonProps } />
-                <RecordButton { ...buttonProps } />
+                <RecordButton { ...buttonProps } /> */}
                 <LiveStreamButton { ...buttonProps } />
-                <LinkToSalesforceButton { ...buttonProps } />
-                <WhiteboardButton { ...buttonProps } />
+                {/* <LinkToSalesforceButton { ...buttonProps } /> */}
+                {/* <WhiteboardButton { ...buttonProps } /> */}
                 {/* @ts-ignore */}
-                <Divider style = { styles.divider as ViewStyle } />
+                {/* <Divider style = { styles.divider as ViewStyle } /> */}
                 <SharedVideoButton { ...buttonProps } />
                 {!toolbarButtons.has('screensharing') && <ScreenSharingButton { ...buttonProps } />}
-                {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />}
+                {/* {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />} */}
                 {!toolbarButtons.has('tileview') && <TileViewButton { ...buttonProps } />}
                 {_isBreakoutRoomsSupported && <BreakoutRoomsButton { ...buttonProps } />}
                 {/* @ts-ignore */}
-                <Divider style = { styles.divider as ViewStyle } />
-                <ClosedCaptionButton { ...buttonProps } />
+                {/* <Divider style = { styles.divider as ViewStyle } /> */}
+                {/* <ClosedCaptionButton { ...buttonProps } /> */}
                 <SharedDocumentButton { ...buttonProps } />
-                <SettingsButton { ...buttonProps } />
+                {/* <SettingsButton { ...buttonProps } /> */}
             </BottomSheet>
         );
     }

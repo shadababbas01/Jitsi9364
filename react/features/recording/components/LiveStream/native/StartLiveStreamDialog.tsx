@@ -77,8 +77,8 @@ class StartLiveStreamDialog extends AbstractStartLiveStreamDialog<IProps> {
     render() {
         return (
             <JitsiScreen style = { styles.startLiveStreamContainer as StyleType }>
-                <GoogleSigninForm
-                    onUserChanged = { this._onUserChanged } />
+                {/* <GoogleSigninForm
+                    onUserChanged = { this._onUserChanged } /> added by jaswant */}
                 <StreamKeyPicker
                     broadcasts = { this.state.broadcasts }
                     onChange = { this._onStreamKeyPick } />

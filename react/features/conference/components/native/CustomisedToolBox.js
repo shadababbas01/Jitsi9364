@@ -4,6 +4,8 @@ import AudioMuteButton from '../../../toolbox/components/native/AudioMuteButton'
 import VideoMuteButton from '../../../toolbox/components/native/VideoMuteButton';
 import HangupButton from '../../../toolbox/components/HangupButton';
 import ChatButton from '../../../../features/chat/components/native/ChatButton';
+import i18next, { DEFAULT_LANGUAGE, LANGUAGES } from '../../../base/i18n/i18next';
+import AudioPageTranslation from '../../../../AudioPageTranslation';
 import AudioDeviceToggleButton from '../../../mobile/audio-mode/components/AudioDeviceToggleButton';
 import styles, { DESKTOP_ENABLED_ICON, DESKTOP_DISABLED_ICON, ADD_CALL_ICON,
     VIDEO_CALL_DISABLED_ICON,
@@ -184,6 +186,11 @@ class CustomisedToolBox extends Component<Props, *> {
     OpenMelpChat.isAudioMode(true);
 
     console.log("Text---->",text);
+    console.log("this is in app language we sent -->", i18next.language);
+    const getTranslatedText = (key) => {
+        const languageCode = i18next.language || 'en';
+        return AudioPageTranslation[languageCode][key] || key;
+    };
 
 
         return (
@@ -198,7 +205,7 @@ class CustomisedToolBox extends Component<Props, *> {
                     <TouchableHighlight onPress={this._showAttendees} underlayColor={ColorPalette.transparent}>
                         <View style = { styles.toolBoxFunctionContainerStyle }>
                             <Image style = { styles.attendeesIconStyle } source = { isShowingAttendees ? VIEW_ATTENDEES_ENABLED_ICON: VIEW_ATTENDEES_ENABLED_ICON }/>
-                            <Text style = { toolBoxFunctionTextStyle }>ATTENDEES</Text>
+                            <Text style = { toolBoxFunctionTextStyle }>{getTranslatedText('attendees')}</Text>
                         </View>
                     </TouchableHighlight>
                    <TouchableHighlight onPress={this._addToCall} underlayColor={ColorPalette.transparent}>
@@ -240,8 +247,10 @@ class CustomisedToolBox extends Component<Props, *> {
                              {(_onClick) =>
                             (<TouchableHighlight disabled = {isHoldOn} onPress={this._handleSpeakerClick} underlayColor={ColorPalette.transparent}>
                                 <View style = { styles.toolBoxFunctionContainerStyle }>
-                                <Image style={styles.speakerIconStyle} source={icon} />
-                                            <Text style={toolBoxInactiveStyle}>{text}</Text>
+                                {/* <Image style={styles.speakerIconStyle} source={icon} />
+                                            <Text style={toolBoxInactiveStyle}>{text}</Text> */}
+                                <Image style = { styles.speakerIconStyle } source = {isHoldOn ? SPEAKER_DISABLED_ICON : speakerOn ? SPEAKER_ENABLED_ICON : SPEAKER_DISABLED_ICON}/>
+                                            <Text style={toolBoxInactiveStyle} source={isHoldOn ? SPEAKER_DISABLED_ICON : SPEAKER_ENABLED_ICON}>{speakerOn ? 'SPEAKER ON' : 'SPEAKER OFF'}</Text>
                                     {/* <Image style = { styles.speakerIconStyle } source = {isHoldOn ? SPEAKER_DISABLED_ICON : speakerOn ? SPEAKER_ENABLED_ICON : SPEAKER_DISABLED_ICON}/>
                                     <Text style = { toolBoxInactiveStyle }>SPEAKER ON</Text> */}
                                 </View>

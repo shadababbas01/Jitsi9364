@@ -585,7 +585,8 @@ function _sendConferenceEvent(
     switch (type) {
     case CONFERENCE_FAILED:
     case CONFERENCE_LEFT:
-        type_ = CONFERENCE_TERMINATED;
+        // type_ = CONFERENCE_TERMINATED;
+        type_ = CONFERENCE_LEFT;
         break;
     default:
         type_ = type;

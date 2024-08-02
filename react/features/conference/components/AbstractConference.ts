@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { IReduxState } from '../../app/types';
 import { NotificationsContainer } from '../../notifications/components';
 import { shouldDisplayTileView } from '../../video-layout/functions.any';
-import { shouldDisplayNotifications } from '../functions';
+import { shouldDisplayNotifications } from '../functions.any';
 
 /**
  * The type of the React {@code Component} props of {@link AbstractLabels}.

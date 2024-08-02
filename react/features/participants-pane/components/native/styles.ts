@@ -220,7 +220,8 @@ export default {
     inviteButton: {
         marginLeft: BaseTheme.spacing[3],
         marginRight: BaseTheme.spacing[3],
-        marginVertical: BaseTheme.spacing[2]
+        marginVertical: BaseTheme.spacing[3],
+        backgroundColor: '#ee4136' // added by jaswant
     },
 
     breakoutRoomsButton: {

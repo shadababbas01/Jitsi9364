@@ -14,11 +14,11 @@ const toolbarButton = {
     borderWidth: 0,
     flex: 0,
     flexDirection: 'row',
-    height: BUTTON_SIZE,
+    height: 60,
     justifyContent: 'center',
     marginHorizontal: 6,
     marginVertical: 6,
-    width: 60
+    width: 50
 };
 
 /**
@@ -86,7 +86,7 @@ const styles = {
      */
     toolbox: {
         alignItems: 'center',
-        backgroundColor: BaseTheme.palette.uiBackground,
+        // backgroundColor: BaseTheme.palette.uiBackground,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         flexDirection: 'row',
@@ -97,8 +97,9 @@ const styles = {
      * The style of the root/top-level container of {@link Toolbox}.
      */
     toolboxContainer: {
-        backgroundColor: BaseTheme.palette.uiBackground,
+        // backgroundColor: BaseTheme.palette.uiBackground,
         flexDirection: 'column',
+        alignItems: 'center',
         maxWidth: 580,
         marginLeft: 'auto',
         marginRight: 'auto',

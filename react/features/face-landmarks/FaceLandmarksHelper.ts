@@ -73,7 +73,7 @@ export class HumanHelper implements IFaceLandmarksHelper {
     /**
      * Initializes the human helper with the available tfjs backend for the given detection types.
      *
-     * @returns {Promise<void>}
+     * @returns {Promise<void>
      */
     async init(): Promise<void> {
 

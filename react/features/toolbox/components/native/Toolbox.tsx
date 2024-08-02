@@ -104,35 +104,41 @@ function Toolbox(props: IProps) {
                           styles = { buttonStylesBorderless }
                           toggledStyles = { backgroundToggledStyle } />
                         }
-                        { _endConferenceSupported
-                           ? <HangupMenuButton
-                               styles = { hangupMenuButtonStyles }
-                               toggledStyles = { toggledButtonStyles } />
-                           : <HangupButton
-                               styles = { hangupButtonStyles } />
-                }
-                {!_iAmVisitor && <AudioMuteButton
+                        {!_iAmVisitor && <AudioMuteButton
                     styles = { buttonStylesBorderless }
                     toggledStyles = { toggledButtonStyles } />
                 }
+                        {/* added by jaswant { false &&_endConferenceSupported
+                    ? <HangupMenuButton
+                        styles = { hangupMenuButtonStyles }
+                        toggledStyles = { toggledButtonStyles } />
+                    : <HangupButton
+                        styles = { hangupButtonStyles } />
+                } */
+                <HangupButton
+                    styles = { hangupButtonStyles } />
+                }
+                
                 {!_iAmVisitor && <VideoMuteButton
                     styles = { buttonStylesBorderless }
-                    toggledStyles = { toggledButtonStyles } />
+                    // toggledStyles = { toggledButtonStyles } 
+                    />
                 }
                 {/* {additionalButtons.has('chat')
                     && <ChatButton
                         styles = { buttonStylesBorderless }
                         toggledStyles = { backgroundToggledStyle } />
                 } */}
+                { !additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }/>}
                 {!_iAmVisitor && additionalButtons.has('screensharing')
                     && <ScreenSharingButton styles = { buttonStylesBorderless } />}
-                {additionalButtons.has('raisehand') && (_shouldDisplayReactionsButtons
+                {/*additionalButtons.has('raisehand') && (_shouldDisplayReactionsButtons
                     ? <ReactionsMenuButton
-                        styles = { buttonStylesBorderless }
+                        styles = { buttonStylesBoPrderless }
                         toggledStyles = { backgroundToggledStyle } />
                     : <RaiseHandButton
                         styles = { buttonStylesBorderless }
-                        toggledStyles = { backgroundToggledStyle } />)}
+                toggledStyles = { backgroundToggledStyle } />)*/}
                 {additionalButtons.has('tileview') && <TileViewButton styles = { buttonStylesBorderless } />}
                 {!_iAmVisitor && <OverflowMenuButton
                     styles = { buttonStylesBorderless }

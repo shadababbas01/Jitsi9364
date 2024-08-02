@@ -92,14 +92,14 @@ export default class BaseApp<P> extends Component<P, IState> {
             });
 
             await setStatePromise;
-
+            this.state.store?.dispatch(appWillMount(this));
             await this._extraInit();
         } catch (err) {
             /* BaseApp should always initialize! */
             logger.error(err);
         }
 
-        this.state.store?.dispatch(appWillMount(this));
+        // this.state.store?.dispatch(appWillMount(this));
 
         // @ts-ignore
         this._init.resolve();

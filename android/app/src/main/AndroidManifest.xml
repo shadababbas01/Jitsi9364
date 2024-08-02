@@ -23,10 +23,6 @@
         android:windowSoftInputMode="adjustResize">
       <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
       <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-      <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.BROWSABLE" />
         <category android:name="android.intent.category.DEFAULT" />
@@ -34,11 +30,15 @@
         <data android:host="beta.meet.jit.si" android:scheme="https" />
         <data android:host="meet.jit.si" android:scheme="https" />
       </intent-filter>
+
+    </activity>
+    <activity android:name=".DemoClass"
+        android:exported="true"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:supportsPictureInPicture="true">
       <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <data android:scheme="org.jitsi.meet" />
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
   </application>

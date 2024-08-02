@@ -180,7 +180,8 @@ export class App extends AbstractApp<IProps> {
             dispatch(updateSettings({ isPrivateRoom: this.props.url.config.isPrivateRoom,
                 isGroupCall: this.props.url.config.isGroupCall,
                 userPicUrl: this.props.url.config.userPicUrl,
-                teamName: this.props.url.config.teamName }));
+                teamName: this.props.url.config.teamName
+                ,zoomtype:'cover' }));
         }
     }
 

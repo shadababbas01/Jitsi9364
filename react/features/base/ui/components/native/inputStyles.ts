@@ -41,7 +41,7 @@ export default {
     },
 
     inputFocused: {
-        borderColor: BaseTheme.palette.focus01
+        borderColor: '#ee4136' // added by jaswant
     },
 
     inputError: {

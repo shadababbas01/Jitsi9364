@@ -28,6 +28,8 @@ import android.content.Intent;
 
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.text.HtmlCompat;
 
 import android.os.Build;
 
@@ -97,12 +99,13 @@ class OngoingNotification {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setWhen(startingTime)
-            .setUsesChronometer(true)
+            // .setUsesChronometer(true)    // added commented
             .setAutoCancel(false)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(context.getResources().getIdentifier("ic_notification", "drawable", context.getPackageName()));
-
+            .setColor(context.getColor(R.color.red))
+            .setSmallIcon(R.mipmap.melp_logo)
+            .setOngoing(true);
         NotificationCompat.Action hangupAction = createAction(context, JitsiMeetOngoingConferenceService.Action.HANGUP, R.string.ongoing_notification_action_hang_up);
 
         JitsiMeetOngoingConferenceService.Action toggleAudioAction = isMuted
@@ -112,8 +115,11 @@ class OngoingNotification {
 
         builder.addAction(hangupAction);
         builder.addAction(audioAction);
+        Notification notification = builder.build();
 
-        return builder.build();
+        // Set the flags to prevent the notification from being cleared by swipe
+        notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+        return notification;
     }
 
     static void resetStartingtime() {
@@ -125,7 +131,7 @@ class OngoingNotification {
         intent.setAction(action.getName());
         PendingIntent pendingIntent
             = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-        String title = context.getString(titleId);
-        return new NotificationCompat.Action(0, title, pendingIntent);
+            return new NotificationCompat.Action(0, HtmlCompat.fromHtml("<font color=" + ContextCompat.getColor(context, R.color.red) + ">" + context.getString(titleId) + "</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), pendingIntent);
+
     }
 }

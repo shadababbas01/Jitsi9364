@@ -430,7 +430,6 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         if (on) {
 
             audioManager.setSpeakerphoneOn(true);
-
             promise.resolve(true);
 
         } else {

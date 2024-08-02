@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import JitsiScreen from '../../../base/modal/components/JitsiScreen';
-import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { isLocalParticipantModerator ,getParticipantCountRemoteOnly} from '../../../base/participants/functions';
 import { equals } from '../../../base/redux/functions';
 import {
     getBreakoutRooms,
@@ -31,7 +31,9 @@ const BreakoutRooms = () => {
     const rooms = Object.values(useSelector(getBreakoutRooms, equals))
         .filter(room => room.id !== currentRoomId)
         .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
-    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible);
+    const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
+    const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 2;
     const showAutoAssign = useSelector(isAutoAssignParticipantsVisible);
 
     return (
@@ -46,7 +48,7 @@ const BreakoutRooms = () => {
                 /* eslint-disable react/jsx-no-bind */
                 ListHeaderComponent = { () => (
                     <>
-                        { showAutoAssign && <AutoAssignButton /> }
+                        {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
                         { inBreakoutRoom && <LeaveBreakoutRoomButton /> }
                         {
                             isBreakoutRoomsSupported

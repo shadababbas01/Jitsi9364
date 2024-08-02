@@ -244,7 +244,7 @@ class TileView extends PureComponent<IProps> {
             return _remoteParticipants;
         }
 
-        return [ _localParticipant?.id, ..._remoteParticipants ];
+        return [ _localParticipant?.id, ..._remoteParticipants ].reverse();
     }
 
     /**

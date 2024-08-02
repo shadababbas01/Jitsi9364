@@ -4,9 +4,9 @@ import { getFeatureFlag } from '../../base/flags/functions';
 import { MEDIA_TYPE } from '../../base/media/constants';
 import { IProps as AbstractButtonProps } from '../../base/toolbox/components/AbstractButton';
 import BaseVideoMuteButton from '../../base/toolbox/components/BaseVideoMuteButton';
-import { isLocalTrackMuted } from '../../base/tracks/functions';
+import { isLocalTrackMuted } from '../../base/tracks/functions.any';
 import { handleToggleVideoMuted } from '../actions.any';
-import { isVideoMuteButtonDisabled } from '../functions';
+import { isVideoMuteButtonDisabled } from '../functions.native';
 
 /**
  * The type of the React {@code Component} props of {@link AbstractVideoMuteButton}.

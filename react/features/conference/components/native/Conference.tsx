@@ -205,7 +205,7 @@ class Conference extends AbstractConference<IProps, State> {
         this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
         this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
-        this.state = { interval: 0, speakerOn: false, showAttendees:false, connectionStatus: '' };
+        this.state = {interval: 0, speakerOn: false, showAttendees:false, connectionStatus: '' };
         this.secondsToHMS.bind(this);
         this._startTimer =  this._startTimer.bind(this);
         this._stopTimer =  this._stopTimer.bind(this);
@@ -390,6 +390,7 @@ class Conference extends AbstractConference<IProps, State> {
      * Method to startTimer.
      */
   _startTimer() {
+      console.log("asdfghjkl cinference.tsx _startTime()")
     this.intervalObj = setInterval(() => {
         this.setState({ interval: this.state.interval + 1 });
     }, 1000);

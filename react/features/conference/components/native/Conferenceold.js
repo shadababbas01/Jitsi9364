@@ -23,6 +23,7 @@ import {
     ASPECT_RATIO_NARROW,
     ASPECT_RATIO_WIDE
 } from '../../../base/responsive-ui/constants';
+import { updateSettings } from '../../../base/settings/actions';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
@@ -57,7 +58,7 @@ import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
-
+const DOUBLE_PRESS_DELAY = 300;
 var totalUser = '0';
 
 /**
@@ -312,7 +313,24 @@ class Conference extends AbstractConference<Props, State> {
      * @returns {void}
      */
     _onClick() {
-        this._setToolboxVisible(!this.props._toolboxVisible);
+        // this._setToolboxVisible(!this.props._toolboxVisible);
+
+        const currentTime = new Date().getTime();
+        const timeDiff = currentTime - this.lastClickTime;
+
+        if (timeDiff < DOUBLE_PRESS_DELAY) {
+            const { dispatch ,objectFit} = this.props;
+            if (objectFit === 'cover') {
+                dispatch(updateSettings({ zoomtype: 'contain' }));
+            } else {
+                dispatch(updateSettings({ zoomtype: 'cover' }));
+            }
+        } else {
+            // Handle single click
+            this._setToolboxVisible(!this.props._toolboxVisible);
+        }
+
+        this.lastClickTime = currentTime;
     }
 
     _onHardwareBackPress: () => boolean;
@@ -616,7 +634,8 @@ function _mapStateToProps(state) {
         _shouldEnableAutoKnock: shouldEnableAutoKnock(state),
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
-        _toolboxVisible: isToolboxVisible(state)
+        _toolboxVisible: isToolboxVisible(state),
+        objectFit: state['features/base/settings'].zoomtype
     };
 }
 

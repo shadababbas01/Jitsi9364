@@ -20,7 +20,7 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
 	</natures>
-		<filteredResources>
+	<filteredResources>
 		<filter>
 			<id>1684495706653</id>
 			<name></name>

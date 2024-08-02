@@ -35,6 +35,7 @@ const DEFAULT_STATE: ISettingsState = {
     soundsParticipantLeft: true,
     soundsTalkWhileMuted: true,
     soundsReactions: true,
+    zoomtype: 'cover',
     startAudioOnly: false,
     startCarMode: false,
     startWithAudioMuted: false,
@@ -72,6 +73,7 @@ export interface ISettingsState {
     soundsParticipantKnocking?: boolean;
     soundsParticipantLeft?: boolean;
     soundsReactions?: boolean;
+    zoomtype?: string;
     soundsTalkWhileMuted?: boolean;
     startAudioOnly?: boolean;
     startCarMode?: boolean;

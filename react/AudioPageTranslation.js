@@ -1,0 +1,68 @@
+const AudioPageTranslation = {
+    en: {
+        conferenceCall: 'CONFERENCE CALL',
+        startedCallWith: 'STARTED CALL WITH',
+        encrypted: 'ENCRYPTED',
+        dialpad: 'DIALPAD',
+        attendees: 'ATTENDEES',
+        addcall: 'ADD CALL',
+        mute: 'MUTE',
+        videoCall: 'VIDEO CALL',
+        speakeron: 'SPEAKER ON',
+        speakeroff: 'SPEAKER OFF',
+        message: 'MESSAGE',
+        endcall: 'END CALL',
+        hold: 'HOLD',
+        connecting: 'Connecting...',
+        connected: 'Connected',
+        reconnecting: 'Reconnecting...',
+        calling: 'Calling...',
+        ringing: 'Ringing...',
+        callerdetail: 'Conference Call'
+    },
+    es: {
+        conferenceCall: 'LLAMADA DE CONFERENCIA',
+        startedCallWith: 'LLAMADA INICIADA CON',
+        encrypted: 'ENCRIPTADO',
+        dialpad: 'TECLADO',
+        attendees: 'ASISTENTES',
+        addcall: 'AGREGAR LLAMADA',
+        mute: 'SILENCIAR',
+        videoCall: 'LLAMADA DE VIDEO',
+        speakeron: 'ALTAVOZ ENCENDIDO',
+        speakeroff: 'ALTAVOZ APAGADO',
+        message: 'MENSAJE',
+        endcall: 'FINALIZAR LLAMADA',
+        hold: 'ESPERA',
+        connecting: 'Conectando...',
+        connected: 'Conectado',
+        reconnecting: 'Reconectando...',
+        calling: 'Llamando...',
+        ringing: 'Sonando...',
+        callerdetail: 'Llamada de Conferencia'
+    },
+    pt: {
+        conferenceCall: 'CHAMADA DE CONFERʎCIA',
+        startedCallWith: 'INICIADA CHAMADA COM',
+        encrypted: 'ENCRYPTADO',
+        dialpad: 'TECLADO',
+        attendees: 'PARTICIPANTES',
+        addcall: 'ADICIONAR CHAMADA',
+        mute: 'MUDO',
+        videoCall: 'CHAMADA DE V̈́EO',
+        speakeron: 'ALTO-FALANTE LIGADO',
+        speakeroff: 'ALTO-FALANTE DESLIGADO',
+        message: 'MENSAGEM',
+        endcall: 'ENCERRAR CHAMADA',
+        hold: 'ESPERA',
+        connecting: 'Conectando...',
+        connected: 'Conectado',
+        reconnecting: 'Reconectando...',
+        calling: 'Chamando...',
+        ringing: 'Tocando...',
+        callerdetail: 'Chamada de Conferꮣia'
+    }
+};
+
+export default AudioPageTranslation;
+

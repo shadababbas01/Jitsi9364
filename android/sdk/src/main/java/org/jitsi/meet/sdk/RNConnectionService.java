@@ -110,11 +110,10 @@ class RNConnectionService extends ReactContextBaseJavaModule {
         ReactApplicationContext ctx = getReactApplicationContext();
 
         Uri address = Uri.fromParts(PhoneAccount.SCHEME_SIP, handle, null);
-        PhoneAccountHandle accountHandle;
+        PhoneAccountHandle accountHandle = null;        //added
 
         try {
-            accountHandle
-                = ConnectionService.registerPhoneAccount(getReactApplicationContext(), address, callUUID);
+            // accountHandle = ConnectionService.registerPhoneAccount(getReactApplicationContext(), address, callUUID);
         } catch (Throwable tr) {
             JitsiMeetLogger.e(tr, TAG + " error in startCall");
 
@@ -132,13 +131,13 @@ class RNConnectionService extends ReactContextBaseJavaModule {
                 ? VideoProfile.STATE_BIDIRECTIONAL
                 : VideoProfile.STATE_AUDIO_ONLY);
 
-        ConnectionService.registerStartCallPromise(callUUID, promise);
+        // ConnectionService.registerStartCallPromise(callUUID, promise);
 
         TelecomManager tm = null;
 
         try {
             tm = (TelecomManager) ctx.getSystemService(Context.TELECOM_SERVICE);
-            tm.placeCall(address, extras);
+            // tm.placeCall(address, extras);
         } catch (Throwable tr) {
             JitsiMeetLogger.e(tr, TAG + " error in startCall");
             if (tm != null) {

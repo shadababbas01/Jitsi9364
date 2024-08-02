@@ -15,7 +15,7 @@ const RaisedHandsCountLabel = () => {
     return raisedHandsCount > 0 ? (
         <Label
             icon = { IconRaiseHand }
-            iconColor = { BaseTheme.palette.uiBackground }
+            // iconColor = { aseTheme.palette.uiBackground }
             style = { styles.raisedHandsCountLabel }
             text = { `${raisedHandsCount}` }
             textStyle = { styles.raisedHandsCountLabelText } />

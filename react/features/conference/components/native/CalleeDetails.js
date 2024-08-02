@@ -15,6 +15,12 @@ const { AudioMode } = NativeModules;
 var updatedcallerDetails = "", updatedConnectionStatus = "", totalUser ="0", isFirstTimeAudioCall = true;
 
 class CalleeDetails extends Component {
+    componentWillUnmount() {
+        updatedConnectionStatus = ""; 
+        updatedcallerDetails =  "";
+        connectionState = "";
+        totalUser = "0";
+    }
     render() {
 
         let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState} = this.props;   
@@ -36,7 +42,7 @@ class CalleeDetails extends Component {
         if(isTeamsCall){
             participantText = decodeURI(roomName);
         }else {
-            participantText = callerName.split(' ')[0];
+            participantText = callerName;
             updatedcallerDetails = callerDetails;
             if(participants.length>1){
                 const filterarray =  participants.filter(p => !p.local)
@@ -46,7 +52,7 @@ class CalleeDetails extends Component {
                         break;
                     }
                  }
-                participantText = participantText + " + "+ `${this.props.participantsCount-1}` +" and others"
+                 participantText = participantText + " + "+ `${this.props.participantsCount-1}` +" Others"
                 callerDetails = 'Conference Call'
                 NativeModules.NativeCallsNew.updatedUserName(participantText);
             }
@@ -121,15 +127,15 @@ function _mapStateToProps(state: Object, ownProps: Props) {
     const participantsMap = getParticipants(state);
     var participants = [];
     
-    // for(const [id, participant] of participantsMap){
-    //     participants.push(participant);
-    // }
+    for(const [id, participant] of participantsMap){
+        participants.push(participant);
+    }
     const participantsCount = getParticipantCountRemoteOnly(state);
 
     
     if(totalUser!=participantsCount){
         totalUser = participantsCount;
-    // NativeModules.NativeCallsNew.totalUsers(participantsCount);
+    NativeModules.NativeCallsNew.totalUsers(participantsCount);
     }
 
 
@@ -138,8 +144,8 @@ function _mapStateToProps(state: Object, ownProps: Props) {
     const _settings = state['features/base/settings'];
     const otherParticipants = participants.filter(p => p.id!==localParticipant.id);
     
-    const callerName = _settings.callerName || 'abcd';
-    const callerDetails = _settings.callerDetails || 'hjkl';
+    const callerName = _settings.callerName || '';
+    const callerDetails = _settings.callerDetails || '';
     return {
             participants,
             otherParticipants,

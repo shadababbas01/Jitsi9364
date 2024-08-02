@@ -33,7 +33,7 @@ class ChatButton extends AbstractButton<IProps> {
     accessibilityLabel = 'toolbar.accessibilityLabel.chat';
     icon = IconMessage;
     label = 'toolbar.chat';
-    toggledIcon = IconChatUnread;
+    toggledIcon = IconMessage;
 
     /**
      * Handles clicking / pressing the button, and opens the appropriate dialog.
@@ -45,6 +45,8 @@ class ChatButton extends AbstractButton<IProps> {
         // this.props._isPollsDisabled
         //     ? navigate(screen.conference.chat)
         //     : navigate(screen.conference.chatandpolls.main);
+         // this.props._isPollsDisabled  ? navigate(screen.conference.chat) : navigate(screen.conference.chatandpolls.main);
+
         NativeModules.NativeCallsNew.OpenChat();
     }
 

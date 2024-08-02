@@ -609,7 +609,7 @@ class VideoTransform extends Component<IProps, IState> {
 
             this.initialPosition = position;
 
-            this._onGesture('move', move);
+            // this._onGesture('move', move);
         }
     }
 

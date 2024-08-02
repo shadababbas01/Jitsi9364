@@ -9,6 +9,7 @@ export default {
     },
 
     displayNamePadding: {
+        //padding: BaseTheme.spacing[1],
         paddingRight: 6,
         paddingLeft: 6
     },

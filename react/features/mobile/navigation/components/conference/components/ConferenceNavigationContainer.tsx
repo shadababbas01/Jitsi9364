@@ -78,6 +78,7 @@ import {
     conferenceNavigationRef
     // @ts-ignore
 } from '../ConferenceNavigationContainerRef';
+import { HeaderTitle } from '@react-navigation/elements';
 
 
 const ConferenceStack = createStackNavigator();
@@ -149,6 +150,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.liveStream }
                     options = {{
                         ...liveStreamScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('liveStreaming.title')
                     }} />
                 <ConferenceStack.Screen
@@ -192,6 +194,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.sharedDocument }
                     options = {{
                         ...sharedDocumentScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('documentSharing.title')
                     }} />
                 <ConferenceStack.Screen
@@ -205,6 +208,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.carmode }
                     options = {{
                         ...carmodeScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('carmode.labels.title')
                     }} />
                 <ConferenceStack.Screen

@@ -17,6 +17,7 @@
 package org.jitsi.meet.sdk;
 
 import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -57,6 +58,7 @@ public class ReactInstanceManagerHolder {
      * React Native bridge. The instance manager allows embedding applications
      * to create multiple root views off the same JavaScript bundle.
      */
+    private static Context mContext;
     private static ReactInstanceManager reactInstanceManager;
 
     private static List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
@@ -174,15 +176,16 @@ public class ReactInstanceManagerHolder {
             @Nullable Object data) {
         ReactInstanceManager reactInstanceManager
             = ReactInstanceManagerHolder.getReactInstanceManager();
-
+            System.out.println("This is event emit 1");
         if (reactInstanceManager != null) {
             ReactContext reactContext
                 = reactInstanceManager.getCurrentReactContext();
-
+                System.out.println("This is event emit 2");
             if (reactContext != null) {
                 reactContext
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                     .emit(eventName, data);
+                    System.out.println("This is event emit 3");
             }
         }
     }
@@ -217,6 +220,13 @@ public class ReactInstanceManagerHolder {
             = reactInstanceManager != null
             ? reactInstanceManager.getCurrentReactContext() : null;
         return reactContext != null ? reactContext.getCurrentActivity() : null;
+    }
+
+    public static void setCurrentActivity(Activity context){
+        mContext = context;
+    }
+    public static Activity getExtraActivity(){
+        return (Activity) mContext;
     }
 
     static ReactInstanceManager getReactInstanceManager() {

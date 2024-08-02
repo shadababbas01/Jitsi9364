@@ -1,4 +1,4 @@
-import React from 'react';
+import React ,{useState,useEffect}from 'react';
 import { Text, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
@@ -13,6 +13,7 @@ import { isParticipantsPaneEnabled } from '../../../participants-pane/functions'
 import { isRoomNameEnabled } from '../../../prejoin/functions';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import ZoomButton from '../../../toolbox/components/native/ZoomButton';
 import ConferenceTimer from '../ConferenceTimer';
 
 import Labels from './Labels';
@@ -99,6 +100,9 @@ const TitleBar = (props: IProps) => {
                 <ToggleCameraButton styles = { styles.titleBarButton } />
             </View>
             <View style = { styles.titleBarButtonContainer }>
+                <ZoomButton styles = { styles.titleBarButton } />
+            </View>
+            <View style = { styles.titleBarButtonContainer }>
                 <AudioDeviceToggleButton styles = { styles.titleBarButton } />
             </View>
             {
@@ -121,13 +125,14 @@ const TitleBar = (props: IProps) => {
 function _mapStateToProps(state: IReduxState) {
     const { hideConferenceTimer } = state['features/base/config'];
     const startTimestamp = getConferenceTimestamp(state);
-
+    const zoomtype = state['features/base/settings'].zoomtype;
     return {
         _conferenceTimerEnabled:
             Boolean(getFeatureFlag(state, CONFERENCE_TIMER_ENABLED, true) && !hideConferenceTimer && startTimestamp),
         _isParticipantsPaneEnabled: isParticipantsPaneEnabled(state),
         _meetingName: getConferenceName(state),
         _roomNameEnabled: isRoomNameEnabled(state),
+        _zoomtype: zoomtype,
         _visible: isToolboxVisible(state)
     };
 }
