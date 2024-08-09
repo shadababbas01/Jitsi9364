@@ -165,7 +165,7 @@ public class MainActivity extends JitsiMeetActivity {
             = new JitsiMeetConferenceOptions.Builder()
             // .setServerURL(buildURL("https://devmeet.melp.us/"))
             .setFeatureFlag("welcomepage.enabled", false)
-            .setServerURL(buildURL(defaultURL))
+            .setServerURL(buildURL("https://meet.jit.si/"))
             .setFeatureFlag("resolution", 360)
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             //.setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJtZWxwX2NvbmYiLCJzdWIiOiJtZWV0ZGV2Lm1lbHAudXMiLCJtb2RlcmF0b3IiOnRydWUsImlzcyI6Im1lbHBfY29uZl84IiwiY29udGV4dCI6eyJjYWxsZWUiOnsibmFtZSI6IiIsImlkIjoiMTU4NDM2Mzg1NSIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6Ikphc3dhbnQgU2FpbmkiLCJpZCI6IjE1ODQzNjM4NTUiLCJhdmF0YXIiOiJodHRwczovL2Nkbm1lZGlhLWZtLm1lbHBhcHAuY29tLy0yMzc0NzU5NTMvOTc2NkAxNjY4NjY4NjA3ODQwLmpwZz9zZXNzaW9uaWQ9OHF4ODB3d2ZpajI4JmlzdGh1bWI9MSIsImVtYWlsIjoiMTU4NDM2Mzg1NUBtZWxwLmNvbSJ9LCJncm91cCI6Im9uZXRvb25lIn0sImlhdCI6MTY5NDc4MzI0MSwicm9vbSI6IjJjMzc3NWVjMzc4YzJhNTk5NWFiNTU3NmZhZmRkMzVkIiwicm9vbU5hbWUiOiJKYXN3YW50IFNhaW5pIiwiZXhwIjoxNjk0ODI2NDQxfQ.WGxhOk-csIhljFImVbXQOLJ1NSmTuH27bDFRg2itg3g")
@@ -175,7 +175,7 @@ public class MainActivity extends JitsiMeetActivity {
             .setIncomingCallInfo(new IncomingCallInfo("Shadab","", "title",false))
             .setGroupCall(false)
             .setPrivateRoom(false)
-            .setAudioOnly(true)
+            .setAudioOnly(false)
             .build();
         JitsiMeet.setDefaultConferenceOptions(defaultOptions);
         new Handler().postDelayed(new Runnable() {
@@ -183,7 +183,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                        .setRoom("2c3775ec378c2a5995ab5576fafdd35d")
+                        .setRoom("excel")
                         .build();
                 join(defaultOptions1);
             }

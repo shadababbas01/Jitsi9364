@@ -1791,6 +1791,7 @@ export default {
         room.on(
             JitsiConferenceEvents.CONFERENCE_CREATED_TIMESTAMP,
             conferenceTimestamp => APP.store.dispatch(conferenceTimestampChanged(conferenceTimestamp)));
+            console.log('this is conference.');
 
         room.on(
             JitsiConferenceEvents.DISPLAY_NAME_CHANGED,

@@ -347,9 +347,9 @@ class Conference extends AbstractConference<IProps, State> {
     _setSpeakerState(speakerOn){
         this.setState({speakerOn});
     }
-    _startTimer: () => void
-    _stopTimer: () => void
-    _connectionStatus :() => void
+    // _startTimer: () => void
+    // _stopTimer: () => void
+    // _connectionStatus :() => void
     _onClick() {
         this._setToolboxVisible(!this.props._toolboxVisible);
     }
@@ -415,6 +415,7 @@ for (const [id, attendee] of participants) {
  */
  _stopTimer() {
     clearInterval(this.intervalObj);
+    console.log('this is conference stop timer')
 }
 /**
  * Method to set connection status.
@@ -427,9 +428,9 @@ _connectionStatus(event) {
  * Method to set State of speaker
  * @param {*} speakerOn
  */
-_setSpeakerState(speakerOn){
-    this.setState({speakerOn});
-}
+// _setSpeakerState(speakerOn){
+//     this.setState({speakerOn});
+// }
     /**
      * Renders the conference notification badge if the feature is enabled.
      *

@@ -124,7 +124,7 @@ const TitleBar = (props: IProps) => {
  */
 function _mapStateToProps(state: IReduxState) {
     const { hideConferenceTimer } = state['features/base/config'];
-    const startTimestamp = getConferenceTimestamp(state);
+    const startTimestamp = state['features/base/conference']
     const zoomtype = state['features/base/settings'].zoomtype;
     return {
         _conferenceTimerEnabled:
