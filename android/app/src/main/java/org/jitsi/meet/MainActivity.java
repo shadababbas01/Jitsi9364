@@ -163,12 +163,12 @@ public class MainActivity extends JitsiMeetActivity {
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            // .setServerURL(buildURL("https://devmeet.melp.us/"))
+            .setServerURL(buildURL("https://meetdev.melp.us/"))
             .setFeatureFlag("welcomepage.enabled", false)
-            .setServerURL(buildURL("https://meet.jit.si/"))
+            // .setServerURL(buildURL("https://meet.jit.si/"))
             .setFeatureFlag("resolution", 360)
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
-            //.setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJtZWxwX2NvbmYiLCJzdWIiOiJtZWV0ZGV2Lm1lbHAudXMiLCJtb2RlcmF0b3IiOnRydWUsImlzcyI6Im1lbHBfY29uZl84IiwiY29udGV4dCI6eyJjYWxsZWUiOnsibmFtZSI6IiIsImlkIjoiMTU4NDM2Mzg1NSIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6Ikphc3dhbnQgU2FpbmkiLCJpZCI6IjE1ODQzNjM4NTUiLCJhdmF0YXIiOiJodHRwczovL2Nkbm1lZGlhLWZtLm1lbHBhcHAuY29tLy0yMzc0NzU5NTMvOTc2NkAxNjY4NjY4NjA3ODQwLmpwZz9zZXNzaW9uaWQ9OHF4ODB3d2ZpajI4JmlzdGh1bWI9MSIsImVtYWlsIjoiMTU4NDM2Mzg1NUBtZWxwLmNvbSJ9LCJncm91cCI6Im9uZXRvb25lIn0sImlhdCI6MTY5NDc4MzI0MSwicm9vbSI6IjJjMzc3NWVjMzc4YzJhNTk5NWFiNTU3NmZhZmRkMzVkIiwicm9vbU5hbWUiOiJKYXN3YW50IFNhaW5pIiwiZXhwIjoxNjk0ODI2NDQxfQ.WGxhOk-csIhljFImVbXQOLJ1NSmTuH27bDFRg2itg3g")
+            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJtZWxwX2NvbmYiLCJzdWIiOiJtZWV0ZGV2Lm1lbHAudXMiLCJtb2RlcmF0b3IiOnRydWUsImlzcyI6Im1lbHBfY29uZl84IiwiY29udGV4dCI6eyJjYWxsZWUiOnsibmFtZSI6IiIsImlkIjoiODhwOHZtZDIiLCJhdmF0YXIiOiIiLCJlbWFpbCI6IiJ9LCJ1c2VyIjp7Im5hbWUiOiJTaGFkYWIgQWJiYXMiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiaHR0cHM6Ly91cy1hcGkubWVscC51cy9kb3dubG9hZC92MC84OHA4dm1hbXVrOHcvZDQyOEB1c2VyLmpwZWc_c2Vzc2lvbmlkPTluZ3ZkYjB6OWFmNCZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzIzNDczOTkwLCJyb29tIjoiZDExMWNkZDY1ODkxZDI5MzZlZDY1ODY2YTZjODc0YSIsInJvb21OYW1lIjoiU2hhZGFiIEFiYmFzIiwiZXhwIjoxNzIzNTE3MTkwfQ.AEySLeW4lpkuVBYdt12iRNh0HPLIYu2gTr7XLowNlGI")
             .setTeamName("Melp Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion")
             .setUserPicUrl("https://i.pinimg.com/originals/62/ae/fb/62aefb044922a5a847546e30b9036913.jpg")
             .setFeatureFlag("call-integration.enabled", false)
@@ -183,7 +183,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                        .setRoom("excel")
+                        .setRoom("d111cdd65891d2936ed65866a6c874a")
                         .build();
                 join(defaultOptions1);
             }

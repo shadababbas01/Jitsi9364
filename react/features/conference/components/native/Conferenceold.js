@@ -504,7 +504,7 @@ class Conference extends AbstractConference<Props, State> {
                         pointerEvents = 'box-none'
                         style = { alwaysOnTitleBarStyles }>
                         {/* eslint-disable-next-line react/jsx-no-bind */}
-                        <AlwaysOnLabels createOnPress = { this._createOnPress } />
+                        <AlwaysOnLabels createOnPress = { this._createOnPress } show={true} />
                     </View>
                 </SafeAreaView>
 

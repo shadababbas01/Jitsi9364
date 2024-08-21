@@ -20,7 +20,7 @@ const AudioPageTranslation = {
         ringing: 'Ringing...',
         callerdetail: 'Conference Call'
     },
-    es: {
+    esUS: {
         conferenceCall: 'LLAMADA DE CONFERENCIA',
         startedCallWith: 'LLAMADA INICIADA CON',
         encrypted: 'ENCRIPTADO',

@@ -2,7 +2,7 @@ import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry'
 import { schemeColor } from '../../../base/color-scheme/functions';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
-const BUTTON_SIZE = 50;
+const BUTTON_SIZE = 42;
 
 // Toolbox, toolbar:
 
@@ -14,11 +14,15 @@ const toolbarButton = {
     borderWidth: 0,
     flex: 0,
     flexDirection: 'row',
-    height: 60,
+    height: BUTTON_SIZE,
     justifyContent: 'center',
-    marginHorizontal: 6,
+    marginHorizontal: 11,
     marginVertical: 6,
-    width: 50
+    width: BUTTON_SIZE,
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 3.84,
 };
 
 /**
@@ -27,7 +31,7 @@ const toolbarButton = {
 const toolbarButtonIcon = {
     alignSelf: 'center',
     color: BaseTheme.palette.icon04,
-    fontSize: 40
+    fontSize: 42
 };
 
 
@@ -130,7 +134,7 @@ ColorSchemeRegistry.register('Toolbox', {
         iconStyle: whiteToolbarButtonIcon,
         style: {
             ...toolbarButton,
-            backgroundColor: 'transparent'
+            backgroundColor: 'grey'
         },
         underlayColor: 'transparent'
     },

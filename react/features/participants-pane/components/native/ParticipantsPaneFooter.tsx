@@ -11,7 +11,7 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import Icon from '../../../base/icons/components/Icon';
-import { IconDotsHorizontal, IconRingGroup } from '../../../base/icons/svg';
+import { IconDotsHorizontal, IconRingGroup,IconDotsHorizontalBlack  } from '../../../base/icons/svg';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import Button from '../../../base/ui/components/native/Button';
 import IconButton from '../../../base/ui/components/native/IconButton';
@@ -82,7 +82,7 @@ const ParticipantsPaneFooter = (): JSX.Element => {
                     showMoreActions && (
                         <IconButton
                             onPress = { openMoreMenu }
-                            src = { IconDotsHorizontal }
+                            src = { IconDotsHorizontalBlack }
                             style = { styles.moreButton }
                             type = { BUTTON_TYPES.SECONDARY } />
                     )

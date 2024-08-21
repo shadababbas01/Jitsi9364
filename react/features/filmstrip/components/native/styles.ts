@@ -1,3 +1,4 @@
+import { ColorPalette } from '../../../base/styles/components/styles/ColorPalette';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { SMALL_THUMBNAIL_SIZE } from '../../constants';
 
@@ -157,8 +158,8 @@ export default {
     },
 
     raisedHandIndicator: {
-        ...indicatorContainer
-       // backgroundColor: '#9c9696'
+        ...indicatorContainer,
+       backgroundColor: '#000000'
     },
 
     raisedHandIcon: {
@@ -178,5 +179,16 @@ export default {
     thumbnailGif: {
         flexGrow: 1,
         resizeMode: 'contain'
+    },
+    indicator: {
+        backgroundColor: 'red',
+        //padding: 2,
+        color: ColorPalette.white,
+        fontSize: 14,
+        //textShadowColor: ColorPalette.black,
+        textShadowOffset: {
+            height: -1,
+            width: 0
+        }
     }
 };

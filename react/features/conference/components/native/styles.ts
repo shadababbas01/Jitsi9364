@@ -761,12 +761,12 @@ export default {
 
     raisedHandsCountLabel: {
         alignItems: 'center',
-      //  backgroundColor: BaseTheme.palette.warning02, // added by jaswant
+       backgroundColor: "grey", // added by jaswant
         borderRadius: BaseTheme.shape.borderRadius,
         flexDirection: 'row',
         marginBottom: BaseTheme.spacing[0],
         marginLeft: BaseTheme.spacing[0]
-    },
+    }, 
 
     raisedHandsCountLabelText: {
         color: '#fff',        // added by jaswant

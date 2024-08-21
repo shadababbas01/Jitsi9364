@@ -532,7 +532,7 @@ _connectionStatus(event) {
                         pointerEvents = 'box-none'
                         style = { styles.alwaysOnTitleBar }>
                         {/* eslint-disable-next-line react/jsx-no-bind */}
-                        <AlwaysOnLabels createOnPress = { this._createOnPress } />
+                        <AlwaysOnLabels createOnPress = { this._createOnPress } show={false} />
                     </View>
                 </SafeAreaView>
 

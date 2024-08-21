@@ -114,7 +114,12 @@ export const TINTED_VIEW_DEFAULT = {
 
 export const BASE_INDICATOR = {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+   
+    display: 'flex',
+
+    height: 18,
+    width: 18
 };
 
 const iconButtonContainer = {

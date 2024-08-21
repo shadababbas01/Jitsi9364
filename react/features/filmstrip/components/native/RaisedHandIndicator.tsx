@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { IReduxState } from '../../../app/types';
 import { IconRaiseHand } from '../../../base/icons/svg';
 import { getParticipantById, hasRaisedHand } from '../../../base/participants/functions';
-import BaseIndicator from '../../../base/react/components/native/BaseIndicator';
+import BaseIndicator from '../../../base/react/components/native/BaseIndicatorRaiseHand';
 
 import styles from './styles';
 

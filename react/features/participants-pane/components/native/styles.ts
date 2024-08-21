@@ -206,7 +206,7 @@ export default {
         height: 128,
         left: 0,
         paddingHorizontal: BaseTheme.spacing[4],
-        right: 0
+        right: 0,
     },
 
     participantsPaneFooter: {
@@ -221,7 +221,7 @@ export default {
         marginLeft: BaseTheme.spacing[3],
         marginRight: BaseTheme.spacing[3],
         marginVertical: BaseTheme.spacing[3],
-        backgroundColor: '#ee4136' // added by jaswant
+        backgroundColor: '#ee4136' // added by Shadab
     },
 
     breakoutRoomsButton: {
@@ -230,7 +230,7 @@ export default {
     },
 
     moreButton: {
-        marginLeft: BaseTheme.spacing[2]
+        marginLeft: BaseTheme.spacing[2],
     },
 
     contextMenuItem: {

@@ -298,6 +298,7 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
         requireDisplayName
     } = getState()['features/base/config'];
 
+    console.log('conference joined')
     dispatch(removeLobbyChatParticipant(true));
 
     pendingSubjectChange && dispatch(setSubject(pendingSubjectChange));

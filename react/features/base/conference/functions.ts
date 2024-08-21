@@ -367,8 +367,27 @@ export function getConferenceTimestamp(stateful: IStateful) {
     const state = toState(stateful);
     const { conferenceTimestamp } = getConferenceState(state);
     console.log("getConferenceTimeStamp: ", conferenceTimestamp)
+    let startTime = Date.now(); // Get the current time in milliseconds
+    let elapsedTime = 0; // Initial elapsed time in seconds
 
-    return conferenceTimestamp;
+    // Update the timer every second
+    const timerInterval = setInterval(() => {
+        elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Calculate elapsed time in seconds
+    }, 1000); 
+
+    return getEpochTimeFromElapsed(elapsedTime);
+}
+const startTime = Date.now();
+
+function getEpochTimeFromElapsed(elapsedTime) {
+    const currentEpochTime = startTime + (elapsedTime * 1000); // Convert seconds to milliseconds
+    return currentEpochTime;
+}
+// Function to format time in MM:SS format
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 }
 
 /**
