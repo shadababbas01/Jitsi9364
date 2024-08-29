@@ -19,6 +19,8 @@ import styles, { DESKTOP_ENABLED_ICON, DESKTOP_DISABLED_ICON, ADD_CALL_ICON,
     SPEAKER_DISABLED_ICON,
     VIEW_ATTENDEES_DISABLED_ICON,
     END_CALL_ICON,
+    S_END_CALL_ICON,
+    P_END_CALL_ICON,
     AUDIO_MUTE_ENABLED_ICON,
     SPEAKER_TEAMS_INACTIVE_ICON,
     SPEAKER_ONE_TO_ONE_INACTIVE_ICON,
@@ -191,6 +193,27 @@ class CustomisedToolBox extends Component<Props, *> {
         const languageCode = i18next.language || 'en';
         return AudioPageTranslation[languageCode][key] || key;
     };
+    function formatString(input) {
+        // Convert the string to lowercase
+        let lowerCaseString = input.toLowerCase();
+    
+        // Remove all spaces from the string
+        let formattedString = lowerCaseString.replace(/\s+/g, '');
+    
+        return formattedString;
+    }
+
+    let ecndCallIcon;
+    if(i18next.language==='esUS'){
+        ecndCallIcon= S_END_CALL_ICON;
+
+     }
+     else if(i18next.language==='ptBR'){
+        ecndCallIcon= P_END_CALL_ICON;
+     }
+     else{
+        ecndCallIcon= END_CALL_ICON
+     }
 
 
         return (
@@ -199,7 +222,7 @@ class CustomisedToolBox extends Component<Props, *> {
                 <TouchableHighlight onPress={this._desktopIconClicked} underlayColor={ColorPalette.transparent}>
                     <View style = { styles.toolBoxFunctionContainerStyle }>
                         <Image style = { styles.desktopIconStyle } source = { DESKTOP_DISABLED_ICON }/>
-                        <Text style = { styles.toolBoxFunctionTextDisableDialpadStyle }>DIALPAD</Text>
+                        <Text style = { styles.toolBoxFunctionTextDisableDialpadStyle }>{getTranslatedText("dialpad")}</Text>
                     </View>
                     </TouchableHighlight>
                     <TouchableHighlight onPress={this._showAttendees} underlayColor={ColorPalette.transparent}>
@@ -211,7 +234,7 @@ class CustomisedToolBox extends Component<Props, *> {
                    <TouchableHighlight onPress={this._addToCall} underlayColor={ColorPalette.transparent}>
                         <View style = { styles.toolBoxFunctionContainerStyle }>
                             <Image style = { styles.addCallIconStyle } source = { ADD_CALL_ICON }/>
-                            <Text style = { toolBoxFunctionTextStyle }>ADD CALL</Text>
+                            <Text style = { toolBoxFunctionTextStyle }>{getTranslatedText("addcall")}</Text>
                         </View>
                     </TouchableHighlight>
 
@@ -225,7 +248,7 @@ class CustomisedToolBox extends Component<Props, *> {
                             {(isMuted, onClick) => (<TouchableHighlight disabled = {isHoldOn} onPress={onClick} underlayColor={ColorPalette.transparent}>
                                 <View style = { styles.toolBoxFunctionContainerStyle }>
                                 <Image source={isHoldOn ? AUDIO_MUTE_DISABLED_ICON : isMuted ? AUDIO_MUTE_ENABLED_ICON : AUDIO_MUTE_DISABLED_ICON} style={styles.muteIconStyle} />
-                                <Text style={toolBoxInactiveStyle}>MUTE</Text>
+                                <Text style={toolBoxInactiveStyle}>{getTranslatedText("mute")}</Text>
                                 </View>
                             </TouchableHighlight>)
                             }
@@ -237,20 +260,18 @@ class CustomisedToolBox extends Component<Props, *> {
                             <TouchableHighlight  disabled = {isHoldOn} onPress={_onClick} underlayColor={ColorPalette.transparent}>
                                 <View style={styles.toolBoxFunctionContainerStyle}>
                                 <Image style={styles.videoIconStyle} source={isHoldOn ? VIDEO_CALL_DISABLED_ICON : !_isVideoMuted ? VIDEO_CALL_ENABLED_ICON :  VIDEO_CALL_DISABLED_ICON} />
-                                    <Text style={toolBoxInactiveStyle}>VIDEO CALL</Text>
+                                    <Text style={toolBoxInactiveStyle}>{getTranslatedText("videoCall")}</Text>
                                 </View>
                             </TouchableHighlight>
                             )
                             }
                         </VideoMuteButton>
                         <AudioDeviceToggleButton>
-                             {(_onClick) =>
+                        {(_onClick) =>
                             (<TouchableHighlight disabled = {isHoldOn} onPress={this._handleSpeakerClick} underlayColor={ColorPalette.transparent}>
                                 <View style = { styles.toolBoxFunctionContainerStyle }>
-                                {/* <Image style={styles.speakerIconStyle} source={icon} />
-                                            <Text style={toolBoxInactiveStyle}>{text}</Text> */}
-                                <Image style = { styles.speakerIconStyle } source = {isHoldOn ? SPEAKER_DISABLED_ICON : speakerOn ? SPEAKER_ENABLED_ICON : SPEAKER_DISABLED_ICON}/>
-                                            <Text style={toolBoxInactiveStyle} source={isHoldOn ? SPEAKER_DISABLED_ICON : SPEAKER_ENABLED_ICON}>{speakerOn ? 'SPEAKER ON' : 'SPEAKER OFF'}</Text>
+                                <Image style={styles.speakerIconStyle} source={icon} />
+                                            <Text style={toolBoxInactiveStyle}>{getTranslatedText(formatString(text))}</Text>
                                     {/* <Image style = { styles.speakerIconStyle } source = {isHoldOn ? SPEAKER_DISABLED_ICON : speakerOn ? SPEAKER_ENABLED_ICON : SPEAKER_DISABLED_ICON}/>
                                     <Text style = { toolBoxInactiveStyle }>SPEAKER ON</Text> */}
                                 </View>
@@ -265,7 +286,7 @@ class CustomisedToolBox extends Component<Props, *> {
                         <TouchableHighlight onPress={_onClick} underlayColor={ColorPalette.transparent}>
                             <View style = { styles.toolBoxFunctionContainerStyle }>
                                 <Image style = { styles.messageIconStyle } source = { MESSAGE_ICON }/>
-                                <Text style = { toolBoxFunctionTextStyle }>MESSAGE </Text>
+                                <Text style = { toolBoxFunctionTextStyle }>{getTranslatedText("message")} </Text>
                             </View>
                         </TouchableHighlight>)
                         }
@@ -278,7 +299,7 @@ class CustomisedToolBox extends Component<Props, *> {
                             (
                                 <TouchableHighlight onPress={_onClick} underlayColor={ColorPalette.transparent}>
                                 <View style = {styles.endCallFunctionContainerStyle}>
-                                        <Image style = { styles.endIconStyle } source = { END_CALL_ICON } resizeMode = 'cover'/>
+                                        <Image style = { styles.endIconStyle } source = { ecndCallIcon } resizeMode = 'cover'/>
                                 </View>
                                 </TouchableHighlight>
                             )
@@ -293,7 +314,7 @@ class CustomisedToolBox extends Component<Props, *> {
                             <View style = { styles.toolBoxFunctionContainerStyle }>
                                 <Image source = { isHoldOn ? HOLD_ENABLED_ICON : HOLD_DISABLED_ICON}
                                     style = { styles.holdIconStyle } />
-                                <Text style = { toolBoxFunctionTextStyle }>HOLD</Text>
+                                <Text style = { toolBoxFunctionTextStyle }>{getTranslatedText("hold")}</Text>
                             </View>
                         </TouchableHighlight>
                         )

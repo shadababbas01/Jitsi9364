@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text ,Image} from 'react-native';
 import PictureInPictureButton from '../../../mobile/picture-in-picture/components/PictureInPictureButton';
+import AudioPageTranslation from '../../../../AudioPageTranslation';
+import i18next from 'i18next';
 import { connect } from 'react-redux';
 import {
     getParticipants
@@ -13,18 +15,31 @@ class UpperTextContainer extends Component {
         const upperTextContainerStyle = isTeamsCall? styles.upperTextTeamContainerStyle : styles.upperTextOneToOneContainerStyle;
         const upperText = isTeamsCall ? 'CONFERENCE CALL' : 'STARTED CALL WITH';
         const encryptedTextStyle = isTeamsCall? styles.encryptedTextTeamStyle: styles.encryptedTextOneToOneStyle;
-
+        const getTranslatedText = (key) => {
+            const languageCode = i18next.language || 'en';
+            console.log('this is language utc --> ', AudioPageTranslation[languageCode][key] || key);
+            return AudioPageTranslation[languageCode][key] || key;
+        };
+        function formatString(input) {
+            // Convert the string to lowercase
+            let lowerCaseString = input.toLowerCase();
+        
+            // Remove all spaces from the string
+            let formattedString = lowerCaseString.replace(/[\s.]+/g, '');
+        
+            return formattedString;
+        }
         return (
             <View style  ={styles.parentViewStyle}>
                  <View style = { styles.pipButtonContainer }>
                 <PictureInPictureButton styles = { styles.pipButton } />
             </View>
                 <View >
-                       <Text style = {upperTextContainerStyle} >{upperText}</Text>
+                       <Text style = {upperTextContainerStyle} >{getTranslatedText(formatString(upperText))}</Text>
 
                 </View>
                 <View >
-                       <Text style = {encryptedTextStyle} >ENCRYPTED</Text>
+                       <Text style = {encryptedTextStyle} >{getTranslatedText('encrypted')}</Text>
 
                 </View>
             </View>

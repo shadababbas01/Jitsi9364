@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { View, Text } from 'react-native';
 import styles from './styles';
 import CallTimer from './CallTimer';
+import i18next from 'i18next';
+import AudioPageTranslation from '../../../../AudioPageTranslation';
 import {
     getParticipants,
     getLocalParticipant,
@@ -111,13 +113,36 @@ class CalleeDetails extends Component {
         else if(updatedConnectionStatus === 'Connected' ){
             connectionState = 'Connected';
         }
+        const getTranslatedText = (key) => {
+            const languageCode = i18next.language || 'en';
+            console.log('this is connection state translation --> ', AudioPageTranslation[languageCode][key] || key);
+            return AudioPageTranslation[languageCode][key] || key;
+        };
+        let status;
+        console.log('this is connection state --> ', connectionState);
+        if (connectionState === 'Connected') {
+            status = getTranslatedText('connected');
+        }
+        else if (connectionState === 'Reconnecting') {
+            status = getTranslatedText('reconnecting');
+        }
+        else if (connectionState === 'Connecting...') {
+            status = getTranslatedText('connecting');
+        }
+        else if (connectionState === 'Calling...') {
+            status = getTranslatedText('calling');
+
+        }
+        else if (connectionState === 'Ringing...') {
+            status = getTranslatedText('ringing');
+        }
         return (
             <View style = {styles.calleeContainerStyle}>
                 <CalleeBoxView isTeamsCall={isTeamsCall} participantsss = {participants}  roomName = {participantText} userPicUrl ={userPicUrl}/>
                 <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants.length}/>
                 <Text style = {isTeamsCall? styles.teamTextStyle: styles.oneToOneTextStyle }>{participantText}</Text>
                 <Text style = { styles.participantTextStyle }>{participantsDetails}</Text>
-                <Text style = { isTeamsCall? styles.connectionStatusTeamsTextStyle : styles.connectionStatusOneToOneTextStyle } >{connectionState}</Text>
+                <Text style = { isTeamsCall? styles.connectionStatusTeamsTextStyle : styles.connectionStatusOneToOneTextStyle } >{status}</Text>
             </View>
         );
     }

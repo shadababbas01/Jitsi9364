@@ -1,7 +1,7 @@
 const AudioPageTranslation = {
     en: {
-        conferenceCall: 'CONFERENCE CALL',
-        startedCallWith: 'STARTED CALL WITH',
+        conferencecall: 'CONFERENCE CALL',
+        startedcallwith: 'STARTED CALL WITH',
         encrypted: 'ENCRYPTED',
         dialpad: 'DIALPAD',
         attendees: 'ATTENDEES',
@@ -18,11 +18,12 @@ const AudioPageTranslation = {
         reconnecting: 'Reconnecting...',
         calling: 'Calling...',
         ringing: 'Ringing...',
-        callerdetail: 'Conference Call'
+        callerdetail: 'Conference Call',
+        bluetooth: 'BLUETOOTH'
     },
     esUS: {
-        conferenceCall: 'LLAMADA DE CONFERENCIA',
-        startedCallWith: 'LLAMADA INICIADA CON',
+        conferencecall: 'LLAMADA DE CONFERENCIA',
+        startedcallwith: 'LLAMADA INICIADA CON',
         encrypted: 'ENCRIPTADO',
         dialpad: 'TECLADO',
         attendees: 'ASISTENTES',
@@ -39,11 +40,12 @@ const AudioPageTranslation = {
         reconnecting: 'Reconectando...',
         calling: 'Llamando...',
         ringing: 'Sonando...',
-        callerdetail: 'Llamada de Conferencia'
+        callerdetail: 'Llamada de Conferencia',
+        bluetooth: 'BLUETOOTH'
     },
-    pt: {
-        conferenceCall: 'CHAMADA DE CONFERʎCIA',
-        startedCallWith: 'INICIADA CHAMADA COM',
+    ptBR: {
+        conferencecall: 'CHAMADA DE CONFERʎCIA',
+        startedcallwith: 'INICIADA CHAMADA COM',
         encrypted: 'ENCRYPTADO',
         dialpad: 'TECLADO',
         attendees: 'PARTICIPANTES',
@@ -60,7 +62,8 @@ const AudioPageTranslation = {
         reconnecting: 'Reconectando...',
         calling: 'Chamando...',
         ringing: 'Tocando...',
-        callerdetail: 'Chamada de Conferꮣia'
+        callerdetail: 'Chamada de Conferꮣia',
+        bluetooth: 'BLUETOOTH'
     }
 };
 

@@ -16,7 +16,7 @@ import { screen } from '../../../mobile/navigation/routes';
 class OpenCarmodeButton extends AbstractButton<AbstractButtonProps> {
     accessibilityLabel = 'toolbar.accessibilityLabel.carmode';
     icon = IconCar;
-    label = 'carmode.labels.buttonLabel';
+    label = 'toolbar.accessibilityLabel.carmode';
 
     /**
      * Handles clicking / pressing the button, and opens the carmode mode.

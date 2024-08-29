@@ -917,12 +917,15 @@
     },
     "toolbar": {
         "Settings": "Configuración",
+        "showWhiteboard":"Mostrar pizarra",
         "accessibilityLabel": {
             "Settings": "Alternar configuración",
             "audioOnly": "Alternar cámaras de los demás",
             "audioRoute": "Seleccionar el dispositivo de sonido",
             "boo": "Boo",
+            "breakoutRooms": "Salas de descanso",
             "callQuality": "Administrar la calidad de video",
+            "carmode": "modo coche",
             "cc": "Alternar subtítulos",
             "chat": "Alternar ventana de chat",
             "clap": "Aplauso",

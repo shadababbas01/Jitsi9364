@@ -23,7 +23,7 @@ import { screen } from '../../../mobile/navigation/routes';
 class BreakoutRoomsButton extends AbstractButton<AbstractButtonProps> {
     accessibilityLabel = 'toolbar.accessibilityLabel.breakoutRooms';
     icon = IconRingGroup;
-    label = 'breakoutRooms.buttonLabel';
+    label = 'toolbar.accessibilityLabel.breakoutRooms';
 
     /**
      * Handles clicking / pressing the button and opens the breakout rooms screen.

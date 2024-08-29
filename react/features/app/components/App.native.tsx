@@ -3,7 +3,7 @@ import { NativeModules, Platform, StyleSheet, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
-
+import i18next from 'i18next';
 import BottomSheetContainer from '../../base/dialog/components/native/BottomSheetContainer';
 import DialogContainer from '../../base/dialog/components/native/DialogContainer';
 import { updateFlags } from '../../base/flags/actions';
@@ -183,6 +183,8 @@ export class App extends AbstractApp<IProps> {
                 teamName: this.props.url.config.teamName
                 ,zoomtype:'cover' }));
         }
+        i18next.changeLanguage((i18next.language=='pt'?'ptBR':i18next.language));
+        console.log("this is in app language we sent in app native -->", i18next.language);
     }
 
     /**

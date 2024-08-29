@@ -32,7 +32,9 @@ export const ADD_ICON = require('../../../../../images/shape.png');
 export const CROSS_ICON = require('../../../../../images/cross.png');
 export const BLUETOOTH = require('../../../../../images/bluetooth.png');
 export const ENCRYPTED_IMG = require('../../../../../images/test.png');
+export const S_END_CALL_ICON = require('../../../../../images/endcalles.png');
 
+export const P_END_CALL_ICON = require('../../../../../images/endcallpt.png');
 export const INSECURE_ROOM_NAME_LABEL_COLOR = BaseTheme.palette.actionDanger;
 
 const TITLE_BAR_BUTTON_SIZE = 24;
