@@ -184,6 +184,7 @@ export class App extends AbstractApp<IProps> {
                 ,zoomtype:'cover' }));
         }
         i18next.changeLanguage((i18next.language=='pt'?'ptBR':i18next.language));
+        i18next.changeLanguage((i18next.language=='es'?'esUS':i18next.language));
         console.log("this is in app language we sent in app native -->", i18next.language);
     }
 
