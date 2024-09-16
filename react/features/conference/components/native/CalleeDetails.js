@@ -25,7 +25,7 @@ class CalleeDetails extends Component {
     }
     render() {
 
-        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState} = this.props;   
+        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState,participant} = this.props;   
         if(connectionState === ''){
             connectionState = 'Connecting...'
         }
@@ -139,7 +139,7 @@ class CalleeDetails extends Component {
         return (
             <View style = {styles.calleeContainerStyle}>
                 <CalleeBoxView isTeamsCall={isTeamsCall} participantsss = {participants}  roomName = {participantText} userPicUrl ={userPicUrl}/>
-                <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants.length}/>
+                <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants.length} participant = {participant}/>
                 <Text style = {isTeamsCall? styles.teamTextStyle: styles.oneToOneTextStyle }>{participantText}</Text>
                 <Text style = { styles.participantTextStyle }>{participantsDetails}</Text>
                 <Text style = { isTeamsCall? styles.connectionStatusTeamsTextStyle : styles.connectionStatusOneToOneTextStyle } >{status}</Text>

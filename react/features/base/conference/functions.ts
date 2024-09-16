@@ -12,7 +12,7 @@ import {
     participantJoined,
     participantLeft
 } from '../participants/actions';
-import { getLocalParticipant } from '../participants/functions';
+import { getLocalParticipant, getParticipantCount, getParticipantCountRemoteOnly } from '../participants/functions';
 import { toState } from '../redux/functions';
 import {
     appendURLParam,
@@ -28,6 +28,7 @@ import {
 } from './constants';
 import logger from './logger';
 import { IJitsiConference } from './reducer';
+import { getConferenceInfo } from '../../conference/components/functions.any';
 
 /**
  * Returns root conference state.
@@ -363,13 +364,44 @@ export function getVisitorOptions(stateful: IStateful, vnode: string, focusJid: 
 * state with the {@code toState} function.
 * @returns {number}
 */
+
+let startTime2 = Date.now();
+
+export let time = 0;
+console.log("getConferenceTimeStamp: -1")
 export function getConferenceTimestamp(stateful: IStateful) {
     const state = toState(stateful);
-    const { conferenceTimestamp } = getConferenceState(state);
+    const { conferenceTimestamp} = getConferenceState(state);
+    
+    // let timestamp = getConferenceTimestamp(state);
+    // console.log("getConferenceTimeStamp: time stamp", timestamp)
+
     console.log("getConferenceTimeStamp: ", conferenceTimestamp)
     let startTime = Date.now(); // Get the current time in milliseconds
     let elapsedTime = 0; // Initial elapsed time in seconds
+   let par = getParticipantCountRemoteOnly(state);
+   let sar = getParticipantCount(state)
+   console.log("getConferenceTimeStamp1: ", par)
+   console.log("getConferenceTimeStamp12: ", sar)
+   console.log("getConferenceTimeStamp133: ", time)
+   if(par>0){
+    if(time == 0){
+        console.log("getConferenceTimeStamp134: ", time)
+        startTime2 = Date.now();
+        time = 1;
+       }
+       console.log("getConferenceTimeStamp135: ", time)
+       if (conferenceTimestamp == 0) {
+            time = 0;
+            console.log("getConferenceTimeStamp136: ", time)
+       }
+   }else{
+    time = 0;
+    console.log("getConferenceTimeStamp137: ", time)
+   }
+   
 
+   console.log("getConferenceTimeStamp:3 ", par)
     // Update the timer every second
     const timerInterval = setInterval(() => {
         elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Calculate elapsed time in seconds
@@ -380,7 +412,9 @@ export function getConferenceTimestamp(stateful: IStateful) {
 const startTime = Date.now();
 
 function getEpochTimeFromElapsed(elapsedTime) {
-    const currentEpochTime = startTime + (elapsedTime * 1000); // Convert seconds to milliseconds
+    let start3 = Date.now();
+    const currentEpochTime = startTime2 + (elapsedTime * 1000); // Convert seconds to milliseconds
+    console.log("getConferenceTimeStamp = currentEpochTime: ", currentEpochTime)
     return currentEpochTime;
 }
 // Function to format time in MM:SS format

@@ -22,7 +22,7 @@ class CallTimer extends Component {
     
     
     render() {
-        const {isTeamsCall, secsToMinString} = this.props;
+        const {isTeamsCall, secsToMinString,participant} = this.props;
         const callerTimeStyle = isTeamsCall?styles.callerTimeTeamContainerStyle:styles.callerTimeOneToOneContainerStyle;
         const timerTextStyle = isTeamsCall?styles.timerTextTeamStyle:styles.timerTextOneToOneStyle;
         const callIcon = isTeamsCall?CALL_ICON:CALL_ONETOONE_ICON;
@@ -32,7 +32,7 @@ class CallTimer extends Component {
             <View style = {callerTimeStyle}>
                 <Image source = { callIcon } style = { callIconStyle } />
                 {/* <Text style = {timerTextStyle}>{secsToMinString}</Text> */}
-             <ConferenceTimer textStyle = { timerTextStyle }/>
+             <ConferenceTimer textStyle = { timerTextStyle } participant = {participant}/>
 
             </View>
         );

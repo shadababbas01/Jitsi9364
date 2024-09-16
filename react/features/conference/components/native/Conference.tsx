@@ -483,6 +483,7 @@ _connectionStatus(event) {
             roomName,
             isTeamsCall,
             audioOnly,
+            participant,
             _connected
         } = this.props;
 
@@ -504,7 +505,7 @@ _connectionStatus(event) {
             <SafeAreaView style = { isTeamsCall ? { backgroundColor: 'black',flex: 1 }: { backgroundColor: 'rgb(252,252,252)',flex: 1 } }>
                     <View style = { isTeamsCall ? styles.mainContainerTeamsStyle:styles.mainContainerOneToOneStyle }>
                         <UpperTextContainer isTeamsCall = { isTeamsCall } />
-                        <CalleeDetails connectionState = {connectionStatus} connected = { _connecting } isTeamsCall = {isTeamsCall} roomName={roomName} secsToMinString = {secsToMinString} />
+                        <CalleeDetails connectionState = {connectionStatus} connected = { _connecting } isTeamsCall = {isTeamsCall} roomName={roomName} secsToMinString = {secsToMinString} participant = {participant} />
                         {/* <Chat /> */}
                         {/* <AddPeopleDialog /> */}
                         <CustomisedToolBox
@@ -677,6 +678,7 @@ NativeModules.NativeCallsNew.totalUsers(participantsCount);
         isTeamsCall: _settings.isGroupCall,
         audioOnly: state['features/base/audio-only'].enabled,
         _connected: connected(state),
+        participant: participantsCount,
     };
 }
 

@@ -43,6 +43,7 @@ class MuteEveryonesVideoDialog extends AbstractMuteEveryonesVideoDialog<IProps> 
     render() {
         return (
             <ConfirmDialog
+                cancelLabel = 'dialog.Cancel'
                 confirmLabel = 'dialog.muteEveryonesVideoDialogOk'
                 descriptionKey = { this.state.content }
                 onSubmit = { this._onSubmit }

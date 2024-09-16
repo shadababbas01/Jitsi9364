@@ -1,5 +1,6 @@
+import { State } from 'react-native-gesture-handler';
 import { setRoom } from '../base/conference/actions';
-import { getConferenceState } from '../base/conference/functions';
+import { getConferenceState, getConferenceTimestamp } from '../base/conference/functions';
 import {
     configWillLoad,
     loadConfigError,
@@ -50,10 +51,11 @@ export * from './actions.any';
  */
 export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
     logger.info(`appNavigate to ${uri}`);
-
+   
     return async (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         let location = parseURIString(uri);
-
+        const state = getState();
+        getConferenceTimestamp(state);
         // If the specified location (URI) does not identify a host, use the app's
         // default.
         if (!location?.host) {

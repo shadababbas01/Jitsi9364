@@ -43,6 +43,7 @@ class MuteEveryoneDialog extends AbstractMuteEveryoneDialog<IProps> {
     render() {
         return (
             <ConfirmDialog
+                cancelLabel = 'dialog.Cancel'
                 confirmLabel = 'dialog.muteParticipantButton'
                 descriptionKey = { this.state.content }
                 onSubmit = { this._onSubmit }

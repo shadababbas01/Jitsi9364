@@ -77,12 +77,12 @@ const TitleBar = (props: IProps) => {
             <View
                 pointerEvents = 'box-none'
                 style = { styles.roomNameWrapper as ViewStyle }>
-                {
+                {/* {
                     props._conferenceTimerEnabled
                     && <View style = { styles.roomTimerView as ViewStyle }>
                         <ConferenceTimer textStyle = { styles.roomTimer } />
                     </View>
-                }
+                } */}
                 {
                     props._roomNameEnabled
                     && <View style = { styles.roomNameView as ViewStyle }>

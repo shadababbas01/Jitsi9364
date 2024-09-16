@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { getConferenceTimestamp } from '../../base/conference/functions';
+import {time} from '../../base/conference/functions';
 import { getLocalizedDurationFormatter } from '../../base/i18n/dateUtil';
 
 import { ConferenceTimerDisplay } from './index';
+import { getParticipantCountRemoteOnly } from '../../base/participants/functions';
+// import { time } from '@tensorflow/tfjs-core';
 
 /**
  * The type of the React {@code Component} props of {@link ConferenceTimer}.
@@ -15,6 +18,7 @@ interface IProps {
      * Style to be applied to the rendered text.
      */
     textStyle?: Object;
+    participant?: any;
 }
 
 export interface IDisplayProps {
@@ -28,10 +32,13 @@ export interface IDisplayProps {
      * String to display as time.
      */
     timerValue: string;
+    participant?: any;
 }
 
-const ConferenceTimer = ({ textStyle }: IProps) => {
-    const startTimestamp = useSelector(getConferenceTimestamp);
+const ConferenceTimer = ({ textStyle, participant }: IProps) => {
+    
+    const initialTimestamp = useSelector(getConferenceTimestamp);
+    const [startTimestamp, setStartTimestamp] = useState<number | undefined>(initialTimestamp);
     const [ timerValue, setTimerValue ] = useState(getLocalizedDurationFormatter(0));
     const interval = useRef<number>();
 
@@ -83,11 +90,24 @@ const ConferenceTimer = ({ textStyle }: IProps) => {
      */
     const stopTimer = useCallback(() => {
         if (interval.current) {
+            console.log("start timer comes here : conference timer1", participant.length)
+            if(participant.length<=1){
+                console.log("start timer comes here : conference timer2", participant.length)
+                setStartTimestamp(0);
+                getParticipantCountRemoteOnly
+            }
+            setStartTimestamp(0);
+            console.log("start timer comes here : conference timer3", participant.length)
+            if(participant.length<=1){
             clearInterval(interval.current);
+            console.log("start timer comes here : conference timer4", participant.length)
             interval.current = undefined;
+            }
         }
-
+        if(participant.length<=1){
+            console.log("start timer comes here : conference timer5", participant.length)
         setTimerValue(getLocalizedDurationFormatter(0));
+        }
     }, [ interval ]);
 
     useEffect(() => {
