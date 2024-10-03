@@ -83,7 +83,7 @@ public class OpenMelpChatModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void showDesktop() {
         try {
-            Toast.makeText(getReactApplicationContext(), "Coming soon...", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(getReactApplicationContext(), "Coming soon...", Toast.LENGTH_SHORT).show();
 
         } catch (Exception ex) {
             ex.printStackTrace();

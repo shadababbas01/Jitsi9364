@@ -81,7 +81,7 @@ class CalleeDetails extends Component {
         let participantsDetails;
         if(isTeamsCall){
             if(participants.length > 0){
-                participantsDetails = `${this.props.participantsCount+1}` +" "+"Members";
+                participantsDetails = `${this.props.participantsCount+1}` +" "+getTranslatedText("members");
             }else{
                 participantsDetails = '';
             }

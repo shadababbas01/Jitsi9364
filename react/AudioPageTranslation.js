@@ -19,7 +19,8 @@ const AudioPageTranslation = {
         calling: 'Calling...',
         ringing: 'Ringing...',
         callerdetail: 'Conference Call',
-        bluetooth: 'BLUETOOTH'
+        bluetooth: 'BLUETOOTH',
+        members: 'Members'
     },
     esUS: {
         conferencecall: 'LLAMADA DE CONFERENCIA',
@@ -41,7 +42,8 @@ const AudioPageTranslation = {
         calling: 'Llamando...',
         ringing: 'Sonando...',
         callerdetail: 'Llamada de Conferencia',
-        bluetooth: 'BLUETOOTH'
+        bluetooth: 'BLUETOOTH',
+        members: 'Miembros'
     },
     ptBR: {
         conferencecall: 'CHAMADA DE CONFERʎCIA',
@@ -63,7 +65,8 @@ const AudioPageTranslation = {
         calling: 'Chamando...',
         ringing: 'Tocando...',
         callerdetail: 'Chamada de Conferꮣia',
-        bluetooth: 'BLUETOOTH'
+        bluetooth: 'BLUETOOTH',
+        members: 'Membros'
     }
 };
 

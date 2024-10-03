@@ -25,10 +25,8 @@ MiddlewareRegistry.register(store => next => action => {
             Object.values(TRIGGER_READY_TO_CLOSE_REASONS).indexOf(reason)
         ];
 
-        dispatch(notifyConferenceFailed(reasonKey, () => {
-            dispatch(conferenceLeft(action.conference));
-            dispatch(appNavigate(undefined));
-        }));
+        dispatch(conferenceLeft(action.conference));
+        dispatch(appNavigate(undefined));
     }
     }
 

@@ -57,8 +57,8 @@ public class OpenMelpModule extends ReactContextBaseJavaModule {
     public void showDesktop() {
         try {
             for (int i = 0; i < 2; i++) {
-                Toast toast = Toast.makeText(context, "Coming soon...", Toast.LENGTH_LONG);
-                toast.show();
+                // Toast toast = Toast.makeText(context, "Coming soon...", Toast.LENGTH_LONG);
+                // toast.show();
             }
 
         } catch (Exception ex) {

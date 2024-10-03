@@ -603,6 +603,7 @@
         "grantedTo": "Se otorgaron derechos de moderador a {{to}}.",
         "groupTitle": "Notificaciones",
         "hostAskedUnmute": "El moderador quiere que hables",
+        "leftOneMember": "{{name}} abandonó la reunión",
         "invitedOneMember": "{{name}} ha sido invitado",
         "invitedThreePlusMembers": "{{name}} y {{count}} más han sido invitados",
         "invitedTwoMembers": "{{first}} y {{second}} han sido invitados",
