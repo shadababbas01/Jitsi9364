@@ -36,8 +36,8 @@
         "car": "Sistema áudio do automóvel",
         "headphones": "Auscultadores",
         "none": "Sem dispositivos de áudio disponíveis",
-        "phone": "Telemóvel",
-        "speaker": "Altifalante"
+        "phone": "Alto-falante desligado",
+        "speaker": "Alto-falante ligado"
     },
     "audioOnly": {
         "audioOnly": "Largura de banda baixa"
@@ -329,7 +329,7 @@
         "internalErrorTitle": "Erro interno",
         "kickMessage": "Pode contactar {{participantDisplayName}} para mais detalhes.",
         "kickParticipantButton": "Remover",
-        "kickParticipantDialog": "Você tem certeza de que deseja remover este participante?",
+        "kickParticipantDialog": "Tem certeza de que deseja remover este participante?",
         "kickParticipantTitle": "Remover este participante?",
         "kickTitle": "Ai! {{participantDisplayName}} expulsou-o da reunião",
         "linkMeeting": "Link da reunião",
@@ -1099,7 +1099,7 @@
         "selectMic": "Microfone",
         "selfView": "Autovisualização",
         "shortcuts": "Atalhos",
-        "speakers": "Altifalantes",
+        "speakers": "Alto-falantes",
         "startAudioMuted": "Todos começam com microfone desligado",
         "startReactionsMuted": "Todos começam com os sons de reação desativados",
         "startVideoMuted": "Todos começam com câmara desligada",

@@ -29,6 +29,11 @@ class CalleeDetails extends Component {
         if(connectionState === ''){
             connectionState = 'Connecting...'
         }
+        const getTranslatedText = (key) => {
+            const languageCode = i18next.language || 'en';
+            console.log('this is connection state translation --> ', AudioPageTranslation[languageCode][key] || key);
+            return AudioPageTranslation[languageCode][key] || key;
+        };
         if(connectionState === 'clear'){
             updatedConnectionStatus = ""; 
             updatedcallerDetails =  "";
@@ -54,7 +59,7 @@ class CalleeDetails extends Component {
                         break;
                     }
                  }
-                 participantText = participantText + " + "+ `${this.props.participantsCount-1}` +" Others"
+                 participantText = participantText + " + "+ `${this.props.participantsCount-1}` +" "+getTranslatedText('others');
                 callerDetails = 'Conference Call'
                 NativeModules.NativeCallsNew.updatedUserName(participantText);
             }
@@ -81,7 +86,7 @@ class CalleeDetails extends Component {
         let participantsDetails;
         if(isTeamsCall){
             if(participants.length > 0){
-                participantsDetails = `${this.props.participantsCount+1}` +" "+getTranslatedText("members");
+                participantsDetails = `${this.props.participantsCount+1}` +" "+getTranslatedText('members');
             }else{
                 participantsDetails = '';
             }
@@ -113,11 +118,7 @@ class CalleeDetails extends Component {
         else if(updatedConnectionStatus === 'Connected' ){
             connectionState = 'Connected';
         }
-        const getTranslatedText = (key) => {
-            const languageCode = i18next.language || 'en';
-            console.log('this is connection state translation --> ', AudioPageTranslation[languageCode][key] || key);
-            return AudioPageTranslation[languageCode][key] || key;
-        };
+     
         let status;
         console.log('this is connection state --> ', connectionState);
         if (connectionState === 'Connected') {

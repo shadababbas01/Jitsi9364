@@ -40,8 +40,8 @@
         "bluetooth": "Bluetooth",
         "headphones": "Audífonos",
         "none": "No hay dispositivos de audio disponibles",
-        "phone": "Teléfono",
-        "speaker": "Bocinas"
+        "phone": "Altavoz apagado",
+        "speaker": "Orador encendido"
     },
     "audioOnly": {
         "audioOnly": "Solo sonido y pantalla compartida"
@@ -672,6 +672,7 @@
             "participantsList": "Participantes en la reunión ({{count}})",
             "waitingLobby": "Esperando en el vestíbulo ({{count}})"
         },
+        "search": "Buscar participantes",
         "title": "Participantes"
     },
     "passwordDigitsOnly": "Hasta {{number}} cifras",
@@ -863,7 +864,7 @@
         "selectCamera": "Cámara",
         "selectMic": "Micrófono",
         "sounds": "Sonidos",
-        "speakers": "Bocinas",
+        "speakers": "Altavoz",
         "startAudioMuted": "Todos inician silenciados",
         "startVideoMuted": "Todos inician con cámara desactivada",
         "talkWhileMuted": "Hablar en silencio",
@@ -998,7 +999,7 @@
         "closeReactionsMenu": "Cerrar el menú de reacciones",
         "disableReactionSounds": "Puede desactivar los sonidos de reacción para esta reunión",
         "documentClose": "Cerrar documento compartido",
-        "documentOpen": "Abrir documento compartido",
+        "documentOpen": "Abrir pizarra y notas",
         "download": "Descarga nuestras aplicaciones",
         "e2ee": "Cifrado de extremo a extremo",
         "embedMeeting": "Insertar reunión",

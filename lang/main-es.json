@@ -33,8 +33,8 @@
         "car": "Audio de automóvil",
         "headphones": "Auriculares",
         "none": "No hay dispositivos de audio disponibles",
-        "phone": "Teléfono",
-        "speaker": "Altavoz"
+        "phone": "Altavoz apagado",
+        "speaker": "Orador encendido"
     },
     "audioOnly": {
         "audioOnly": "Solo sonido y pantalla compartida"
@@ -1196,7 +1196,7 @@
         "disableNoiseSuppression": "Desactivar supresión de ruido",
         "disableReactionSounds": "Puede desactivar los sonidos de reacción para esta reunión",
         "documentClose": "Cerrar documento compartido",
-        "documentOpen": "Abrir documento compartido",
+        "documentOpen": "Abrir pizarra y notas",
         "download": "Descarga nuestras aplicaciones",
         "e2ee": "Cifrado de extremo a extremo",
         "embedMeeting": "Insertar reunión",
