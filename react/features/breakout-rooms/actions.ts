@@ -52,6 +52,7 @@ export function createBreakoutRoom(name?: string) {
 
         getCurrentConference(state)?.getBreakoutRooms()
             ?.createBreakoutRoom(subject);
+            console.log("no. of breakout rooms ", getCurrentConference(state)?.getBreakoutRooms());
     };
 }
 

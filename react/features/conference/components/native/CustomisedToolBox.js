@@ -187,7 +187,6 @@ class CustomisedToolBox extends Component<Props, *> {
     }
     OpenMelpChat.isAudioMode(true);
 
-    console.log("Text---->",text);
     console.log("this is in app language we sent -->", i18next.language);
     const getTranslatedText = (key) => {
         const languageCode = i18next.language || 'en';

@@ -115,8 +115,11 @@ function Toolbox(props: IProps) {
                     : <HangupButton
                         styles = { hangupButtonStyles } />
                 } */
-                <HangupButton
-                    styles = { hangupButtonStyles } />
+                // <HangupButton
+                    // styles = { hangupButtonStyles } />
+                <HangupMenuButton
+                styles = { hangupButtonStyles }
+                toggledStyles = { toggledButtonStyles } />
                 }
                 
                 {!_iAmVisitor && <VideoMuteButton

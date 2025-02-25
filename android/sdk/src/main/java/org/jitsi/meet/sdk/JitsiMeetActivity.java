@@ -249,7 +249,7 @@ public class JitsiMeetActivity extends AppCompatActivity
 
     protected void onReadyToClose() {
         JitsiMeetLogger.i("SDK is ready to close");
-        // finish();    // commented added
+        finish();    // commented added
     }
 
 //    protected void onTranscriptionChunkReceived(HashMap<String, Object> extraData) {

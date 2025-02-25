@@ -127,8 +127,9 @@ const iconButtonContainer = {
     display: 'flex',
     justifyContent: 'center',
     borderRadius: BaseTheme.shape.borderRadius,
-    height: BUTTON_HEIGHT,
-    width: BUTTON_WIDTH
+    height: 42,
+    width: 42,
+    marginHorizontal: 10
 };
 
 /**

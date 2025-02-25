@@ -33,12 +33,12 @@ const BreakoutRooms = () => {
         .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
     const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
-    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 2;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 0;
     const showAutoAssign = useSelector(isAutoAssignParticipantsVisible);
 
     return (
         <JitsiScreen
-            footerComponent = { isLocalModerator && showAddBreakoutRoom
+            footerComponent = { isLocalModerator 
                 ? AddBreakoutRoomButton : undefined }
             style = { styles.breakoutRoomsContainer }>
 

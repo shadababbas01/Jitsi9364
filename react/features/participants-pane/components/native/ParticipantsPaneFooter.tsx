@@ -50,7 +50,7 @@ const ParticipantsPaneFooter = (): JSX.Element => {
     );
     const { remote, fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
-    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 2;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 0;
     const openMoreMenu = useCallback(() => dispatch(openSheet(ContextMenuMore)), [dispatch]);
     const muteAll = useCallback(() => dispatch(openDialog(MuteEveryoneDialog)),
         [dispatch]);
