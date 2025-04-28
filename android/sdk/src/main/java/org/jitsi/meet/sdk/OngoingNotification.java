@@ -34,6 +34,7 @@ import androidx.core.text.HtmlCompat;
 import android.os.Build;
 
 
+
 /**
  * Helper class for creating the ongoing notification which is used with
  * {@link JitsiMeetOngoingConferenceService}. It allows the user to easily get back to the app
@@ -82,8 +83,15 @@ class OngoingNotification {
             return null;
         }
 
-        Intent notificationIntent = new Intent(context, context.getClass());
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        Intent notificationIntent = new Intent("com.melp.ACTION_OPEN_CALL_HANDLER");
+        notificationIntent.setPackage(context.getPackageName());
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            notificationIntent, 
+            PendingIntent.FLAG_IMMUTABLE
+        );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ONGOING_CONFERENCE_CHANNEL_ID);
 

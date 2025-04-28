@@ -85,8 +85,7 @@ const MeetingParticipantList = () => {
                 { title }
             </Text>
             {
-                showInviteButton
-                && <Button
+                <Button
                     accessibilityLabel = 'participantsPane.actions.invite'
                     disabled = { shareDialogVisible }
 

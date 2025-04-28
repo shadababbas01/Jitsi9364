@@ -33,6 +33,8 @@ import { isMoreActionsVisible, isMuteAllVisible } from '../../functions';
 
 import { ContextMenuMore } from './ContextMenuMore';
 import styles from './styles';
+import JitsiScreen from '../../../base/modal/components/JitsiScreen';
+import AddBreakoutRoomButton from '../../../breakout-rooms/components/native/AddBreakoutRoomButton';
 
 
 /**
@@ -50,7 +52,7 @@ const ParticipantsPaneFooter = (): JSX.Element => {
     );
     const { remote, fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
-    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 0;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers >= 0;
     const openMoreMenu = useCallback(() => dispatch(openSheet(ContextMenuMore)), [dispatch]);
     const muteAll = useCallback(() => dispatch(openDialog(MuteEveryoneDialog)),
         [dispatch]);
@@ -59,7 +61,7 @@ const ParticipantsPaneFooter = (): JSX.Element => {
 
     return (
         <View style={styles.participantsPaneFooterContainer as ViewStyle}>
-            {
+            {/* {
                 showAddBreakoutRoom // This checks if `bool` is true
                 && <Button
                     accessibilityLabel='participantsPane.actions.breakoutRooms'
@@ -75,7 +77,10 @@ const ParticipantsPaneFooter = (): JSX.Element => {
                     onClick={() => navigate(screen.conference.breakoutRooms)}
                     style={styles.breakoutRoomsButton}
                     type={BUTTON_TYPES.SECONDARY} />
-            }
+            } */}
+            {/* <View>
+            {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null}
+            </View> */}
 
             <View style={styles.participantsPaneFooter as ViewStyle}>
                 {
@@ -84,6 +89,7 @@ const ParticipantsPaneFooter = (): JSX.Element => {
                             accessibilityLabel='participantsPane.actions.muteAll'
                             labelKey='participantsPane.actions.muteAll'
                             onClick={muteAll}
+                            style={styles.moreButton2}
                             type={BUTTON_TYPES.SECONDARY} />
                     )
                 }

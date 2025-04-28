@@ -79,7 +79,19 @@ export default {
         textAlign: 'center',
         paddingHorizontal: 2
     },
-
+    newRowContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start', // or 'center' based on your layout preference
+        alignItems: 'center', // Adjust vertical alignment
+        paddingBottom: 10, // Add spacing if needed
+    },
+ breakoutRoomsContainer: {
+        backgroundColor: BaseTheme.palette.ui01,
+        flex: 1,
+        flexDirection: 'column',
+        height: 'auto',
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
     participantsButtonBadge: {
         display: 'flex',
         position: 'relative'
@@ -105,6 +117,9 @@ export default {
         overflow: 'hidden',
         width: '100%'
     },
+
+
+
 
     participantDetailsContainer: {
         display: 'flex',
@@ -197,16 +212,17 @@ export default {
         backgroundColor: BaseTheme.palette.ui01,
         flex: 1,
         flexDirection: 'column',
-        paddingVertical: BaseTheme.spacing[2]
+        paddingVertical: BaseTheme.spacing[2],
     },
 
     participantsPaneFooterContainer: {
         alignItems: 'center',
         bottom: 0,
-        height: 128,
+        height: 100,
         left: 0,
         paddingHorizontal: BaseTheme.spacing[4],
         right: 0,
+        paddingVertical: BaseTheme.spacing[3],
     },
 
     participantsPaneFooter: {
@@ -231,6 +247,11 @@ export default {
 
     moreButton: {
         marginLeft: BaseTheme.spacing[2],
+        height: BaseTheme.spacing[7],
+    },
+    moreButton2: {
+        marginLeft: BaseTheme.spacing[2],
+        height: BaseTheme.spacing[7],
     },
 
     contextMenuItem: {

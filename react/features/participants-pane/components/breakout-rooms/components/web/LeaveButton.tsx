@@ -25,7 +25,7 @@ export const LeaveButton = ({ className }: IProps) => {
         <Button
             accessibilityLabel = { t('breakoutRooms.actions.leaveBreakoutRoom') }
             className = { className }
-            fullWidth = { true }
+            fullWidth = { false }
             labelKey = { 'breakoutRooms.actions.leaveBreakoutRoom' }
             onClick = { onLeave }
             type = { BUTTON_TYPES.DESTRUCTIVE } />

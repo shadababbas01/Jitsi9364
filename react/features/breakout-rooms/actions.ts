@@ -193,11 +193,6 @@ export function moveToRoom(roomId?: string) {
         // Check if we got a full JID.
         if (_roomId && _roomId?.indexOf('@') !== -1) {
             const [ id, ...domainParts ] = _roomId.split('@');
-
-            // On mobile we first store the room and the connection is created
-            // later, so let's attach the domain to the room String object as
-            // a little hack.
-
             // eslint-disable-next-line no-new-wrappers
             _roomId = new String(id);
 
@@ -209,7 +204,7 @@ export function moveToRoom(roomId?: string) {
         const goToMainRoom = roomIdStr === mainRoomId;
         const rooms = getBreakoutRooms(getState);
         const targetRoom = rooms[roomIdStr ?? ''];
-
+console.log(">>>>>>>>>>>>",targetRoom);
         if (!targetRoom) {
             logger.warn(`Unknown room: ${targetRoom}`);
 

@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import Button from '../../../base/ui/components/native/Button';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
 import { createBreakoutRoom } from '../../actions';
-
+import { Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import styles from './styles';
 
 /**
@@ -20,12 +20,14 @@ const AddBreakoutRoomButton = () => {
     , [ dispatch ]);
 
     return (
+        <View style={styles.centeredContainer}>
         <Button
             accessibilityLabel = 'breakoutRooms.actions.add'
             labelKey = 'breakoutRooms.actions.add'
             onClick = { onAdd }
-            style = { styles.button }
+            style = { styles.breakoutroombutton }
             type = { BUTTON_TYPES.SECONDARY } />
+            </View>
     );
 };
 

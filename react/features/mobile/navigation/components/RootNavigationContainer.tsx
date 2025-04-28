@@ -90,10 +90,10 @@ const RootNavigationContainer = ({ dispatch, isUnsafeRoomWarningAvailable, isWel
                                 options = { dialInSummaryScreenOptions } />
                         </>
                 }
-                {/*<RootStack.Screen
+                <RootStack.Screen
                     component = { ConnectingPage }
                     name = { screen.connecting }
-                options = { connectingScreenOptions } /> */}
+                options = { connectingScreenOptions } />
                 {/* <RootStack.Screen
                     component = { Prejoin }
                     name = { screen.preJoin }

@@ -654,10 +654,10 @@ function _mapStateToProps(state, ownProps) {
      
        
     const _settings = state['features/base/settings'];
-if(totalUser!=participantsCount){
-    totalUser  = participantsCount
-NativeModules.NativeCallsNew.totalUsers(participantsCount);
-}
+// if(totalUser!=participantsCount){
+//     totalUser  = participantsCount
+// // NativeModules.NativeCallsNew.totalUsers(participantsCount);
+// }
 
     return {
         ...abstractMapStateToProps(state),

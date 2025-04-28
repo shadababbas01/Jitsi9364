@@ -19,6 +19,7 @@ import AutoAssignButton from './AutoAssignButton';
 import { CollapsibleRoom } from './CollapsibleRoom';
 import LeaveBreakoutRoomButton from './LeaveBreakoutRoomButton';
 import styles from './styles';
+import { View } from 'react-native';
 
 
 const BreakoutRooms = () => {
@@ -33,36 +34,41 @@ const BreakoutRooms = () => {
         .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
     const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
-    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers > 0;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers >= 0;
     const showAutoAssign = useSelector(isAutoAssignParticipantsVisible);
 
     return (
         <JitsiScreen
-            footerComponent = { isLocalModerator 
-                ? AddBreakoutRoomButton : undefined }
-            style = { styles.breakoutRoomsContainer }>
+            // footerComponent = { isLocalModerator && showAddBreakoutRoom
+            //     ? AddBreakoutRoomButton : undefined }
+            // style = { styles.breakoutRoomsContainer }
+            >
 
             { /* Fixes warning regarding nested lists */ }
             <FlatList
-
-                /* eslint-disable react/jsx-no-bind */
-                ListHeaderComponent = { () => (
-                    <>
-                        {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
-                        { inBreakoutRoom && <LeaveBreakoutRoomButton /> }
-                        {
-                            isBreakoutRoomsSupported
-                            && rooms.map(room => (<CollapsibleRoom
-                                key = { room.id }
-                                room = { room }
-                                roomId = { room.id } />))
-                        }
-                    </>
-                ) }
-                data = { [] as ReadonlyArray<undefined> }
-                keyExtractor = { keyExtractor }
-                renderItem = { null }
-                windowSize = { 2 } />
+    ListHeaderComponent={() => (
+        <View style={{ marginHorizontal: 0 }}>
+            {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
+            {inBreakoutRoom && <LeaveBreakoutRoomButton />}
+            <View>
+            {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null}
+            </View>
+            {
+                isBreakoutRoomsSupported &&
+                rooms.map(room => (
+                    <CollapsibleRoom
+                        key={room.id}
+                        room={room}
+                        roomId={room.id} />
+                ))
+            }
+        </View>
+    )}
+    data={[] as ReadonlyArray<undefined>}
+    keyExtractor={keyExtractor}
+    renderItem={null}
+    windowSize={2}
+/>
         </JitsiScreen>
     );
 };

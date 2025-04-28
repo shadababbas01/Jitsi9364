@@ -60,7 +60,7 @@ const IconButton: React.FC<IIconButtonProps> = ({
             underlayColor = { underlayColor }>
             <Icon
                 color = { color }
-                size = { 42 || size }
+                size = {  size || 42 }
                 src = { src } />
         </TouchableHighlight>
     );

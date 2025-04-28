@@ -6,6 +6,7 @@ import JitsiScreen from '../../../base/modal/components/JitsiScreen';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 
 import LobbyParticipantList from './LobbyParticipantList';
+import BreakoutRooms from '../../../breakout-rooms/components/native/BreakoutRooms';
 import MeetingParticipantList from './MeetingParticipantList';
 import ParticipantsPaneFooter from './ParticipantsPaneFooter';
 import VisitorsList from './VisitorsList';
@@ -39,6 +40,7 @@ const ParticipantsPane = () => {
                         <VisitorsList />
                         <LobbyParticipantList />
                         <MeetingParticipantList />
+                        <BreakoutRooms/>
  {/* Below line previously in this file but in 9364 it wasmoved to Breakout rooms */}
     {/* const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
@@ -48,7 +50,7 @@ const ParticipantsPane = () => {
                 data = { [] as ReadonlyArray<undefined> }
                 keyExtractor = { keyExtractor }
                 renderItem = { null }
-                windowSize = { 2 } />
+                windowSize = { 3 } />
         </JitsiScreen>
     );
 };

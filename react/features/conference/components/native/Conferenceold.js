@@ -612,10 +612,10 @@ function _mapStateToProps(state) {
         backgroundColor
     } : undefined;
 
-    if(totalUser!=participantCount){
-        totalUser  = participantCount
-    // NativeModules.NativeCallsNew.totalUsers(participantCount);
-}
+//     if(totalUser!=participantCount){
+//         totalUser  = participantCount
+//     // NativeModules.NativeCallsNew.totalUsers(participantCount);
+// }
 
     return {
         ...abstractMapStateToProps(state),

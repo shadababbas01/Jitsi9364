@@ -10,9 +10,9 @@ import { getTileViewParticipantCount } from './functions.native';
 
 export * from './actions.any';
 var TILE_ASPECT_RATIO = 1;
-var MAX_COLUMN_LANDSCAPE = 3;
-var MAX_COLUMN_PORTRAIT = 3;
-var max_fit_rows = 3;
+var MAX_COLUMN_LANDSCAPE = 15;  // SHADAB update number of tiles view 
+var MAX_COLUMN_PORTRAIT = 6;
+var max_fit_rows = 7;
 var expected_row = 1;
 var expected_col;
 /**

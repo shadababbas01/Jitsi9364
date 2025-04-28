@@ -57,6 +57,7 @@ MiddlewareRegistry.register(store => next => action => {
         break;
 
     case SET_CAMERA_FACING_MODE: {
+        console.log("camera switching ", "SET_CAMER")
         // XXX The camera facing mode of a MediaStreamTrack can be specified
         // only at initialization time and then it can only be toggled. So in
         // order to set the camera facing mode, one may destroy the track and
@@ -89,31 +90,60 @@ MiddlewareRegistry.register(store => next => action => {
         _setMuted(store, action, MEDIA_TYPE.VIDEO);
         break;
 
-    case TOGGLE_CAMERA_FACING_MODE: {
-        const localTrack = _getLocalTrack(store, MEDIA_TYPE.VIDEO);
-        let jitsiTrack;
-
-        if (localTrack && (jitsiTrack = localTrack.jitsiTrack)) {
-            // XXX MediaStreamTrack._switchCamera is a custom function
-            // implemented in react-native-webrtc for video which switches
-            // between the cameras via a native WebRTC library implementation
-            // without making any changes to the track.
-            jitsiTrack._switchCamera();
-
-            // Don't mirror the video of the back/environment-facing camera.
-            const mirror
-                = jitsiTrack.getCameraFacingMode() === CAMERA_FACING_MODE.USER;
-
-            store.dispatch({
-                type: TRACK_UPDATED,
-                track: {
-                    jitsiTrack,
-                    mirror
+        case TOGGLE_CAMERA_FACING_MODE: {
+            console.log("camera switching", TOGGLE_CAMERA_FACING_MODE);
+            const localTrack = _getLocalTrack(store, MEDIA_TYPE.VIDEO);
+            let jitsiTrack;
+        
+            if (localTrack && (jitsiTrack = localTrack.jitsiTrack)) {
+                const nativeTrack = jitsiTrack.getTrack?.();
+                const isTrackReady = nativeTrack && nativeTrack.readyState === 'live';
+        
+                if (!isTrackReady) {
+                    console.warn('[CameraSwitch] Track not live, reinitializing...');
+                    store.dispatch(destroyLocalTracks());
+                    store.dispatch(createLocalTracksA({ devices: [ MEDIA_TYPE.VIDEO ] }));
+                    return;
                 }
-            });
+        
+                try {
+                    jitsiTrack._switchCamera();
+        
+                    const mirror = jitsiTrack.getCameraFacingMode() === CAMERA_FACING_MODE.USER;
+        
+                    store.dispatch({
+                        type: TRACK_UPDATED,
+                        track: {
+                            jitsiTrack,
+                            mirror
+                        }
+                    });
+        
+                    // 🔍 Check again after a small delay to ensure it switched
+                    setTimeout(() => {
+                        const newNativeTrack = jitsiTrack.getTrack?.();
+                        const isStillLive = newNativeTrack?.readyState === 'live';
+                        if (!isStillLive) {
+                            console.warn('[CameraSwitch] Camera hung after switch, reinitializing...');
+                            store.dispatch(destroyLocalTracks());
+                            store.dispatch(createLocalTracksA({ devices: [ MEDIA_TYPE.VIDEO ] }));
+                        }
+                    }, 1000); // delay slightly to allow camera switch
+        
+                } catch (err) {
+                    console.error('[CameraSwitch] _switchCamera failed:', err);
+                    store.dispatch(destroyLocalTracks());
+                    store.dispatch(createLocalTracksA({ devices: [ MEDIA_TYPE.VIDEO ] }));
+                }
+            } else {
+                console.warn('[CameraSwitch] No local video track found. Creating new one...');
+                store.dispatch(createLocalTracksA({ devices: [ MEDIA_TYPE.VIDEO ] }));
+            }
+        
+            console.log("camera switching", "TOGGLE_CAMERA_FACING_MODE 2");
+            break;
         }
-        break;
-    }
+        
     }
 
     return next(action);

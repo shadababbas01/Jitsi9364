@@ -75,15 +75,15 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
                 location = defaultLocation;
             }
         }
-
+console.log("><><<<>",1);
         location.protocol || (location.protocol = 'https:');
         const { contextRoot, host, hostname, pathname, room } = location;
         const locationURL = new URL(location.toString());
         const { conference } = getConferenceState(getState());
-
+        console.log("><><<<>2",conference);
         if (room) {
             if (conference) {
-
+                console.log("><><<<>3",conference);
                 // We need to check if the location is the same with the previous one.
                 const currentLocationURL = conference?.getConnection()[JITSI_CONNECTION_URL_KEY];
                 const { hostname: currentHostName, pathname: currentPathName } = currentLocationURL;
@@ -119,7 +119,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
         release && (url = appendURLParam(url, 'release', release));
 
         let config;
-
+        console.log("><><<<>4",room);
         // Avoid (re)loading the config when there is no room.
         if (!room) {
             config = restoreConfig(baseURL);
@@ -151,7 +151,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
 
             return;
         }
-
+        console.log("><><<<>5",locationURL);
         dispatch(setLocationURL(locationURL));
         dispatch(setConfig(config, locationURL));
         dispatch(setRoom(room));
@@ -164,7 +164,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
 
         dispatch(createDesiredLocalTracks());
         dispatch(clearNotifications());
-
+        console.log("><><<<>6",room);
         if (!options.hidePrejoin && isPrejoinPageEnabled(getState()) && false) {    // added by shadab
             if (isUnsafeRoomWarningEnabled(getState()) && isInsecureRoomName(room)) {
                 navigateRoot(screen.unsafeRoomWarning);

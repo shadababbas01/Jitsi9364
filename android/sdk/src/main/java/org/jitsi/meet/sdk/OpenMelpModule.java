@@ -179,6 +179,14 @@ public class OpenMelpModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void switchingRoom(boolean switching) {
+            Intent i = new Intent();
+            i.setAction("switchingRoom");
+            i.putExtra("switchingRoom", switching);
+            getReactApplicationContext().sendBroadcast(i);
+    }
+
+    @ReactMethod
     public void showAttendees(ReadableArray strings) {
         try {
             emailList.clear();
