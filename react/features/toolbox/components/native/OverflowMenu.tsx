@@ -165,7 +165,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <RecordButton { ...buttonProps } /> */}
                 <LiveStreamButton { ...buttonProps } />
                 {/* <LinkToSalesforceButton { ...buttonProps } /> */}
-                {/* <WhiteboardButton { ...buttonProps } /> */}
+                <WhiteboardButton { ...buttonProps } />
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
                 <SharedVideoButton { ...buttonProps } />
