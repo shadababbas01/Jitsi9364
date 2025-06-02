@@ -15,7 +15,12 @@ import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraB
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 import ZoomButton from '../../../toolbox/components/native/ZoomButton';
 import ConferenceTimer from '../ConferenceTimer';
-
+import {
+    getParticipants,
+    getLocalParticipant,
+    getParticipantCountRemoteOnly,
+    getRemoteParticipants
+} from '../../../base/participants/functions';
 import Labels from './Labels';
 import styles from './styles';
 
@@ -52,6 +57,7 @@ interface IProps {
      * True if the navigation bar should be visible.
      */
     _visible: boolean;
+    _people: any;
 }
 
 /**
@@ -62,12 +68,12 @@ interface IProps {
  * @returns {JSX.Element}
  */
 const TitleBar = (props: IProps) => {
-    const { _isParticipantsPaneEnabled, _visible } = props;
+    const { _isParticipantsPaneEnabled, _visible, _people } = props;
 
     if (!_visible) {
         return null;
     }
-
+    console.log("start timer comes here : conference timer getfeatureflag ")
     return (
         <View
             style = { styles.titleBarWrapper as ViewStyle }>
@@ -77,12 +83,12 @@ const TitleBar = (props: IProps) => {
             <View
                 pointerEvents = 'box-none'
                 style = { styles.roomNameWrapper as ViewStyle }>
-                {/* {
+                {
                     props._conferenceTimerEnabled
                     && <View style = { styles.roomTimerView as ViewStyle }>
-                        <ConferenceTimer textStyle = { styles.roomTimer } />
+                        <ConferenceTimer textStyle = { styles.roomTimer } participant ={props._people} />
                     </View>
-                } */}
+                }
                 {
                     props._roomNameEnabled
                     && <View style = { styles.roomNameView as ViewStyle }>
@@ -126,14 +132,16 @@ function _mapStateToProps(state: IReduxState) {
     const { hideConferenceTimer } = state['features/base/config'];
     const startTimestamp = state['features/base/conference']
     const zoomtype = state['features/base/settings'].zoomtype;
+    const people = getParticipantCountRemoteOnly(state);
     return {
         _conferenceTimerEnabled:
-            Boolean(getFeatureFlag(state, CONFERENCE_TIMER_ENABLED, true) && !hideConferenceTimer && startTimestamp),
+        Boolean(getParticipantCountRemoteOnly(state) >= 1),
         _isParticipantsPaneEnabled: isParticipantsPaneEnabled(state),
         _meetingName: getConferenceName(state),
         _roomNameEnabled: isRoomNameEnabled(state),
         _zoomtype: zoomtype,
-        _visible: isToolboxVisible(state)
+        _visible: isToolboxVisible(state),
+        _people: getParticipantCountRemoteOnly(state)
     };
 }
 

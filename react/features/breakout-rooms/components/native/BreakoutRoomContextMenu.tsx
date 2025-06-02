@@ -9,8 +9,8 @@ import { sendAnalytics } from '../../../analytics/functions';
 import { hideSheet, openDialog } from '../../../base/dialog/actions';
 import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge,  IconRingGroup } from '../../../base/icons/svg';
-// import { IconCloseLarge, IconEdit, IconRingGroup } from '../../../base/icons/svg';
+// import { IconCloseLarge,  IconRingGroup } from '../../../base/icons/svg';
+import { IconCloseLarge, IconEdit, IconRingGroup } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import styles from '../../../participants-pane/components/native/styles';
 import { isBreakoutRoomRenameAllowed } from '../../../participants-pane/functions';
@@ -97,7 +97,7 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
                     </TouchableOpacity>
                 )
             }
-            {/* {
+            {
                 !room?.isMainRoom && actions.includes(ACTIONS.RENAME) && _isBreakoutRoomRenameAllowed
                 && <TouchableOpacity
                     onPress = { onRenameBreakoutRoom }
@@ -107,7 +107,7 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
                         src = { IconEdit } />
                     <Text style = { styles.contextMenuItemText }>{t('breakoutRooms.actions.rename')}</Text>
                 </TouchableOpacity>
-            } */}
+            }
           
             {
                 !room?.isMainRoom && isLocalModerator && actions.includes(ACTIONS.REMOVE)

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { NativeModules, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { createToolbarEvent } from '../../../analytics/AnalyticsEvents';
@@ -36,6 +36,8 @@ function HangupMenu() {
 
     const handleLeaveConference = useCallback(() => {
         dispatch(hideSheet());
+        NativeModules.NativeCallsNew.hangup();
+        this._hangup();
         sendAnalytics(createToolbarEvent('hangup'));
         dispatch(appNavigate(undefined));
     }, [ dispatch ]);

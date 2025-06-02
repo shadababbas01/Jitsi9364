@@ -90,12 +90,12 @@ const MeetingParticipantList = () => {
                     disabled = { shareDialogVisible }
 
                     // eslint-disable-next-line react/jsx-no-bind, no-confusing-arrow
-                    // icon = { () => (
-                    //     <Icon
-                    //         color = { color }
-                    //         size = { 20 }
-                    //         src = { IconAddUser } />
-                    // ) }
+                    icon = { () => (
+                        <Icon
+                            color = { color }
+                            size = { 20 }
+                            src = { IconAddUser } />
+                    ) }
                     labelKey = 'participantsPane.actions.invite'
                     onClick = { onInvite }
                     style = { styles.inviteButton }

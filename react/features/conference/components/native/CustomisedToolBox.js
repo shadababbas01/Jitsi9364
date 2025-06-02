@@ -28,7 +28,9 @@ import styles, { DESKTOP_ENABLED_ICON, DESKTOP_DISABLED_ICON, ADD_CALL_ICON,
     AUDIO_MUTE_ONE_TO_ONE_INACTIVE_ICON,
     VIDEO_ONE_TO_ONE_INACTIVE_ICON,
     VIDEO_TEAMS_INACTIVE_ICON ,
-    BLUETOOTH} from './styles';
+    BLUETOOTH,
+    DOT,
+    NODOT} from './styles';
 import { ColorPalette } from '../../../base/styles/components/styles/ColorPalette';
 import HoldButton from './HoldButton';
 import {NativeModules} from 'react-native';
@@ -141,9 +143,10 @@ class CustomisedToolBox extends Component<Props, *> {
     }
     render() {
         const toolBoxFunctionTextStyle =   this.props.isTeamsCall?styles.toolBoxFunctionTextTeamStyle:styles.toolBoxFunctionTextOneToOneStyle;
-        const { setSpeakerState, speakerOn, isShowingAttendees }= this.props;
+        const { setSpeakerState, speakerOn, isShowingAttendees, ismessage,setMessagestate  }= this.props;
         const { isHoldOn } = this.state;
         const { audioMuted } = this.props;
+        const { newMessage } = this.props;
         const toolBoxInactiveStyle = isHoldOn ?
         this.props.isTeamsCall ?
         styles.toolBoxFunctionInactiveTeamStyle: styles.toolBoxFunctionInactiveOneToOneStyle: toolBoxFunctionTextStyle;
@@ -186,7 +189,7 @@ class CustomisedToolBox extends Component<Props, *> {
         }
     }
     OpenMelpChat.isAudioMode(true);
-
+    console.log(">>>>>>>>>>>>>>>ismessage",ismessage);
     console.log("this is in app language we sent -->", i18next.language);
     const getTranslatedText = (key) => {
         const languageCode = i18next.language || 'en';
@@ -213,6 +216,13 @@ class CustomisedToolBox extends Component<Props, *> {
      else{
         ecndCallIcon= END_CALL_ICON
      }
+     let messageIcon;
+     if(newMessage){
+         messageIcon = DOT;
+     }else{
+         messageIcon = NODOT;
+     }
+     console.log('this is message icon ', messageIcon);
 
 
         return (
@@ -279,12 +289,12 @@ class CustomisedToolBox extends Component<Props, *> {
                     </AudioDeviceToggleButton>
                 </View>
                 <View style = { styles.toolBoxSectionContainerStyle} >
-                   <ChatButton>
+                   <ChatButton setMessagestate={setMessagestate}>
                         {(_onClick) =>
                         (
                         <TouchableHighlight onPress={_onClick} underlayColor={ColorPalette.transparent}>
                             <View style = { styles.toolBoxFunctionContainerStyle }>
-                                <Image style = { styles.messageIconStyle } source = { MESSAGE_ICON }/>
+                                <Image style = { styles.messageIconStyle } source={ismessage ? DOT : NODOT}/>
                                 <Text style = { toolBoxFunctionTextStyle }>{getTranslatedText("message")} </Text>
                             </View>
                         </TouchableHighlight>)

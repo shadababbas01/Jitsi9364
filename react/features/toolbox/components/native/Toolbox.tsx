@@ -36,6 +36,7 @@ interface IProps {
      * Whether we are in visitors mode.
      */
     _iAmVisitor: boolean;
+    ismessage: boolean;
 
     /**
      * Whether or not any reactions buttons should be visible.
@@ -46,6 +47,7 @@ interface IProps {
      * The color-schemed stylesheet of the feature.
      */
     _styles: any;
+    setMessagestate: (state: boolean) => void;
 
     /**
      * The indicator which determines whether the toolbox is visible.
@@ -56,6 +58,7 @@ interface IProps {
      * The width of the screen.
      */
     _width: number;
+    newMessage: any;
 }
 
 /**
@@ -65,14 +68,14 @@ interface IProps {
  * @returns {React$Element}
  */
 function Toolbox(props: IProps) {
-    const { _endConferenceSupported, _shouldDisplayReactionsButtons, _styles, _visible, _iAmVisitor, _width } = props;
+    const { _endConferenceSupported, _shouldDisplayReactionsButtons, _styles, _visible, _iAmVisitor, _width, newMessage,setMessagestate, ismessage } = props;
 
     if (!_visible) {
         return null;
     }
 
     const bottomEdge = Platform.OS === 'ios' && _visible;
-    const { buttonStylesBorderless, hangupButtonStyles, toggledButtonStyles } = _styles;
+    const { buttonStylesBorderless, hangupButtonStyles, toggledButtonStyles, toggledButtonStyles2 } = _styles;
     const additionalButtons = getMovableButtons(_width);
     const backgroundToggledStyle = {
         ...toggledButtonStyles,
@@ -88,6 +91,7 @@ function Toolbox(props: IProps) {
         additionalButtons.add('raisehand');
         style.justifyContent = 'center';
     }
+    console.log('this is new message in toolbox', newMessage);
 
     return (
         <View
@@ -100,9 +104,8 @@ function Toolbox(props: IProps) {
                 pointerEvents = 'box-none'
                 style = { style as ViewStyle }>
                     {additionalButtons.has('chat')
-                      && <ChatButton
-                          styles = { buttonStylesBorderless }
-                          toggledStyles = { backgroundToggledStyle } />
+                      && <ChatButton setMessagestate={setMessagestate} ismessage={ismessage}
+                          styles = { buttonStylesBorderless } />
                         }
                         {!_iAmVisitor && <AudioMuteButton
                     styles = { buttonStylesBorderless }
@@ -132,7 +135,8 @@ function Toolbox(props: IProps) {
                         styles = { buttonStylesBorderless }
                         toggledStyles = { backgroundToggledStyle } />
                 } */}
-                { !additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }/>}
+                { !additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }
+                toggledStyles = { toggledButtonStyles2 }/>}
                 {!_iAmVisitor && additionalButtons.has('screensharing')
                     && <ScreenSharingButton styles = { buttonStylesBorderless } />}
                 {/*additionalButtons.has('raisehand') && (_shouldDisplayReactionsButtons

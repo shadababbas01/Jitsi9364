@@ -58,7 +58,10 @@ import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
+import { getBreakoutRooms } from '../../../breakout-rooms/functions';
 const DOUBLE_PRESS_DELAY = 300;
+// import { isInBreakoutRoom } from '../breakout-rooms/functions';
+import { isInBreakoutRoom } from '../../../../features/breakout-rooms/functions';
 var totalUser = '0';
 
 /**
@@ -168,7 +171,9 @@ type Props = AbstractProps & {
     /**
      * Default prop for navigating between screen components(React Navigation).
      */
-    navigation: Object
+    navigation: Object,
+
+    newMessage: any
 };
 
 type State = {
@@ -286,19 +291,19 @@ class Conference extends AbstractConference<Props, State> {
 
         return (
             <Container
-                style = { [
+                style={[
                     styles.conference,
                     _brandingStyles
-                ] }>
+                ]}>
                 <BrandingImageBackground />
                 {
                     Platform.OS === 'android'
                     && <StatusBar
-                        barStyle = 'light-content'
-                        hidden = { _fullscreenEnabled }
-                        translucent = { _fullscreenEnabled } />
+                        barStyle='light-content'
+                        hidden={_fullscreenEnabled}
+                        translucent={_fullscreenEnabled} />
                 }
-                { this._renderContent() }
+                {this._renderContent()}
             </Container>
         );
     }
@@ -319,7 +324,7 @@ class Conference extends AbstractConference<Props, State> {
         const timeDiff = currentTime - this.lastClickTime;
 
         if (timeDiff < DOUBLE_PRESS_DELAY) {
-            const { dispatch ,objectFit} = this.props;
+            const { dispatch, objectFit } = this.props;
             if (objectFit === 'cover') {
                 dispatch(updateSettings({ zoomtype: 'contain' }));
             } else {
@@ -406,7 +411,11 @@ class Conference extends AbstractConference<Props, State> {
             _largeVideoParticipantId,
             _reducedUI,
             _shouldDisplayTileView,
-            _toolboxVisible
+            _toolboxVisible,
+            setMessagestate,
+            ismessage,
+            newMessage
+
         } = this.props;
 
         let alwaysOnTitleBarStyles;
@@ -424,6 +433,7 @@ class Conference extends AbstractConference<Props, State> {
             alwaysOnTitleBarStyles = styles.alwaysOnTitleBar;
 
         }
+        console.log('this is new message in conference old', newMessage);
         // OpenMelpChat.isAudioMode(false);
 
         return (
@@ -432,8 +442,8 @@ class Conference extends AbstractConference<Props, State> {
                   * The LargeVideo is the lowermost stacking layer.
                   */
                     _shouldDisplayTileView
-                        ? <TileView onClick = { this._onClick } />
-                        : <LargeVideo onClick = { this._onClick } />
+                        ? <TileView onClick={this._onClick} />
+                        : <LargeVideo onClick={this._onClick} />
                 }
 
                 {/*
@@ -447,64 +457,64 @@ class Conference extends AbstractConference<Props, State> {
                   * the toolbox/toolbars and the dialogs.
                   */
                     _connecting
-                        && <TintedView>
-                            <LoadingIndicator />
-                        </TintedView>
+                    && <TintedView>
+                        <LoadingIndicator />
+                    </TintedView>
                 }
 
                 <View
-                    pointerEvents = 'box-none'
-                    style = { styles.toolboxAndFilmstripContainer }>
+                    pointerEvents='box-none'
+                    style={styles.toolboxAndFilmstripContainer}>
 
-                    <Captions onPress = { this._onClick } />
+                    <Captions onPress={this._onClick} />
 
                     {
                         _shouldDisplayTileView || (
                             !_isOneToOneConference
-                            && <Container style = { styles.displayNameContainer }>
+                            && <Container style={styles.displayNameContainer}>
                                 <DisplayNameLabel
-                                    participantId = { _largeVideoParticipantId } />
+                                    participantId={_largeVideoParticipantId} />
                             </Container>
                         )
                     }
 
-                    {/* <LonelyMeetingExperience /> added by jaswant */ } 
+                    {/* <LonelyMeetingExperience /> added by jaswant */}
 
                     {
                         _shouldDisplayTileView
                         || <>
                             <Filmstrip />
-                            { this._renderNotificationsContainer() }
-                            <Toolbox />
+                            {this._renderNotificationsContainer()}
+                            <Toolbox setMessagestate={setMessagestate} ismessage={ismessage} />
                         </>
                     }
                 </View>
 
                 <SafeAreaView
-                    pointerEvents = 'box-none'
-                    style = {
+                    pointerEvents='box-none'
+                    style={
                         _toolboxVisible
                             ? styles.titleBarSafeViewColor
-                            : styles.titleBarSafeViewTransparent }>
-                    <TitleBar _createOnPress = { this._createOnPress } />
+                            : styles.titleBarSafeViewTransparent}>
+                    <TitleBar _createOnPress={this._createOnPress} />
                 </SafeAreaView>
                 <SafeAreaView
-                    pointerEvents = 'box-none'
-                    style = {
+                    pointerEvents='box-none'
+                    style={
                         _toolboxVisible
-                            ? [ styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 } ]
+                            ? [styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 }]
                             : styles.titleBarSafeViewTransparent
                     }>
                     <View
-                        pointerEvents = 'box-none'
-                        style = { styles.expandedLabelWrapper }>
-                        <ExpandedLabelPopup visibleExpandedLabel = { this.state.visibleExpandedLabel } />
+                        pointerEvents='box-none'
+                        style={styles.expandedLabelWrapper}>
+                        <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
                     </View>
                     <View
-                        pointerEvents = 'box-none'
-                        style = { alwaysOnTitleBarStyles }>
+                        pointerEvents='box-none'
+                        style={alwaysOnTitleBarStyles}>
                         {/* eslint-disable-next-line react/jsx-no-bind */}
-                        <AlwaysOnLabels createOnPress = { this._createOnPress } show={true} />
+                        <AlwaysOnLabels createOnPress={this._createOnPress} show={true} />
                     </View>
                 </SafeAreaView>
 
@@ -513,8 +523,8 @@ class Conference extends AbstractConference<Props, State> {
                 {
                     _shouldDisplayTileView
                     && <>
-                        { this._renderNotificationsContainer() }
-                        <Toolbox />
+                        {this._renderNotificationsContainer()}
+                        <Toolbox setMessagestate={setMessagestate} ismessage={ismessage} />
                     </>
                 }
             </>
@@ -532,13 +542,13 @@ class Conference extends AbstractConference<Props, State> {
 
         return (
             <>
-                <LargeVideo onClick = { this._onClick } />
+                <LargeVideo onClick={this._onClick} />
 
                 {
                     _connecting
-                        && <TintedView>
-                            <LoadingIndicator />
-                        </TintedView>
+                    && <TintedView>
+                        <LoadingIndicator />
+                    </TintedView>
                 }
             </>
         );
@@ -608,14 +618,13 @@ function _mapStateToProps(state) {
     const { startCarMode } = state['features/base/settings'];
     const { enabled: audioOnlyEnabled } = state['features/base/audio-only'];
     const participantCount = getParticipantCountRemoteOnly(state);
+    const breakoutRooms = getBreakoutRooms(state);
     const brandingStyles = backgroundColor ? {
         backgroundColor
     } : undefined;
 
-//     if(totalUser!=participantCount){
-//         totalUser  = participantCount
-//     // NativeModules.NativeCallsNew.totalUsers(participantCount);
-// }
+
+
 
     return {
         ...abstractMapStateToProps(state),
@@ -651,9 +660,9 @@ export default withSafeAreaInsets(connect(_mapStateToProps)(props => {
 
         // We also need to disable PiP when we are back on the WelcomePage
         return () => setPictureInPictureEnabled(false);
-    }, [ isFocused ]);
+    }, [isFocused]);
 
     return (
-        <Conference { ...props } />
+        <Conference {...props} />
     );
 }));

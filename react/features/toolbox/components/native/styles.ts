@@ -211,5 +211,12 @@ ColorSchemeRegistry.register('Toolbox', {
             ...toolbarButton
         },
         underlayColor: 'transparent'
+    },
+    toggledButtonStyles2: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton
+        },
+        underlayColor: 'transparent'
     }
 });

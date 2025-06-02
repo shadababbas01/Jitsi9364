@@ -85,15 +85,99 @@ export function closeBreakoutRoom(roomId: string) {
  * @param {string} name - New name / subject for the breakout room.
  * @returns {Function}
  */
-export function renameBreakoutRoom(breakoutRoomJid: string, name = '') {
-    return (_dispatch: IStore['dispatch'], getState: IStore['getState']) => {
-        const trimmedName = name.trim();
+ export function renameBreakoutRoom(breakoutRoomJid: string, name = '') {
+    return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
+        return new Promise((resolve, reject) => {
+            const trimmedName = name.trim();
 
-        if (trimmedName.length !== 0) {
-            sendAnalytics(createBreakoutRoomsEvent('rename'));
-            getCurrentConference(getState)?.getBreakoutRooms()
-                ?.renameBreakoutRoom(breakoutRoomJid, trimmedName);
-        }
+            if (!trimmedName) {
+                console.warn('Breakout room name cannot be empty');
+                reject(new Error('Breakout room name cannot be empty'));
+                return;
+            }
+
+            try {
+                // Extensive logging
+                console.log('Rename Breakout Room Attempt - Input:', {
+                    roomJid: breakoutRoomJid,
+                    newName: trimmedName
+                });
+
+                // Send analytics
+                sendAnalytics(createBreakoutRoomsEvent('rename'));
+
+                // Get current conference
+                const conference = getCurrentConference(getState);
+                
+                if (!conference) {
+                    console.error('No active conference found');
+                    reject(new Error('No active conference'));
+                    return;
+                }
+
+                // Detailed conference object logging
+                console.log('Conference Object:', {
+                    conference,
+                    methods: Object.keys(conference)
+                });
+
+                // Get breakout rooms
+                const breakoutRooms = conference.getBreakoutRooms?.();
+                
+                if (!breakoutRooms) {
+                    console.error('Breakout rooms not available');
+                    console.log('Conference methods:', Object.keys(conference));
+                    reject(new Error('Breakout rooms not available'));
+                    return;
+                }
+
+                // Detailed breakout rooms logging
+                console.log('Breakout Rooms Object:', {
+                    breakoutRooms,
+                    methods: Object.keys(breakoutRooms)
+                });
+
+                // Alternative rename approaches
+                let renameResult;
+                if (typeof breakoutRooms.renameBreakoutRoom === 'function') {
+                    // Preferred method
+                    renameResult = breakoutRooms.renameBreakoutRoom(breakoutRoomJid, trimmedName);
+                } else if (typeof conference.renameBreakoutRoom === 'function') {
+                    // Fallback method
+                    renameResult = conference.renameBreakoutRoom(breakoutRoomJid, trimmedName);
+                } else {
+                    console.error('No renameBreakoutRoom method found');
+                    reject(new Error('Rename method not available'));
+                    return;
+                }
+
+                // Advanced logging for rename result
+                console.log('Rename Result:', {
+                    result: renameResult,
+                    type: typeof renameResult
+                });
+
+                // Check for promise-like object
+                if (renameResult && typeof renameResult.then === 'function') {
+                    renameResult
+                        .then(() => resolve(true))
+                        .catch((error) => {
+                            console.error('Rename Promise Failed:', error);
+                            reject(error);
+                        });
+                } else if (renameResult === undefined) {
+                    // If undefined, assume success but log a warning
+                    console.warn('Rename method returned undefined - assuming success');
+                    resolve(true);
+                } else {
+                    // For other return types
+                    resolve(renameResult);
+                }
+            } catch (error) {
+                console.error('Unexpected Error in Rename Attempt:', error);
+                reject(error);
+            }
+        });
     };
 }
 

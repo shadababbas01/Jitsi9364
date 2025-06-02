@@ -74,7 +74,8 @@ const ConferenceTimer = ({ textStyle, participant }: IProps) => {
     const startTimer = useCallback(() => {
         if (!interval.current && startTimestamp) {
 
-            console.log("start timer comes here : conference timer")
+            console.log("start timer comes here : conference timer partcipant", participant)
+            // console.log("start timer comes here : conference timer startTimestamp", startTimestamp)
             setStateFromUTC(startTimestamp, new Date().getTime());
 
             interval.current = window.setInterval(() => {

@@ -69,6 +69,7 @@ import ConferenceOld from './Conferenceold';
 import { getBreakoutRooms, getCurrentRoomId } from '../../../breakout-rooms/functions';
 import { I } from '@jitsi/excalidraw/types/ga';
 var totalUser = '0';
+import Orientation from 'react-native-orientation-locker';
 
 /**
  * The type of the React {@code Component} props of {@link Conference}.
@@ -182,6 +183,7 @@ class Conference extends AbstractConference<IProps, State> {
     nativeEventEmitter;
     subscriptionStartTimer;
     subscriptionStopTimer;
+    subscriptionsetInCallMessage;
     subscriptionConnectionStatus;
     subscriptionviewcalldata;
 
@@ -205,9 +207,12 @@ class Conference extends AbstractConference<IProps, State> {
         this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
         this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
-        this.state = {interval: 0, speakerOn: false, showAttendees:false, connectionStatus: '' };
+        this.state = {interval: 0, speakerOn: false, showAttendees:false, connectionStatus: '', newMessageAvailable:false,  inCallMessage: false };
         this.secondsToHMS.bind(this);
         this._startTimer =  this._startTimer.bind(this);
+        this._setInCallMessage = this._setInCallMessage.bind(this);
+        this._setMessagestate = this._setMessagestate.bind(this);
+        this._newMessage =  this._newMessage.bind(this);
         this._stopTimer =  this._stopTimer.bind(this);
         this._connectionStatus = this._connectionStatus.bind(this);
         this._setSpeakerState = this._setSpeakerState.bind(this);
@@ -238,6 +243,10 @@ class Conference extends AbstractConference<IProps, State> {
         } else {
             eventEmitter = DeviceEventEmitter;
         }
+        this.subscriptionsetInCallMessage = eventEmitter.addListener(
+            'newMessage', this._setInCallMessage);
+        this.subscriptionStartTimer = eventEmitter.addListener(
+            'newMessage', this._newMessage);
         this.subscriptionStartTimer = eventEmitter.addListener(
             'startTimer', this._startTimer);
             this.subscriptionviewcalldata = eventEmitter.addListener(
@@ -395,6 +404,34 @@ class Conference extends AbstractConference<IProps, State> {
         this.setState({ interval: this.state.interval + 1 });
     }, 1000);
 }
+
+// _setInCallMessage() {
+
+//     this.setState({ inCallMessage: true });
+
+
+// }
+
+_setInCallMessage = (data: { newMessage: boolean }) => {
+    console.log('Received newMessage event:', data);
+    if (data?.newMessage) {
+        console.log('Received newMessage event if :', data);
+        this.setState({inCallMessage: true});
+    }else{
+        console.log('Received newMessage event else:', data);
+        this.setState({inCallMessage: false});
+    }
+};
+_newMessage = (data: { newMessage: boolean }) => {
+    console.log('Received newMessage event:', data);
+    if (data?.newMessage) {
+        console.log('Received newMessage event if :', data);
+        this.setState({inCallMessage: true});
+    }else{
+        console.log('Received newMessage event else:', data);
+        this.setState({inCallMessage: false});
+    }
+};
 showAttendees() {
     if(OpenMelpChat.showAttendees){
       const { participants } = this.props;
@@ -437,6 +474,14 @@ _connectionStatus(event) {
      * @private
      * @returns {React$Node}
      */
+
+
+     _setMessagestate(inCall) {
+        console.log(">>>inCallMessage", inCall);
+        this.setState({ inCallMessage: inCall });
+
+
+    }
     _renderConferenceNotification() {
         const { _calendarEnabled, _reducedUI } = this.props;
         return (
@@ -472,7 +517,7 @@ _connectionStatus(event) {
      * @private
      * @returns {React$Element}
      */
-    _renderContent() {
+     _renderContent() {
         const {
             _connecting,
             _largeVideoParticipantId,
@@ -486,69 +531,76 @@ _connectionStatus(event) {
             participant,
             _connected
         } = this.props;
-
-        const { interval, showAttendees, speakerOn, connectionStatus } = this.state;
+    
+        const { interval, showAttendees, speakerOn, connectionStatus, newMessageAvailable, inCallMessage } = this.state;
         const secsToMinString = this.secondsToHMS(interval);
-            if(!_connecting &&!_connected){ // added by jaswant
-                return;
-            }
-
-        if (_reducedUI) {
-            return this._renderContentForReducedUi();
+    
+        if (!_connecting && !_connected) {
+            return null; // Early return if not connected
         }
     
-
+        if (_reducedUI) {
+            return this._renderContentForReducedUi(); // Render UI for reduced mode
+        }
+    
+        if (audioOnly) {
+            // Lock orientation to portrait mode for AudioScreen only
+            Orientation.lockToPortrait();
+        } else {
+            // Unlock orientation when switching to ConferenceOld
+            Orientation.unlockAllOrientations();
+        }
+    
         return (
-            !audioOnly ? <ConferenceOld />
-            : (
-            <AudioScreen>
-            <SafeAreaView style = { isTeamsCall ? { backgroundColor: 'black',flex: 1 }: { backgroundColor: 'rgb(252,252,252)',flex: 1 } }>
-                    <View style = { isTeamsCall ? styles.mainContainerTeamsStyle:styles.mainContainerOneToOneStyle }>
-                        <UpperTextContainer isTeamsCall = { isTeamsCall } />
-                        <CalleeDetails connectionState = {connectionStatus} connected = { _connecting } isTeamsCall = {isTeamsCall} roomName={roomName} secsToMinString = {secsToMinString} participant = {participant} />
-                        {/* <Chat /> */}
-                        {/* <AddPeopleDialog /> */}
-                        <CustomisedToolBox
-                        isTeamsCall = { isTeamsCall }
-                        speakerOn= { speakerOn }
-                        setSpeakerState = {this._setSpeakerState}
-                        showAttendees = {this.showAttendees}
-                        isShowingAttendees = { showAttendees }/>
-                        {
-                           showAttendees && <Attendees showAttendees = {this.showAttendees}/>
-                        }
-                 <SafeAreaView
-                    pointerEvents = 'box-none'
-                    style = {
-                        (_toolboxVisible
-                            ? [ styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 } ]
-                            : styles.titleBarSafeViewTransparent)
-                    }>
-                    <View
-                        pointerEvents = 'box-none'
-                        style = { styles.expandedLabelWrapper }>
-                        <ExpandedLabelPopup visibleExpandedLabel = { this.state.visibleExpandedLabel } />
-                    </View>
-                    <View
-                        pointerEvents = 'box-none'
-                        style = { styles.alwaysOnTitleBar }>
-                        {/* eslint-disable-next-line react/jsx-no-bind */}
-                        <AlwaysOnLabels createOnPress = { this._createOnPress } show={false} />
-                    </View>
-                </SafeAreaView>
-
-                        {/* <TestConnectionInfo /> */}
-                        {/* {
-                            this._renderConferenceNotification()
-                        } */}
-                        <View style = { styles.customFilmstripViewBoxStyle } >
-                           <Filmstrip connectionState = { this._connectionStatus }/>
-                       </View>
-                    </View>
-            </SafeAreaView>
-            </AudioScreen>
+            !audioOnly ? (
+                <ConferenceOld 
+                    setMessagestate={this._setMessagestate}
+                    ismessage={inCallMessage} 
+                />
+            ) : (
+                <AudioScreen>
+                    <SafeAreaView style={isTeamsCall ? { backgroundColor: 'black', flex: 1 } : { backgroundColor: 'rgb(252,252,252)', flex: 1 }}>
+                        <View style={isTeamsCall ? styles.mainContainerTeamsStyle : styles.mainContainerOneToOneStyle}>
+                            <UpperTextContainer isTeamsCall={isTeamsCall} />
+                            <CalleeDetails 
+                                connectionState={connectionStatus}
+                                connected={_connecting}
+                                isTeamsCall={isTeamsCall}
+                                roomName={roomName}
+                                secsToMinString={secsToMinString}
+                                participant={participant} 
+                            />
+                            <CustomisedToolBox
+                                isTeamsCall={isTeamsCall}
+                                speakerOn={speakerOn}
+                                setSpeakerState={this._setSpeakerState}
+                                showAttendees={this.showAttendees}
+                                isShowingAttendees={showAttendees}
+                                newMessage={newMessageAvailable}
+                                setMessagestate={this._setMessagestate}
+                                ismessage={inCallMessage}
+                            />
+                            {showAttendees && <Attendees showAttendees={this.showAttendees} />}
+                            
+                            <SafeAreaView
+                                pointerEvents='box-none'
+                                style={_toolboxVisible ? [styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 }] : styles.titleBarSafeViewTransparent}
+                            >
+                                <View pointerEvents='box-none' style={styles.expandedLabelWrapper}>
+                                    <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
+                                </View>
+                                <View pointerEvents='box-none' style={styles.alwaysOnTitleBar}>
+                                    <AlwaysOnLabels createOnPress={this._createOnPress} show={false} />
+                                </View>
+                            </SafeAreaView>
+    
+                            <View style={styles.customFilmstripViewBoxStyle}>
+                                <Filmstrip connectionState={this._connectionStatus} />
+                            </View>
+                        </View>
+                    </SafeAreaView>
+                </AudioScreen>
             )
-
         );
     }
 
