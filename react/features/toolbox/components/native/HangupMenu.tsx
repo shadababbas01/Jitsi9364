@@ -65,14 +65,14 @@ function HangupMenu() {
                 labelKey='toolbar.endConference'
                 onClick={handleEndConference}
                 style={_styles.hangupButton}
-                type={DESTRUCTIVE}
+                type={SECONDARY}
             />
             <Button
                 accessibilityLabel='toolbar.leaveConference'
                 labelKey='toolbar.leaveConference'
                 onClick={handleLeaveConference}
                 style={_styles.hangupButton}
-                type={SECONDARY}
+                type={DESTRUCTIVE}
             />
         </>
     ) : (
@@ -83,7 +83,7 @@ function HangupMenu() {
                 labelKey='toolbar.leaveConference'
                 onClick={handleLeaveConference}
                 style={_styles.hangupButton}
-                type={SECONDARY}
+                type={DESTRUCTIVE}
             />
         ) : null
     )

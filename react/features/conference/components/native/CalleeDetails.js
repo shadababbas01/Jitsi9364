@@ -59,8 +59,13 @@ class CalleeDetails extends Component {
                         break;
                     }
                  }
-                 participantText = participantText + " + "+ `${this.props.participantsCount-1}` +" "+getTranslatedText('others');
-                callerDetails = 'Conference Call'
+                 if ((this.props.participantsCount - 1) === 0) {
+                    participantText = participantText;
+                  } else {
+                    participantText = participantText + " + " + (this.props.participantsCount - 1) + " " + getTranslatedText('others');
+                    callerDetails = 'Conference Call'
+                  }
+                
                 NativeModules.NativeCallsNew.updatedUserName(participantText);
             }
             else if(participants.length==1){

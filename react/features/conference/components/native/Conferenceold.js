@@ -483,7 +483,7 @@ class Conference extends AbstractConference<Props, State> {
                     {
                         _shouldDisplayTileView
                         || <>
-                            <Filmstrip />
+                            <Filmstrip marginTop={_toolboxVisible ? 54 : 0} />
                             {this._renderNotificationsContainer()}
                             <Toolbox setMessagestate={setMessagestate} ismessage={ismessage} />
                         </>
