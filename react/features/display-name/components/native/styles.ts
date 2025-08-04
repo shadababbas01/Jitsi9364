@@ -18,5 +18,12 @@ export default {
         color: BaseTheme.palette.text01,
         fontSize: 11,
         fontWeight: 'bold'
-    }
+    },
+        deviceIcon: {
+            width: '14px',
+            height: '14px',
+            fill: '#ffffff',
+            opacity: 0.8,
+            flexShrink: 0
+        }
 };

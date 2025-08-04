@@ -75,6 +75,15 @@ export default {
         height: 'auto',
         paddingHorizontal: BaseTheme.spacing[3]
     },
+    breakoutRoomsContaineroverflowmenu: {
+        backgroundColor: BaseTheme.palette.ui01,
+        alignSelf: 'center',
+        width: '100%', // Fill the full device width
+        flex: 1,
+        flexDirection: 'column',
+        height: 'auto',
+        paddingHorizontal: BaseTheme.spacing[0]
+    },
 
     inputContainer: {
         marginLeft: BaseTheme.spacing[2],

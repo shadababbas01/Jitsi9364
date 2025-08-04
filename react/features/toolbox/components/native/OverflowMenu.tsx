@@ -159,6 +159,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     !_shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
                         && <RaiseHandButton { ...buttonProps } />
                 }
+                {_isBreakoutRoomsSupported && <BreakoutRoomsButton { ...buttonProps } />}
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } />
                 <SecurityDialogButton { ...buttonProps } />
@@ -172,7 +173,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 {!toolbarButtons.has('screensharing') && <ScreenSharingButton { ...buttonProps } />}
                 {/* {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />} */}
                 {!toolbarButtons.has('tileview') && <TileViewButton { ...buttonProps } />}
-                {/* {_isBreakoutRoomsSupported && <BreakoutRoomsButton { ...buttonProps } />} */}
+                
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
                 {/* <ClosedCaptionButton { ...buttonProps } /> */}

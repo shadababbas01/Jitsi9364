@@ -223,6 +223,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.breakoutRooms }
                     options = {{
                         ...breakoutRoomsScreenOptions,
+                        headerTitleAlign: 'center',
                         title: t('breakoutRooms.title')
                     }} />
                 <ConferenceStack.Screen

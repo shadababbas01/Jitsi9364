@@ -7,6 +7,7 @@ import {
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
 import { IconRingGroup } from '../../../base/icons/svg';
+import { WhiteBreak } from '../../../base/icons/svg';
 import AbstractButton,
 {
     IProps as AbstractButtonProps
@@ -22,7 +23,7 @@ import { screen } from '../../../mobile/navigation/routes';
  */
 class BreakoutRoomsButton extends AbstractButton<AbstractButtonProps> {
     accessibilityLabel = 'toolbar.accessibilityLabel.breakoutRooms';
-    icon = IconRingGroup;
+    icon = WhiteBreak;
     label = 'toolbar.accessibilityLabel.breakoutRooms';
 
     /**

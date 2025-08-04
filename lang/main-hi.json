@@ -876,7 +876,7 @@
     "transcribing": {
         "ccButtonTooltip": "Start / Stop subtitles",
         "error": "ट्रांसक्रिप्शनिंग विफल रही। कृपया पुन: प्रयास करें",
-        "expandedLabel": "वर्तमान में ट्रांसक्रिप्शनिंग चालू है",
+        "expandedLabel": "वर्तमान में ट्रांसक्रिप्शनिंग चालू है",    
         "failedToStart": "ट्रांसक्रिप्शनिंग प्रारंभ करने में विफल",
         "labelToolTip": "The meeting is being transcribed",
         "off": "ट्रांसक्रिप्शनिंग बंद कर दिया",

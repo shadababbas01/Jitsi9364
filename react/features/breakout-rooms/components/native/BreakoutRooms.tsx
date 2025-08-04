@@ -30,18 +30,22 @@ const BreakoutRooms = () => {
     const isLocalModerator = useSelector(isLocalParticipantModerator);
     const keyExtractor = useCallback((e: undefined, i: number) => i.toString(), []);
     const rooms = Object.values(useSelector(getBreakoutRooms, equals))
-        .filter(room => room.id !== currentRoomId)
-        .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
+    .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
+    // const rooms = Object.values(useSelector(getBreakoutRooms, equals))
+    //     .filter(room => room.id !== currentRoomId)
+    //     .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || '')); 
+
     const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
     const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers >= 0;
     const showAutoAssign = useSelector(isAutoAssignParticipantsVisible);
+    console.log('Service worker registered.', currentRoomId);
 
     return (
         <JitsiScreen
-            // footerComponent = { isLocalModerator && showAddBreakoutRoom
-            //     ? AddBreakoutRoomButton : undefined }
-            // style = { styles.breakoutRoomsContainer }
+            footerComponent = { isLocalModerator && showAddBreakoutRoom
+                ? AddBreakoutRoomButton : undefined }
+            style = { styles.breakoutRoomsContaineroverflowmenu }
             >
 
             { /* Fixes warning regarding nested lists */ }
@@ -51,7 +55,7 @@ const BreakoutRooms = () => {
             {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
             {inBreakoutRoom && <LeaveBreakoutRoomButton />}
             <View>
-            {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null}
+            {/* {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null} */}
             </View>
             {
                 isBreakoutRoomsSupported &&

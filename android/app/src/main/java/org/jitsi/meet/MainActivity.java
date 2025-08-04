@@ -183,7 +183,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                        .setRoom("shadab")
+                        .setRoom("shadab1")
                         .build();
                 join(defaultOptions1);
             }

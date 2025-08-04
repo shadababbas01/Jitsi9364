@@ -119,7 +119,8 @@ MiddlewareRegistry.register(store => next => action => {
                 ),
                 avatarURL: loadableAvatarUrl,
                 breakoutRoom,
-                email
+                email,
+                deviceType: 'android'
             }
         );
         break;
@@ -195,7 +196,8 @@ MiddlewareRegistry.register(store => next => action => {
                 displayName: name,
                 email: email,
                 formattedDisplayName: appendSuffix(
-                    name || defaultRemoteDisplayName)
+                    name || defaultRemoteDisplayName),
+                    deviceType: 'android'
             });
         }
 

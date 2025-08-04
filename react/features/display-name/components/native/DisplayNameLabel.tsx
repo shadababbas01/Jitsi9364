@@ -3,6 +3,8 @@ import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import Icon from '../../../base/icons/components/Icon';
+import { IconLaptop, IconMobile } from '../../../base/icons/svg';
 import {
     getParticipantById,
     getParticipantDisplayName,
@@ -32,6 +34,8 @@ interface IProps {
      * The ID of the participant to render the label for.
      */
     participantId: string;
+
+    deviceType?: string;
 }
 
 /**
@@ -43,23 +47,57 @@ class DisplayNameLabel extends React.Component<IProps> {
      *
      * @inheritdoc
      */
+
     render() {
         if (!this.props._render) {
             return null;
         }
 
+        const { _participantName, contained, deviceType } = this.props;
+
+        let iconSrc;
+
+        console.log(_participantName, deviceType, 'lakshay added this');
+
+        switch (deviceType) {
+            case 'web':
+                iconSrc = IconLaptop;
+                break;
+            case 'android':
+            case 'ios':
+                iconSrc = IconMobile;
+                break;
+            default:
+                iconSrc = undefined;
+                break;
+        }
+
         return (
             <View
-                style = { (this.props.contained ? styles.displayNamePadding : styles.displayNameBackdrop
-                    ) as ViewStyle }>
+                style={[
+                    contained ? styles.displayNamePadding : styles.displayNameBackdrop,
+                    { flexDirection: 'row', alignItems: 'center' } // Added row layout
+                ] as ViewStyle}>
                 <Text
-                    numberOfLines = { 1 }
-                    style = { styles.displayNameText as TextStyle }>
-                    { this.props._participantName }
+                    numberOfLines={1}
+                    style={styles.displayNameText as TextStyle}>
+                    {_participantName}
                 </Text>
+
+                {deviceType && iconSrc && (
+                    <Icon
+                        src={iconSrc}
+                        size={14}
+                        style={{ marginLeft: 6 }} // spacing between text and icon
+                    />
+                )}
             </View>
+
         );
     }
+
+
+
 }
 
 /**

@@ -127,7 +127,7 @@ interface IProps {
      * The video track that will be displayed in the thumbnail.
      */
     _videoTrack?: ITrack;
-
+    _deviceType?: string;
     /**
      * Invoked to trigger state changes in Redux.
      */
@@ -235,7 +235,8 @@ class Thumbnail extends PureComponent<IProps> {
             _renderModeratorIndicator: renderModeratorIndicator,
             _shouldDisplayTileView,
             renderDisplayName,
-            tileView
+            tileView,
+            _deviceType
         } = this.props;
         const indicators = [];
 
@@ -274,7 +275,8 @@ class Thumbnail extends PureComponent<IProps> {
                 {
                     renderDisplayName && <DisplayNameLabel
                         contained = { true }
-                        participantId = { participantId } />
+                        participantId = { participantId }
+                        deviceType = {_deviceType} />
                 }
             </Container>);
         }
@@ -442,7 +444,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const renderModeratorIndicator = participant?.role === PARTICIPANT_ROLE.MODERATOR;
     const { gifUrl: gifSrc } = getGifForParticipant(state, id ?? '');
     const mode = getGifDisplayMode(state);
-    
+    const deviceType = participant?.deviceType;
 
     const { tileViewDimensions } = state['features/filmstrip'];
     //added by jaswant
@@ -485,7 +487,8 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _videoTrack: videoTrack,
         width: width1,
         height: height1,
-        _toolboxVisible: isToolboxVisible(state)
+        _toolboxVisible: isToolboxVisible(state),
+        _deviceType: deviceType
     };
 }
 
