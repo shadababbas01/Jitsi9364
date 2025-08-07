@@ -24,6 +24,31 @@ const AudioPageTranslation = {
         others: 'Others',
         conferencecallsmall: 'Conference Call'
     },
+    lo: {
+    conferencecall: 'ການໂທສາຍກຸ່ມ',
+    startedcallwith: 'ເລີ່ມການໂທກັບ',
+    encrypted: 'ຖືກລະຫັດ',
+    dialpad: 'ແປ້ນໂທ',
+    attendees: 'ຜູ້ເຂົ້າຮ່ວມ',
+    addcall: 'ເພີ່ມການໂທ',
+    mute: 'ປິດສຽງ',
+    videoCall: 'ການໂທວິດີໂອ',
+    speakeron: 'ເປີດລຳໂພງ',
+    speakeroff: 'ປິດລຳໂພງ',
+    message: 'ຂໍ້ຄວາມ',
+    endcall: 'ສິ້ນສຸດການໂທ',
+    hold: 'ຖືກຢຸດໄວ້',
+    connecting: 'ກຳລັງເຊື່ອມຕໍ່...',
+    connected: 'ເຊື່ອມຕໍ່ແລ້ວ',
+    reconnecting: 'ກຳລັງເຊື່ອມຕໍ່ຄືນ...',
+    calling: 'ກຳລັງໂທ...',
+    ringing: 'ກຳລັງດັງ...',
+    callerdetail: 'ການໂທສາຍກຸ່ມ',
+    bluetooth: 'ບລູທູດ',
+    members: 'ສະມາຊິກ',
+    others: 'ອື່ນໆ',
+    conferencecallsmall: 'ການໂທສາຍກຸ່ມ'
+},
     esUS: {
         conferencecall: 'LLAMADA DE CONFERENCIA',
         startedcallwith: 'LLAMADA INICIADA CON',
@@ -149,7 +174,7 @@ const AudioPageTranslation = {
         others: '기타',
         conferencecallsmall: '컨퍼런스 콜'
     },
-    zh: {
+    zhCN: {
         conferencecall: '电话会议',
         startedcallwith: '已开始通话',
         encrypted: '已加密',

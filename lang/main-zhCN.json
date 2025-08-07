@@ -67,13 +67,17 @@
             "renameBreakoutRoom": "重命名分组讨论室",
             "sendToBreakoutRoom": "将参会者移至："
         },
+        "breakoutList": "分组讨论列表",
+        "buttonLabel": "分组讨论室",
         "defaultName": "分组讨论室#{{index}}",
         "mainRoom": "主会议室",
         "notifications": {
             "joined": "正在加入“{{name}}”分组讨论室",
             "joinedMainRoom": "正在加入主会议室",
             "joinedTitle": "分组讨论室"
-        }
+        },
+        "showParticipantList": "显示参与者列表",
+        "title": "分组讨论室"
     },
     "calendarSync": {
         "addMeetingURL": "添加会议链接",
@@ -801,6 +805,7 @@
             "askUnmute": "请求解除静音",
             "audioModeration": "自我解除静音",
             "blockEveryoneMicCamera": "禁用所有人的麦克风和摄像头",
+            "breakoutRooms": "分组讨论室",
             "invite": "邀请其他人",
             "moreModerationActions": "更多主持人选项",
             "moreModerationControls": "更多主持人控制",
