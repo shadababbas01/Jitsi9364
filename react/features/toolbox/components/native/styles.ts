@@ -107,7 +107,8 @@ const styles = {
         maxWidth: 580,
         marginLeft: 'auto',
         marginRight: 'auto',
-        width: '100%'
+        width: '100%',
+        marginBottom: 45,
     },
 
     iconImageStyles: {
