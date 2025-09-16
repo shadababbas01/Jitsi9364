@@ -323,6 +323,31 @@ const AudioPageTranslation = {
         members: 'Участники',
         others: 'Другие',
         conferencecallsmall: 'Конференц-звонок'
+    },
+    vi: {
+        conferencecall: 'CUỘC GỌI HỘI NGHỊ',
+        startedcallwith: 'BẮT ĐẦU CUỘC GỌI VỚI',
+        encrypted: 'ĐƯỢC MÃ HÓA',
+        dialpad: 'BÀN PHÍM QUAY SỐ',
+        attendees: 'NGƯỜI THAM DỰ',
+        addcall: 'THÊM CUỘC GỌI',
+        mute: 'TẮT TIẾNG',
+        videoCall: 'CUỘC GỌI VIDEO',
+        speakeron: 'BẬT LOA',
+        speakeroff: 'TẮT LOA',
+        message: 'TIN NHẮN',
+        endcall: 'KẾT THÚC CUỘC GỌI',
+        hold: 'GIỮ MÁY',
+        connecting: 'Đang kết nối...',
+        connected: 'Đã kết nối',
+        reconnecting: 'Đang kết nối lại...',
+        calling: 'Đang gọi...',
+        ringing: 'Đang đổ chuông...',
+        callerdetail: 'Cuộc gọi hội nghị',
+        bluetooth: 'BLUETOOTH',
+        members: 'Thành viên',
+        others: 'Khác',
+        conferencecallsmall: 'Cuộc gọi hội nghị'
     }
 };
 

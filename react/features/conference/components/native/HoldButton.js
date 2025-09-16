@@ -57,7 +57,7 @@ class HoldButton extends Component {
                 this._prevAudioMuted = _audioMuted;
                 this._prevSpeakerOn =  speakerOn;
                 this._setAudioMuted(true);
-                this._setSpeakerOn(false);
+                // this._setSpeakerOn(false);
             }else{
                 if(this._prevAudioMuted!=null && this._prevAudioMuted!=undefined){
                     this._setAudioMuted(this._prevAudioMuted);    
