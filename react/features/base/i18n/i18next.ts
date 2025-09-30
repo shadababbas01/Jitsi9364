@@ -9,6 +9,8 @@ import TRANSLATION_LANGUAGES_RESOURCES from '../../../../lang/translation-langua
 
 import { I18NEXT_INITIALIZED, LANGUAGE_CHANGED } from './actionTypes';
 import languageDetector from './languageDetector';
+import { initReactI18next } from 'react-i18next';
+const isReactNative = navigator.product === 'ReactNative';
 
 /**
  * Override certain country names.
@@ -97,7 +99,7 @@ const options: i18next.InitOptions = {
 };
 
 i18next
-    .use(navigator.product === 'ReactNative' ? {} : I18nextXHRBackend)
+     .use(isReactNative ? initReactI18next : I18nextXHRBackend)
     .use(languageDetector)
     .init(options);
 
