@@ -14,6 +14,8 @@ const buttonLabel = {
 };
 
 export default {
+
+    
     button: {
         ...button
     },

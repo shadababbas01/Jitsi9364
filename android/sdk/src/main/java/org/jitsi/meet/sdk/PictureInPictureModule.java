@@ -82,9 +82,9 @@ class PictureInPictureModule extends ReactContextBaseJavaModule {
      * screen is locked or if the user has an activity pinned.
      */
     public void enterPictureInPicture() {
-        if (!isEnabled) {
-            return;
-        }
+        // if (!isEnabled) {
+        //     return;
+        // }
 
         if (!isSupported) {
             throw new IllegalStateException("Picture-in-Picture not supported");

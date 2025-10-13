@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { TouchableOpacity, ViewStyle ,NativeModules} from 'react-native';
 import { Text } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,6 +9,7 @@ import { sendAnalytics } from '../../../analytics/functions';
 import { hideSheet, openDialog } from '../../../base/dialog/actions';
 import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
 import Icon from '../../../base/icons/components/Icon';
+// import { IconCloseLarge,  IconRingGroup } from '../../../base/icons/svg';
 import { IconCloseLarge, IconEdit, IconRingGroup } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import styles from '../../../participants-pane/components/native/styles';
@@ -39,6 +40,8 @@ interface IProps {
     room: IRoom;
 }
 
+const { OpenMelpChat} = NativeModules;
+
 const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
     const dispatch = useDispatch();
     const isLocalModerator = useSelector(isLocalParticipantModerator);
@@ -47,17 +50,23 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
     const { t } = useTranslation();
 
     const onJoinRoom = useCallback(() => {
+        NativeModules.NativeCallsNew.switchingRoom(true)
+        OpenMelpChat.switchingRoom(true);
         sendAnalytics(createBreakoutRoomsEvent('join'));
         dispatch(moveToRoom(room.jid));
         dispatch(hideSheet());
     }, [ dispatch, room ]);
 
     const onRemoveBreakoutRoom = useCallback(() => {
+        NativeModules.NativeCallsNew.switchingRoom(true)
+        OpenMelpChat.switchingRoom(true);
         dispatch(removeBreakoutRoom(room.jid));
         dispatch(hideSheet());
     }, [ dispatch, room ]);
 
     const onRenameBreakoutRoom = useCallback(() => {
+        NativeModules.NativeCallsNew.switchingRoom(true)
+        OpenMelpChat.switchingRoom(true);
         dispatch(openDialog(BreakoutRoomNamePrompt, {
             breakoutRoomJid: room.jid,
             initialRoomName: room.name
@@ -66,6 +75,8 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
     }, [ dispatch, room ]);
 
     const onCloseBreakoutRoom = useCallback(() => {
+        NativeModules.NativeCallsNew.switchingRoom(true)
+        OpenMelpChat.switchingRoom(true);
         dispatch(closeBreakoutRoom(room.id));
         dispatch(hideSheet());
     }, [ dispatch, room ]);
@@ -97,15 +108,16 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
                     <Text style = { styles.contextMenuItemText }>{t('breakoutRooms.actions.rename')}</Text>
                 </TouchableOpacity>
             }
+          
             {
                 !room?.isMainRoom && isLocalModerator && actions.includes(ACTIONS.REMOVE)
                 && (room?.participants && Object.keys(room.participants).length > 0
                     ? <TouchableOpacity
                         onPress = { onCloseBreakoutRoom }
                         style = { styles.contextMenuItem as ViewStyle }>
-                        <Icon
+                        {/* <Icon
                             size = { 24 }
-                            src = { IconCloseLarge } />
+                            src = { IconCloseLarge } /> */}
                         <Text style = { styles.contextMenuItemText }>{t('breakoutRooms.actions.close')}</Text>
                     </TouchableOpacity>
                     : <TouchableOpacity

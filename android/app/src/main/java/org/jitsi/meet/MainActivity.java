@@ -24,9 +24,15 @@ import android.content.RestrictionEntry;
 import android.content.RestrictionsManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+
+
+import org.jitsi.meet.sdk.JitsiMeetUserInfo;
+
+import org.jitsi.meet.sdk.ReactInstanceManagerHolder;
 
 import androidx.annotation.Nullable;
 
@@ -36,6 +42,9 @@ import org.jitsi.meet.sdk.JitsiMeet;
 import org.jitsi.meet.sdk.JitsiMeetActivity;
 import org.jitsi.meet.sdk.JitsiMeetConferenceOptions;
 import org.webrtc.Logging;
+import org.jitsi.meet.sdk.incoming_call.IncomingCallInfo;
+
+import java.net.MalformedURLException;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -81,11 +90,14 @@ public class MainActivity extends JitsiMeetActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        JitsiMeet.showSplashScreen(this);
+// <<<<<<< HEAD
+//         JitsiMeet.showSplashScreen(this);
 
-        WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
-        options.loggingSeverity = Logging.Severity.LS_ERROR;
+//         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
+//         options.loggingSeverity = Logging.Severity.LS_ERROR;
 
+// =======
+        // JitsiMeet.showSplashScreen(this);
         super.onCreate(null);
     }
 
@@ -151,15 +163,48 @@ public class MainActivity extends JitsiMeetActivity {
     }
 
     private void setJitsiMeetConferenceDefaultOptions() {
+// <<<<<<< HEAD
 
+//         // Set default options
+//         JitsiMeetConferenceOptions defaultOptions
+//             = new JitsiMeetConferenceOptions.Builder()
+//             .setServerURL(buildURL(defaultURL))
+//             .setFeatureFlag("welcomepage.enabled", true)
+// =======
+        JitsiMeetUserInfo jitsiMeetUserInfo = new JitsiMeetUserInfo();
+
+        jitsiMeetUserInfo.setDisplayName("MobileUser");
+
+        jitsiMeetUserInfo.setAvatar(buildURL("https://picsum.photos/id/237/200/300"));
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            .setServerURL(buildURL(defaultURL))
-            .setFeatureFlag("welcomepage.enabled", true)
+            // .setServerURL(buildURL("https://meetdev.melp.us/"))
+            .setFeatureFlag("welcomepage.enabled", false)
+            .setServerURL(buildURL("https://meet.jit.si/"))
+            .setFeatureFlag("resolution", 360)
+// >>>>>>> origin/final9364Jitsi
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
+            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJtZWxwX2NvbmYiLCJzdWIiOiJtZWV0ZGV2Lm1lbHAudXMiLCJtb2RlcmF0b3IiOnRydWUsImlzcyI6Im1lbHBfY29uZl84IiwiY29udGV4dCI6eyJjYWxsZWUiOnsibmFtZSI6IiIsImlkIjoiODhwOHZtZDIiLCJhdmF0YXIiOiIiLCJlbWFpbCI6IiJ9LCJ1c2VyIjp7Im5hbWUiOiJTaGFkYWIgQWJiYXMiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiaHR0cHM6Ly91cy1hcGkubWVscC51cy9kb3dubG9hZC92MC84OHA4dm1hbXVrOHcvZDQyOEB1c2VyLmpwZWc_c2Vzc2lvbmlkPTluZ3ZkYjB6OWFmNCZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzIzNDczOTkwLCJyb29tIjoiZDExMWNkZDY1ODkxZDI5MzZlZDY1ODY2YTZjODc0YSIsInJvb21OYW1lIjoiU2hhZGFiIEFiYmFzIiwiZXhwIjoxNzIzNTE3MTkwfQ.AEySLeW4lpkuVBYdt12iRNh0HPLIYu2gTr7XLowNlGI")
+            .setTeamName("Melp Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion Discussion")
+            .setUserPicUrl("https://i.pinimg.com/originals/62/ae/fb/62aefb044922a5a847546e30b9036913.jpg")
+            .setFeatureFlag("call-integration.enabled", false)
+            .setIncomingCallInfo(new IncomingCallInfo("Shadab","", "title",false))
+            .setGroupCall(false)
+            .setPrivateRoom(false)
+            .setAudioOnly(true)
             .build();
         JitsiMeet.setDefaultConferenceOptions(defaultOptions);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                JitsiMeetConferenceOptions defaultOptions1
+                        = new JitsiMeetConferenceOptions.Builder()
+                        .setRoom("shadab1")
+                        .build();
+                join(defaultOptions1);
+            }
+        }, 500);
     }
 
     private void resolveRestrictions() {

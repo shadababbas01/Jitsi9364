@@ -16,7 +16,6 @@
 
 package org.jitsi.meet.sdk;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -225,11 +224,9 @@ public class JitsiMeetActivity extends AppCompatActivity
     }
 
     protected void leave() {
-        if (this.jitsiView != null) {
-            this.jitsiView.abort();
-        } else {
-            JitsiMeetLogger.w("Cannot leave, view is null");
-        }
+        
+        Intent hangupBroadcastIntent = BroadcastIntentHelper.buildHangUpIntent();
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(hangupBroadcastIntent); // added
     }
 
     private @Nullable
@@ -299,8 +296,12 @@ public class JitsiMeetActivity extends AppCompatActivity
 
     protected void onReadyToClose() {
         JitsiMeetLogger.i("SDK is ready to close");
-        isReadyToClose = true;
-        finish();
+// <<<<<<< HEAD
+//         isReadyToClose = true;
+//         finish();
+// =======
+        finishAndRemoveTask();    // commented added
+// >>>>>>> origin/final9364Jitsi
     }
 
 //    protected void onTranscriptionChunkReceived(HashMap<String, Object> extraData) {
@@ -363,7 +364,6 @@ public class JitsiMeetActivity extends AppCompatActivity
         JitsiMeetActivityDelegate.requestPermissions(this, permissions, requestCode, listener);
     }
 
-    @SuppressLint("MissingSuperCall")
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         JitsiMeetActivityDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults);

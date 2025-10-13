@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <clipPath id="clip-path">
+      <path id="Path_999" data-name="Path 999" d="M98.783-34H84v19.74H98.783V-34Z" fill="none" clip-rule="evenodd"/>
+    </clipPath>
+    <clipPath id="clip-path-2">
+      <path id="Path_998" data-name="Path 998" d="M96.988-24.649a5.437,5.437,0,0,1-5.6,5.3,5.44,5.44,0,0,1-5.6-5.3H84a7.29,7.29,0,0,0,6.336,6.981v3.408h2.111v-3.408a7.289,7.289,0,0,0,6.335-6.981Zm-5.6,3.117a3.136,3.136,0,0,0,3.158-3.117l.01-6.233A3.138,3.138,0,0,0,91.391-34a3.142,3.142,0,0,0-3.168,3.118v6.233a3.145,3.145,0,0,0,3.168,3.117Z" fill="none" clip-rule="evenodd"/>
+    </clipPath>
+    <clipPath id="clip-Artboard_2">
+      <rect width="48" height="48"/>
+    </clipPath>
+  </defs>
+  <g id="Artboard_2" data-name="Artboard – 2" clip-path="url(#clip-Artboard_2)">
+    <rect id="Rectangle_514" data-name="Rectangle 514" width="48" height="48" rx="8" fill="#fff" opacity="0.25"/>
+    <g id="Group_1968" data-name="Group 1968" transform="translate(-67.391 48.13)" clip-path="url(#clip-path)">
+      <g id="Group_1967" data-name="Group 1967" clip-path="url(#clip-path-2)">
+        <path id="Path_997" data-name="Path 997" d="M83-35H99.783v21.74H83Z" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -123,6 +123,16 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
         }
         break;
     }
+    case CONFERENCE_TIMESTAMP_CHANGED: {
+        console.log("this is middleware.ts --> ")
+        if (isRTCStatsEnabled(state)) {
+            const { conferenceTimestamp } = action;
+
+        console.log("this is middleware.ts2 --> ")
+            RTCStats.sendConferenceTimestamp(conferenceTimestamp);
+        }
+        break;
+    }
     }
 
     return next(action);

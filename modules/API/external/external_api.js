@@ -548,7 +548,8 @@ export default class JitsiMeetExternalAPI extends EventEmitter {
                 this._myUserID = userID;
                 this._participants[userID] = {
                     email: data.email,
-                    avatarURL: data.avatarURL
+                    avatarURL: data.avatarURL,
+                    deviceType: data.deviceType
                 };
                 this._iAmvisitor = data.visitor;
             }

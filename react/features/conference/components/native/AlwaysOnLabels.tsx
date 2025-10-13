@@ -25,9 +25,10 @@ interface IProps {
      * triggered.
      */
     createOnPress: Function;
+    show:boolean;
 }
 
-const AlwaysOnLabels = ({ createOnPress }: IProps) => {
+const AlwaysOnLabels = ({ createOnPress,show }: IProps) => {
     const dispatch = useDispatch();
     const isStreaming = useSelector(isLiveStreamingRunning);
     const openHighlightDialogCallback = useCallback(() =>
@@ -52,11 +53,13 @@ const AlwaysOnLabels = ({ createOnPress }: IProps) => {
             onPress = { openHighlightDialogCallback }>
             <HighlightButton />
         </TouchableOpacity>
+        {show&&(
         <TouchableOpacity
             hitSlop = { LabelHitSlop }
             onPress = { createOnPress(LABEL_ID_RAISED_HANDS_COUNT) } >
             <RaisedHandsCountLabel />
         </TouchableOpacity>
+        )}
         <TouchableOpacity
             hitSlop = { LabelHitSlop }
             onPress = { createOnPress(LABEL_ID_VISITORS_COUNT) } >

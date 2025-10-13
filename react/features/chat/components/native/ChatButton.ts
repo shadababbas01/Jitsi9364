@@ -4,46 +4,60 @@ import { IReduxState } from '../../../app/types';
 import { CHAT_ENABLED } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
-import { IconChatUnread, IconMessage } from '../../../base/icons/svg';
+import { IconChatUnread, IconMessage,IconMessageDot } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { arePollsDisabled } from '../../../conference/functions.any';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import { getUnreadPollCount } from '../../../polls/functions';
 import { getUnreadCount } from '../../functions';
-
+import {NativeModules} from 'react-native';
 interface IProps extends AbstractButtonProps {
 
     /**
      * True if the polls feature is disabled.
      */
     _isPollsDisabled?: boolean;
+    ismessage?: boolean;
 
     /**
      * The unread message count.
      */
     _unreadMessageCount: number;
+
+
+    setMessagestate: (state: boolean) => void;
 }
 
 /**
  * Implements an {@link AbstractButton} to open the chat screen on mobile.
  */
 class ChatButton extends AbstractButton<IProps> {
-    override accessibilityLabel = 'toolbar.accessibilityLabel.chat';
-    override icon = IconMessage;
-    override label = 'toolbar.chat';
-    override toggledIcon = IconChatUnread;
+    accessibilityLabel = 'toolbar.accessibilityLabel.chat';
+    //icon = this.props.ismessage ? IconMessageDot:IconMessage;
+    label = 'toolbar.chat';
+    toggledIcon = IconMessage;
 
+
+    get icon() {
+        return this.props.ismessage ? IconMessageDot : IconMessage;
+    }
+    componentDidUpdate(prevProps) {
+        if (prevProps.ismessage !== this.props.ismessage) {
+            console.log("ChatButton updated with new ismessage:", this.props.ismessage);
+        }
+    }
     /**
      * Handles clicking / pressing the button, and opens the appropriate dialog.
      *
      * @private
      * @returns {void}
      */
-    override _handleClick() {
-        this.props._isPollsDisabled
-            ? navigate(screen.conference.chat)
-            : navigate(screen.conference.chatandpolls.main);
+    _handleClick() {
+       // this.props._isPollsDisabled  ? navigate(screen.conference.chat) : navigate(screen.conference.chatandpolls.main);
+       
+       this.props.setMessagestate(false);
+       NativeModules.NativeCallsNew.OpenChat();
     }
 
     /**
@@ -54,6 +68,13 @@ class ChatButton extends AbstractButton<IProps> {
      */
     override _isToggled() {
         return Boolean(this.props._unreadMessageCount);
+    }
+    _getView(props) {
+        if (props.children) {
+            return this.props.children(this._onClick);
+        } else {
+           return super._getView(props);
+        }
     }
 }
 

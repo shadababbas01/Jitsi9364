@@ -1,3 +1,4 @@
+import { ColorPalette } from '../../../base/styles/components/styles/ColorPalette';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { SMALL_THUMBNAIL_SIZE } from '../../constants';
 
@@ -8,7 +9,7 @@ export const AVATAR_SIZE = 50;
 
 const indicatorContainer = {
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: BaseTheme.shape.borderRadius,
     height: 24,
     margin: 2,
@@ -150,7 +151,7 @@ export default {
 
     thumbnailTopLeftIndicatorContainer: {
         ...indicatorContainer,
-        backgroundColor: 'unset',
+        // backgroundColor: 'unset',
         flexDirection: 'row',
         position: 'absolute',
         top: BaseTheme.spacing[1]
@@ -158,25 +159,36 @@ export default {
 
     raisedHandIndicator: {
         ...indicatorContainer,
-        backgroundColor: BaseTheme.palette.warning02
+       backgroundColor: '#000000'
     },
 
     raisedHandIcon: {
-        color: BaseTheme.palette.uiBackground
+        color: '#9c9696'
     },
 
     thumbnailRaisedHand: {
         borderWidth: 2,
-        borderColor: BaseTheme.palette.warning02
+        borderColor: '#9c9696'
     },
 
     thumbnailDominantSpeaker: {
         borderWidth: 2,
-        borderColor: BaseTheme.palette.action01Hover
+        borderColor: '#ee4136' //added by jaswant
     },
 
     thumbnailGif: {
         flexGrow: 1,
         resizeMode: 'contain'
+    },
+    indicator: {
+        backgroundColor: 'red',
+        //padding: 2,
+        color: ColorPalette.white,
+        fontSize: 14,
+        //textShadowColor: ColorPalette.black,
+        textShadowOffset: {
+            height: -1,
+            width: 0
+        }
     }
 };

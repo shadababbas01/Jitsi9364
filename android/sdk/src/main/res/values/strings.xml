@@ -3,8 +3,8 @@
     <string name="dropbox_app_key"></string>
     <string name="media_projection_notification_title">Media projection</string>
     <string name="media_projection_notification_text">You are currently sharing your screen.</string>
-    <string name="ongoing_notification_title">Ongoing meeting</string>
-    <string name="ongoing_notification_text">You are currently in a meeting. Tap to return to it.</string>
+    <string name="ongoing_notification_title">Ongoing call</string>
+    <string name="ongoing_notification_text">You are currently in a call. Tap to return to it.</string>
     <string name="ongoing_notification_action_hang_up">Hang up</string>
     <string name="ongoing_notification_action_mute">Mute</string>
     <string name="ongoing_notification_action_unmute">Unmute</string>

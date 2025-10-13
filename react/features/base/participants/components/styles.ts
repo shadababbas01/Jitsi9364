@@ -30,7 +30,7 @@ export default {
      */
     connectionInfoContainer: {
         alignSelf: 'center',
-        backgroundColor: ColorPalette.darkGrey,
+        backgroundColor: ColorPalette.red,
         borderRadius: 20,
         marginTop: BoxModel.margin
     },

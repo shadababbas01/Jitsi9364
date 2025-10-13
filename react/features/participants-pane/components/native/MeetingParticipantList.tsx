@@ -27,6 +27,7 @@ import { participantMatchesSearch, shouldRenderInviteButton } from '../../functi
 
 import MeetingParticipantItem from './MeetingParticipantItem';
 import styles from './styles';
+import { NativeModules } from 'react-native';
 
 
 const MeetingParticipantList = () => {
@@ -40,10 +41,17 @@ const MeetingParticipantList = () => {
     const localParticipant = useSelector(getLocalParticipant);
     const _iAmVisitor = useSelector(iAmVisitor);
     const onInvite = useCallback(() => {
-        setShareDialogVisiblity(isAddPeopleFeatureEnabled, dispatch);
-        dispatch(doInvitePeople());
-    }, [ dispatch ]);
-    const [ searchString, setSearchString ] = useState('');
+        // setShareDialogVisiblity(isAddPeopleFeatureEnabled, dispatch);
+        // dispatch(doInvitePeople());
+
+        // added by jaswant
+        NativeModules.NativeCallsNew.addToCall();
+        // const { _isAddPeopleFeatureEnabled, dispatch } = this.props;
+        // setShareDialogVisiblity(_isAddPeopleFeatureEnabled, dispatch);
+        // dispatch(doInvitePeople());
+        // dispatch(doInvitePeople());
+    }, [dispatch]);
+    const [searchString, setSearchString] = useState('');
     const onSearchStringChange = useCallback((text: string) =>
         setSearchString(text), []);
     const participantsCount = useSelector(getParticipantCountWithFake);
@@ -55,8 +63,8 @@ const MeetingParticipantList = () => {
         if (participantMatchesSearch(participant, searchString)) {
             return (
                 <MeetingParticipantItem
-                    key = { item }
-                    participant = { participant } />
+                    key={item}
+                    participant={participant} />
             );
         }
 
@@ -73,47 +81,57 @@ const MeetingParticipantList = () => {
     const { color, shareDialogVisible } = inviteOthersControl;
 
     return (
-        <View style = { styles.meetingListContainer }>
+        <View style={styles.meetingListContainer}>
             <Text
-                style = { styles.meetingListDescription as TextStyle }>
-                { title }
+                style={styles.meetingListDescription as TextStyle}>
+                {title}
             </Text>
             {
-                showInviteButton
-                && <Button
-                    accessibilityLabel = 'participantsPane.actions.invite'
-                    disabled = { shareDialogVisible }
+                <Button
+                    accessibilityLabel='participantsPane.actions.invite'
+                    disabled={shareDialogVisible}
 
                     // eslint-disable-next-line react/jsx-no-bind, no-confusing-arrow
-                    icon = { () => (
+                    icon={() => (
                         <Icon
-                            color = { color }
-                            size = { 20 }
-                            src = { IconAddUser } />
-                    ) }
-                    labelKey = 'participantsPane.actions.invite'
-                    onClick = { onInvite }
-                    style = { styles.inviteButton }
-                    type = { BUTTON_TYPES.PRIMARY } />
+                            color={color}
+                            size={20}
+                            src={IconAddUser} />
+                    )}
+                    labelKey='participantsPane.actions.invite'
+                    onClick={onInvite}
+                    style={styles.inviteButton}
+                    type={BUTTON_TYPES.PRIMARY} />
             }
+
+            {/* <Text    for taking the add to call and search button up and then current room name
+                style={styles.meetingListDescription as TextStyle}>
+                {title}
+            </Text> */}
+
             <Input
-                clearable = { true }
-                customStyles = {{
+                clearable={true}
+                customStyles={{
                     container: styles.inputContainer,
-                    input: styles.centerInput }}
-                onChange = { onSearchStringChange }
-                placeholder = { t('participantsPane.search') }
-                value = { searchString } />
+                    input: styles.centerInput
+                }}
+                onChange={onSearchStringChange}
+                placeholder={t('participantsPane.search')}
+                value={searchString} />
             <FlatList
-                data = { _iAmVisitor
-                    ? [ ...sortedRemoteParticipants ]
-                    : [ localParticipant?.id, ...sortedRemoteParticipants ] as Array<any>
-                }
-                keyExtractor = { keyExtractor }
+// <<<<<<< HEAD
+//                 data = { _iAmVisitor
+//                     ? [ ...sortedRemoteParticipants ]
+//                     : [ localParticipant?.id, ...sortedRemoteParticipants ] as Array<any>
+//                 }
+//                 keyExtractor = { keyExtractor }
+// =======
+                data={[localParticipant?.id, ...sortedRemoteParticipants] as Array<any>}
+                keyExtractor={keyExtractor}
 
                 /* eslint-disable react/jsx-no-bind */
-                renderItem = { renderParticipant }
-                windowSize = { 2 } />
+                renderItem={renderParticipant}
+                windowSize={2} />
         </View>
     );
 };

@@ -19,8 +19,10 @@
  */
 
 package org.jitsi.meet.sdk;
-
+import static android.content.Context.MODE_PRIVATE; // added 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;    // added
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -32,9 +34,13 @@ import java.util.Map;
  * Module which provides information about the system locale.
  */
 class LocaleDetector extends ReactContextBaseJavaModule {
+    private SharedPreferences sh_Pref;
+
 
     public LocaleDetector(ReactApplicationContext reactContext) {
         super(reactContext);
+        sh_Pref = reactContext.getSharedPreferences("LoginCredentials", MODE_PRIVATE);
+
     }
 
     /**
@@ -47,7 +53,11 @@ class LocaleDetector extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         Context context = getReactApplicationContext();
         HashMap<String,Object> constants = new HashMap<>();
-        constants.put("locale", context.getResources().getConfiguration().locale.toLanguageTag());
+        String region =   context.getResources().getConfiguration().locale.getCountry();
+        String language =   sh_Pref.getString("locale","en");
+    //    constants.put("locale", context.getResources().getConfiguration().locale.toLanguageTag());
+        constants.put("locale", language+"-"+region);
+        Log.e("locale",language+"-"+region);
         return constants;
     }
 

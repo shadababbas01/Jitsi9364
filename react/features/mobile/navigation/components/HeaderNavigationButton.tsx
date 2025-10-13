@@ -77,7 +77,7 @@ const HeaderNavigationButton = ({ color, id, disabled, label, onPress, src, styl
                         color = { color }
                         id = { id }
                         onPress = { onPress }
-                        size = { 24 }
+                        size = { 30 }
                         src = { src }
                         style = { [
                             navigationStyles.headerNavigationButtonIcon,

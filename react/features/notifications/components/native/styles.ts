@@ -13,9 +13,13 @@ const notification = {
     borderLeftWidth: BaseTheme.spacing[1],
     display: 'flex',
     flexDirection: 'row',
-    marginVertical: BaseTheme.spacing[1],
-    maxWidth: 416,
-    width: '100%'
+    maxHeight: 120,
+    height: 'auto',
+    marginBottom: BaseTheme.spacing[2],
+    marginHorizontal: BaseTheme.spacing[2],
+    maxWidth: 400,
+    width: 'auto',
+    marginTop: 20
 };
 
 /**

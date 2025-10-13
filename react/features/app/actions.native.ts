@@ -1,5 +1,6 @@
+import { State } from 'react-native-gesture-handler';
 import { setRoom } from '../base/conference/actions';
-import { getConferenceState } from '../base/conference/functions';
+import { getConferenceState, getConferenceTimestamp } from '../base/conference/functions';
 import {
     configWillLoad,
     loadConfigError,
@@ -50,10 +51,11 @@ export * from './actions.any';
  */
 export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
     logger.info(`appNavigate to ${uri}`);
-
+   
     return async (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         let location = parseURIString(uri);
-
+        const state = getState();
+        getConferenceTimestamp(state);
         // If the specified location (URI) does not identify a host, use the app's
         // default.
         if (!location?.host) {
@@ -73,15 +75,15 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
                 location = defaultLocation;
             }
         }
-
+console.log("><><<<>",1);
         location.protocol || (location.protocol = 'https:');
         const { contextRoot, host, hostname, pathname, room } = location;
         const locationURL = new URL(location.toString());
         const { conference } = getConferenceState(getState());
-
+        console.log("><><<<>2",conference);
         if (room) {
             if (conference) {
-
+                console.log("><><<<>3",conference);
                 // We need to check if the location is the same with the previous one.
                 const currentLocationURL = conference?.getConnection()[JITSI_CONNECTION_URL_KEY];
                 const { hostname: currentHostName, pathname: currentPathName } = currentLocationURL;
@@ -92,7 +94,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
                     return;
                 }
             } else {
-                navigateRoot(screen.connecting);
+                navigateRoot(screen.connecting);        // added by jaswant , remove comment
             }
         }
 
@@ -117,7 +119,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
         release && (url = appendURLParam(url, 'release', release));
 
         let config;
-
+        console.log("><><<<>4",room);
         // Avoid (re)loading the config when there is no room.
         if (!room) {
             config = restoreConfig(baseURL);
@@ -149,7 +151,7 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
 
             return;
         }
-
+        console.log("><><<<>5",locationURL);
         dispatch(setLocationURL(locationURL));
         dispatch(setConfig(config));
         dispatch(setRoom(room));
@@ -162,8 +164,8 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
 
         dispatch(createDesiredLocalTracks());
         dispatch(clearNotifications());
-
-        if (!options.hidePrejoin && isPrejoinPageEnabled(getState())) {
+        console.log("><><<<>6",room);
+        if (!options.hidePrejoin && isPrejoinPageEnabled(getState()) && false) {    // added by shadab
             if (isUnsafeRoomWarningEnabled(getState()) && isInsecureRoomName(room)) {
                 navigateRoot(screen.unsafeRoomWarning);
             } else {

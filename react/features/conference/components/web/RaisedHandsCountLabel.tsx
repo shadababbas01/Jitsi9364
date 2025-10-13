@@ -12,8 +12,8 @@ import { open as openParticipantsPane } from '../../../participants-pane/actions
 const useStyles = makeStyles()(theme => {
     return {
         label: {
-            backgroundColor: theme.palette.warning02,
-            color: theme.palette.uiBackground
+            // backgroundColor: theme.palette.warning02,
+            color: '#fff'
         }
     };
 });
@@ -35,7 +35,7 @@ const RaisedHandsCountLabel = () => {
             accessibilityText = { t('raisedHandsLabel') }
             className = { styles.label }
             icon = { IconRaiseHand }
-            iconColor = { theme.palette.icon04 }
+            // iconColor = { theme.palette.icon04 }
             id = 'raisedHandsCountLabel'
             onClick = { onClick }
             text = { `${raisedHandsCount}` } />

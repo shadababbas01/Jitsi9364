@@ -9,6 +9,7 @@ import { IRoom } from '../../types';
 
 import BreakoutRoomContextMenu from './BreakoutRoomContextMenu';
 import BreakoutRoomParticipantItem from './BreakoutRoomParticipantItem';
+import { View } from 'react-native';
 
 interface IProps {
 
@@ -42,6 +43,7 @@ export const CollapsibleRoom = ({ room, roomId }: IProps) => {
     || t('breakoutRooms.mainRoom')} (${roomParticipantsNr})`;
 
     return (
+        <View style={{ marginHorizontal: 23 }}>
         <CollapsibleList
             onLongPress = { _openContextMenu }
             title = { title }>
@@ -62,5 +64,6 @@ export const CollapsibleRoom = ({ room, roomId }: IProps) => {
                 showsHorizontalScrollIndicator = { false }
                 windowSize = { 2 } />
         </CollapsibleList>
+        </View>
     );
 };

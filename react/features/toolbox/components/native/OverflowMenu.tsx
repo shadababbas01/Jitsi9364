@@ -169,12 +169,30 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 {_isSharedVideoEnabled && <SharedVideoButton { ...buttonProps } />}
                 { this._renderOverflowMenuButtons(topButtonProps) }
                 {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />}
+                {
+                    !_shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
+                        && <RaiseHandButton { ...buttonProps } />
+                }
                 {_isBreakoutRoomsSupported && <BreakoutRoomsButton { ...buttonProps } />}
                 {/* @ts-ignore */}
-                <Divider style = { styles.divider as ViewStyle } />
-                <ClosedCaptionButton { ...buttonProps } />
+                {/* <Divider style = { styles.divider as ViewStyle } />
+                <SecurityDialogButton { ...buttonProps } />
+                <RecordButton { ...buttonProps } /> */}
+                <LiveStreamButton { ...buttonProps } />
+                {/* <LinkToSalesforceButton { ...buttonProps } /> */}
+                <WhiteboardButton { ...buttonProps } />
+                {/* @ts-ignore */}
+                {/* <Divider style = { styles.divider as ViewStyle } /> */}
+                <SharedVideoButton { ...buttonProps } />
+                {!toolbarButtons.has('screensharing') && <ScreenSharingButton { ...buttonProps } />}
+                {/* {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />} */}
+                {!toolbarButtons.has('tileview') && <TileViewButton { ...buttonProps } />}
+                
+                {/* @ts-ignore */}
+                {/* <Divider style = { styles.divider as ViewStyle } /> */}
+                {/* <ClosedCaptionButton { ...buttonProps } /> */}
                 <SharedDocumentButton { ...buttonProps } />
-                <SettingsButton { ...buttonProps } />
+                {/* <SettingsButton { ...buttonProps } /> */}
             </BottomSheet>
         );
     }

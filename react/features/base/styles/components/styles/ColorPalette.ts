@@ -23,8 +23,8 @@ export const ColorPalette = {
      * the sake of consistency.
      */
     black: BLACK,
-    blue: '#17A0DB',
-    blueHighlight: '#1081b2',
+    blue: '#ee4136',
+    blueHighlight: '#ee4136',
     darkGrey: '#555555',
     green: '#40b183',
     lightGrey: '#AAAAAA',

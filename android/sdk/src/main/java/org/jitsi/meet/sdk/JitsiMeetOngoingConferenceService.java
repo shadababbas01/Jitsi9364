@@ -212,6 +212,7 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
             }
 
             Notification notification = OngoingNotification.buildOngoingConferenceNotification(this.isAudioMuted, this, tapBackActivity);
+            System.out.println("this is line jitsimeetongoing  --> 142");
             if (notification == null) {
                 stopSelf();
                 JitsiMeetLogger.w(TAG + " Couldn't start service, notification is null");
@@ -296,12 +297,13 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
             Class tapBackActivity = JitsiMeetOngoingConferenceService.this.tapBackActivity;
             isAudioMuted = Boolean.parseBoolean(intent.getStringExtra("muted"));
             Notification notification = OngoingNotification.buildOngoingConferenceNotification(isAudioMuted, context, tapBackActivity);
+            System.out.println("this is line jitsimeetongoing  --> 230");
             if (notification == null) {
                 stopSelf();
                 JitsiMeetLogger.w(TAG + " Couldn't update service, notification is null");
             } else {
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(NOTIFICATION_ID, notification);
+                // NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                // notificationManager.notify(NOTIFICATION_ID, notification);
 
                 JitsiMeetLogger.i(TAG + " audio muted changed");
             }

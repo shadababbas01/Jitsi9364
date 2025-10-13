@@ -5,10 +5,22 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
  * The styles of the native components of the feature {@code breakout rooms}.
  */
 export default {
-
+    centeredContainer: {
+        width: '100%' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
+    },
     button: {
-        marginBottom: BaseTheme.spacing[4],
-        marginHorizontal: BaseTheme.spacing[2]
+        width: '85%' ,
+        backgroundColor: '#ee4136' // added by Shadab
+    },
+    breakoutroombutton: {
+        marginBottom: BaseTheme.spacing[2],
+        marginTop: BaseTheme.spacing[2],
+        marginHorizontal: BaseTheme.spacing[2],
+        width: '85%' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
     },
 
     collapsibleList: {
@@ -57,10 +69,20 @@ export default {
 
     breakoutRoomsContainer: {
         backgroundColor: BaseTheme.palette.ui01,
+        alignSelf: 'center',
         flex: 1,
         flexDirection: 'column',
         height: 'auto',
         paddingHorizontal: BaseTheme.spacing[3]
+    },
+    breakoutRoomsContaineroverflowmenu: {
+        backgroundColor: BaseTheme.palette.ui01,
+        alignSelf: 'center',
+        width: '100%', // Fill the full device width
+        flex: 1,
+        flexDirection: 'column',
+        height: 'auto',
+        paddingHorizontal: BaseTheme.spacing[0]
     },
 
     inputContainer: {

@@ -30,7 +30,7 @@ export default {
             locale = lang;
         }
 
-        if (LANGUAGES.includes(locale)) {
+        if (LANGUAGES.includes(locale)) { 
             return locale;
         }
 

@@ -147,8 +147,14 @@ export const getRoomByJid = (stateful: IStateful, roomJid: string) => {
  */
 export const getCurrentRoomId = (stateful: IStateful) => {
     const conference = getCurrentConference(stateful);
-
+    console.log('Service worker registered2.', conference);
     return conference?.getName();
+};
+
+export const getCurrentRoom = (stateful: IStateful) => {
+    const conference = getCurrentConference(stateful);
+    // console.log('Service worker registered2.', conference);
+    return conference
 };
 
 /**
