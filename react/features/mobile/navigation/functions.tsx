@@ -86,3 +86,15 @@ export function lobbyScreenHeaderCloseButton() {
             src = { IconCloseLarge } />
     );
 }
+export function shouldEnableAutoKnock(stateful: IStateful) {
+    const state = toState(stateful);
+    const { displayName } = state['features/base/settings'];
+
+    if (isPrejoinPageEnabled(state)) {
+        if (displayName) {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}

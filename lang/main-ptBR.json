@@ -956,17 +956,17 @@
     },
     "presenceStatus": {
         "busy": "Ocupado",
-        "calling": "Chamando…",
+        "calling": "Chamando...",
         "connected": "Conectado",
-        "connecting": "Conectando…",
-        "connecting2": "Conectando*…",
+        "connecting": "Conectando...",
+        "connecting2": "Conectando*...",
         "disconnected": "Desconectado",
         "expired": "Expirado",
         "ignored": "Ignorado",
-        "initializingCall": "Iniciando Chamada…",
+        "initializingCall": "Iniciando Chamada...",
         "invited": "Convidar",
         "rejected": "Rejeitado",
-        "ringing": "Tocando…"
+        "ringing": "Tocando..."
     },
     "profile": {
         "avatar": "avatar",
@@ -1380,7 +1380,6 @@
     },
     "unpinParticipant": "{{participantName}} - Desafixar",
     "userMedia": {
-        "grantPermissions": "Dê as permissões para usar sua câmera e microfone.",
         "androidGrantPermissions": "Selecione <b><i>Permitir</i></b> quando o seu navegador perguntar pelas permissões.",
         "chromeGrantPermissions": "Selecione <b><i>Permitir</i></b> quando o seu navegador perguntar pelas permissões.",
         "edgeGrantPermissions": "Selecione <b><i>Sim</i></b> quando o seu navegador perguntar pelas permissões.",
@@ -1470,7 +1469,8 @@
         "image7": "Nascer do sol",
         "none": "Nenhum",
         "pleaseWait": "Por favor aguarde...",
-        "removeBackground": "Remover imagem de fundo"
+        "removeBackground": "Remover imagem de fundo",
+        "slightBlur": "Ligeiro esbatido",
         "title": "Fundos virtuais",
         "uploadedImage": "Imagem carregada {{index}}",
         "webAssemblyWarning": "WebAssembly não suportado",

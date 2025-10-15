@@ -210,9 +210,9 @@ class Conference extends AbstractConference<Props, State> {
         this._expandedLabelTimeout = React.createRef();
 
         // Bind event handlers so they are only bound once per instance.
-        this._onClick = this._onClick.bind(this);
-        this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
-        this._setToolboxVisible = this._setToolboxVisible.bind(this);
+        // this._onClick = this._onClick.bind(this);
+        // this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
+        // this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
     }
 
@@ -230,7 +230,7 @@ class Conference extends AbstractConference<Props, State> {
             navigation
         } = this.props;
 
-        BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
+        this.backHandler = BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
 
         if (_audioOnlyEnabled && _startCarMode) {
             navigation.navigate(screen.conference.carmode);
@@ -272,8 +272,7 @@ class Conference extends AbstractConference<Props, State> {
      */
     componentWillUnmount() {
         // Tear handling any hardware button presses for back navigation down.
-        BackHandler.removeEventListener('hardwareBackPress', this._onHardwareBackPress);
-
+        this.backHandler.remove();
         clearTimeout(this._expandedLabelTimeout.current);
     }
 
@@ -317,7 +316,7 @@ class Conference extends AbstractConference<Props, State> {
      * @private
      * @returns {void}
      */
-    _onClick() {
+    _onClick = () => {
         // this._setToolboxVisible(!this.props._toolboxVisible);
 
         const currentTime = new Date().getTime();
@@ -346,7 +345,7 @@ class Conference extends AbstractConference<Props, State> {
      *
      * @returns {boolean} Exiting the app is undesired, so {@code true} is always returned.
      */
-    _onHardwareBackPress() {
+    _onHardwareBackPress = () => {
         let p;
 
         if (this.props._pictureInPictureEnabled) {
@@ -374,7 +373,7 @@ class Conference extends AbstractConference<Props, State> {
      * triggered.
      * @returns {Function}
      */
-    _createOnPress(label) {
+    _createOnPress = (label) => {
         return () => {
             const { visibleExpandedLabel } = this.state;
 
@@ -599,7 +598,7 @@ class Conference extends AbstractConference<Props, State> {
      * {@code Toolbox} or {@code false} to hide it.
      * @returns {void}
      */
-    _setToolboxVisible(visible) {
+    _setToolboxVisible = (visible) => {
         this.props.dispatch(setToolboxVisible(visible));
     }
 }

@@ -2,6 +2,7 @@ import { getFixedPlatformStyle } from '../../../base/styles/functions.native';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
 import { Dimensions, PixelRatio } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 export const SECURITY_CALL_LOGO = require('../../../../../images/security_call.png');
 export const CALL_ICON = require('../../../../../images/path.png');
 export const CALL_ONETOONE_ICON = require('../../../../../images/pathOneToOne.png');

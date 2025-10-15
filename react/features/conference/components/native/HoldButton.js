@@ -40,17 +40,17 @@ class HoldButton extends Component {
 
     constructor(props){
         super(props);
-        this._onClick= this._onClick.bind(this);
-        this._isAudioMuted = this._isAudioMuted.bind(this);
-        this._setSpeakerOn = this._setSpeakerOn.bind(this);
+        // this._onClick= this._onClick.bind(this);
+        // this._isAudioMuted = this._isAudioMuted.bind(this);
+        // this._setSpeakerOn = this._setSpeakerOn.bind(this);
     }
 
 
-    _isAudioMuted() {
+    _isAudioMuted = () => {
         return this.props._audioMuted;
     }
 
-    _onClick() {
+    _onClick = () => {
             const {_audioMuted, speakerOn, setHoldState, isHoldOn} = this.props;
             const isHoldDisabled = this._isHoldDisabled();
             if(!isHoldOn){
@@ -93,13 +93,13 @@ class HoldButton extends Component {
     }
 
 
-    _isHoldDisabled() {
+    _isHoldDisabled = () => {
         const {_audioMuted, speakerOn} = this.props;
         const isHoldDisabled = !(_audioMuted && !speakerOn)
         return isHoldDisabled;
     }
 
-    _setSpeakerOn(speakerOn){
+    _setSpeakerOn = (speakerOn) => {
         if(AudioMode.setSpeakerOn){
             AudioMode.setSpeakerOn(speakerOn)
                 .then((val)=>{

@@ -368,7 +368,7 @@ public class JitsiMeetActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         JitsiMeetActivityDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-
+ 
     private void registerForBroadcastMessages() {
         IntentFilter intentFilter = new IntentFilter();
 

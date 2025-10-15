@@ -3,6 +3,7 @@ import { AnyAction } from 'redux';
 import { IStore } from '../app/types';
 import {
     CONFERENCE_JOINED,
+    CONFERENCE_TIMESTAMP_CHANGED,
     E2E_RTT_CHANGED
 } from '../base/conference/actionTypes';
 import { DOMINANT_SPEAKER_CHANGED } from '../base/participants/actionTypes';
@@ -42,7 +43,7 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
                     customerId && RTCStats.sendIdentityData({ customerId });
                 })
                 .catch(error => {
-                    logger.error('Error while getting customer id:', error);
+                    // logger.error('Error while getting customer id:', error);
                 });
         }
         break;

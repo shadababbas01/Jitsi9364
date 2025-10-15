@@ -34,6 +34,9 @@ import AudioOnlyButton from './AudioOnlyButton';
 import LinkToSalesforceButton from './LinkToSalesforceButton';
 import OpenCarmodeButton from './OpenCarmodeButton';
 import RaiseHandButton from './RaiseHandButton';
+import { getMovableButtons } from '../../functions.native';
+import TileViewButton from '../../../video-layout/components/TileViewButton';
+import ScreenSharingButton from './ScreenSharingButton';
 
 
 /**
@@ -75,6 +78,11 @@ interface IProps {
      * Whether the recoding button should be enabled or not.
     */
     _recordingEnabled: boolean;
+
+        /**
+     * The width of the screen.
+     */
+    _width: number;
 
     /**
     * Whether or not any reactions buttons should be displayed.
@@ -127,9 +135,12 @@ class OverflowMenu extends PureComponent<IProps, IState> {
         const {
             _isBreakoutRoomsSupported,
             _isSpeakerStatsDisabled,
-            _isSharedVideoEnabled,
+            _shouldDisplayReactionsButtons,
+            _width,
             dispatch
         } = this.props;
+
+        const toolbarButtons = getMovableButtons(_width);
 
         const buttonProps = {
             afterClick: this._onCancel,
@@ -166,7 +177,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <WhiteboardButton { ...buttonProps } />
                 {/* @ts-ignore */}
                 <Divider style = { styles.divider as ViewStyle } />
-                {_isSharedVideoEnabled && <SharedVideoButton { ...buttonProps } />}
+                {/* {_isSharedVideoEnabled && <SharedVideoButton { ...buttonProps } />} */}
                 { this._renderOverflowMenuButtons(topButtonProps) }
                 {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />}
                 {
@@ -300,7 +311,8 @@ function _mapStateToProps(state: IReduxState) {
         _isBreakoutRoomsSupported: conference?.getBreakoutRooms()?.isSupported(),
         _isSharedVideoEnabled: isSharedVideoEnabled(state),
         _isSpeakerStatsDisabled: isSpeakerStatsDisabled(state),
-        _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state)
+        _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state),
+        _width: state['features/base/responsive-ui'].clientWidth
     };
 }
 

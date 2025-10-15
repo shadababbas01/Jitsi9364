@@ -7,11 +7,19 @@ import { IReduxState, IStore } from '../../../app/types';
 import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry';
 import Platform from '../../../base/react/Platform.native';
 import { iAmVisitor } from '../../../visitors/functions';
+import ChatButton from '../../../chat/components/native/ChatButton';
 import { customButtonPressed } from '../../actions.native';
-import { getVisibleNativeButtons, isToolboxVisible } from '../../functions.native';
+import { getVisibleNativeButtons, isToolboxVisible, getMovableButtons } from '../../functions.native';
 import { useNativeToolboxButtons } from '../../hooks.native';
+import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
+import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { IToolboxNativeButton } from '../../types';
-
+import AudioMuteButton from './AudioMuteButton';
+import HangupMenuButton from './HangupMenuButton';
+import OverflowMenuButton from './OverflowMenuButton';
+import RaiseHandButton from './RaiseHandButton';
+import ScreenSharingButton from './ScreenSharingButton';
+import VideoMuteButton from './VideoMuteButton';
 import styles from './styles';
 
 /**
@@ -19,12 +27,20 @@ import styles from './styles';
  */
 interface IProps {
 
+        /**
+     * Whether the end conference feature is supported.
+     */
+    _endConferenceSupported: boolean;
     /**
      * Whether we are in visitors mode.
      */
     _iAmVisitor: boolean;
     ismessage: boolean;
 
+        /**
+     * Whether or not any reactions buttons should be visible.
+     */
+    _shouldDisplayReactionsButtons: boolean;
     /**
      * The color-schemed stylesheet of the feature.
      */
@@ -93,27 +109,27 @@ function Toolbox(props: IProps) {
     }
     console.log('this is new message in toolbox', newMessage);
 
-    const renderToolboxButtons = () => {
-        if (!mainMenuButtons?.length) {
-            return;
-        }
+    // const renderToolboxButtons = () => {
+    //     if (!mainMenuButtons?.length) {
+    //         return;
+    //     }
 
-        return (
-            <>
-                {
-                    mainMenuButtons?.map(({ Content, key, text, ...rest }: IToolboxNativeButton) => (
-                        <Content
-                            { ...rest }
-                            /* eslint-disable react/jsx-no-bind */
-                            handleClick = { () => dispatch(customButtonPressed(key, text)) }
-                            isToolboxButton = { true }
-                            key = { key }
-                            styles = { key === 'hangup' ? hangupButtonStyles : buttonStylesBorderless } />
-                    ))
-                }
-            </>
-        );
-    };
+    //     return (
+    //         <>
+    //             {
+    //                 mainMenuButtons?.map(({ Content, key, text, ...rest }: IToolboxNativeButton) => (
+    //                     <Content
+    //                         { ...rest }
+    //                         /* eslint-disable react/jsx-no-bind */
+    //                         handleClick = { () => dispatch(customButtonPressed(key, text)) }
+    //                         isToolboxButton = { true }
+    //                         key = { key }
+    //                         styles = { key === 'hangup' ? hangupButtonStyles : buttonStylesBorderless } />
+    //                 ))
+    //             }
+    //         </>
+    //     );
+    // };
 
     return (
         <View
@@ -189,10 +205,16 @@ function Toolbox(props: IProps) {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
+    const { conference } = state['features/base/conference'];
+    const endConferenceSupported = conference?.isEndConferenceSupported();
+
     return {
-        _iAmVisitor: iAmVisitor(state),
+        _endConferenceSupported: Boolean(endConferenceSupported),
         _styles: ColorSchemeRegistry.get(state, 'Toolbox'),
         _visible: isToolboxVisible(state),
+        _iAmVisitor: iAmVisitor(state),
+        _width: state['features/base/responsive-ui'].clientWidth,
+        _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state)
     };
 }
 
