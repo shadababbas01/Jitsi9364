@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ViewStyle } from 'react-native';
+import { ViewStyle, View } from 'react-native';
 import { Divider } from 'react-native-paper';
 import { connect } from 'react-redux';
 
@@ -63,12 +63,12 @@ interface IProps {
     /**
      * Whether the recoding button should be enabled or not.
     */
-   _recordingEnabled: boolean;
+    _recordingEnabled: boolean;
 
-   /**
-    * Whether or not any reactions buttons should be displayed.
-    */
-   _shouldDisplayReactionsButtons: boolean;
+    /**
+     * Whether or not any reactions buttons should be displayed.
+     */
+    _shouldDisplayReactionsButtons: boolean;
 
     /**
      * The width of the screen.
@@ -157,27 +157,27 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <AudioOnlyButton { ...buttonProps } />
                 {
                     !_shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
-                        && <RaiseHandButton { ...buttonProps } />
+                    && <RaiseHandButton {...buttonProps} />
                 }
-                {_isBreakoutRoomsSupported && <BreakoutRoomsButton { ...buttonProps } />}
+                {_isBreakoutRoomsSupported && <BreakoutRoomsButton {...buttonProps} />}
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } />
                 <SecurityDialogButton { ...buttonProps } />
                 <RecordButton { ...buttonProps } /> */}
-                <LiveStreamButton { ...buttonProps } />
+                <LiveStreamButton {...buttonProps} />
                 {/* <LinkToSalesforceButton { ...buttonProps } /> */}
-                <WhiteboardButton { ...buttonProps } />
+                <WhiteboardButton {...buttonProps} />
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
-                <SharedVideoButton { ...buttonProps } />
-                {!toolbarButtons.has('screensharing') && <ScreenSharingButton { ...buttonProps } />}
+                <SharedVideoButton {...buttonProps} />
+                {!toolbarButtons.has('screensharing') && <ScreenSharingButton {...buttonProps} />}
                 {/* {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />} */}
-                {!toolbarButtons.has('tileview') && <TileViewButton { ...buttonProps } />}
-                
+                {!toolbarButtons.has('tileview') && <TileViewButton {...buttonProps} />}
+
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
                 {/* <ClosedCaptionButton { ...buttonProps } /> */}
-                <SharedDocumentButton { ...buttonProps } />
+                <SharedDocumentButton {...buttonProps} />
                 {/* <SettingsButton { ...buttonProps } /> */}
             </BottomSheet>
         );
@@ -201,8 +201,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
     _renderReactionMenu() {
         return (
             <ReactionMenu
-                onCancel = { this._onCancel }
-                overflowMenu = { true } />
+                onCancel={this._onCancel}
+                overflowMenu={true} />
         );
     }
 
@@ -224,19 +224,19 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 {
                     _customToolbarButtons.map(({ id, text, icon, ...rest }) => (
                         <CustomOptionButton
-                            { ...rest }
-                            { ...topButtonProps }
+                            {...rest}
+                            {...topButtonProps}
 
                             /* eslint-disable react/jsx-no-bind */
-                            handleClick = { () =>
+                            handleClick={() =>
                                 dispatch(customOverflowMenuButtonPressed(id, text))
                             }
-                            icon = { icon }
-                            key = { id }
-                            text = { text } />
+                            icon={icon}
+                            key={id}
+                            text={text} />
                     ))
                 }
-                <Divider style = { styles.divider as ViewStyle } />
+                <Divider style={styles.divider as ViewStyle} />
             </>
         );
     }

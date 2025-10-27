@@ -32,6 +32,9 @@ const CarMode = (): JSX.Element => {
         dispatch(setIsCarmode(true));
         setPictureInPictureEnabled(false);
         Orientation.lockToPortrait();
+        const orientationChangeListener = Orientation.addOrientationListener(() => {
+            Orientation.lockToPortrait();
+        });
 
         return () => {
             Orientation.unlockAllOrientations();
@@ -44,8 +47,8 @@ const CarMode = (): JSX.Element => {
 
     return (
         <JitsiScreen
-            footerComponent = { CarModeFooter }
-            style = { styles.conference }>
+            footerComponent={CarModeFooter}
+            style={styles.conference}>
             {/*
                   * The activity/loading indicator goes above everything, except
                   * the toolbox/toolbars and the dialogs.
@@ -56,17 +59,17 @@ const CarMode = (): JSX.Element => {
                 </TintedView>
             }
             <View
-                pointerEvents = 'box-none'
-                style = { styles.titleBarSafeViewColor as ViewStyle }>
+                pointerEvents='box-none'
+                style={styles.titleBarSafeViewColor as ViewStyle}>
                 <View
-                    style = { styles.titleBar as ViewStyle }>
+                    style={styles.titleBar as ViewStyle}>
                     <TitleBar />
                 </View>
-                <ConferenceTimer textStyle = { styles.roomTimer } />
+                <ConferenceTimer textStyle={styles.roomTimer} />
             </View>
             <View
-                pointerEvents = 'box-none'
-                style = { styles.microphoneContainer as ViewStyle }>
+                pointerEvents='box-none'
+                style={styles.microphoneContainer as ViewStyle}>
                 <MicrophoneButton />
             </View>
         </JitsiScreen>

@@ -84,6 +84,7 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
     return (
         <BottomSheet
             addScrollViewPadding = { false }
+            style={{ paBottom: 10 }}
             showSlidingView = { true }>
             {
                 !hideJoinRoomButton && actions.includes(ACTIONS.JOIN) && (

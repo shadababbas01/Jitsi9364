@@ -48,6 +48,12 @@ export default {
         justifyContent: 'flex-end',
         margin: 6
     },
+        filmstripToolboxHidden: {
+        flexDirection: 'row',
+        flexGrow: 0,
+        justifyContent: 'flex-end',
+        margin: 50
+    },
 
     /**
      * The style of the wide {@link Filmstrip} version which displays thumbnails
@@ -71,7 +77,8 @@ export default {
     flatListContainer: {
         flexGrow: 1,
         flexShrink: 1,
-        flex: 0
+        flex: 0,
+        marginBottom: 16
     },
 
     /**

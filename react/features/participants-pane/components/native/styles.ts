@@ -1,4 +1,5 @@
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
+import { TILE_MARGIN } from '../../../filmstrip/constants';
 
 /**
  * The style for participant list description.
@@ -212,7 +213,6 @@ export default {
         backgroundColor: BaseTheme.palette.ui01,
         flex: 1,
         flexDirection: 'column',
-        paddingVertical: BaseTheme.spacing[2],
     },
 
     participantsPaneFooterContainer: {

@@ -108,7 +108,6 @@ const styles = {
         marginLeft: 'auto',
         marginRight: 'auto',
         width: '100%',
-        marginBottom: 45,
     },
 
     iconImageStyles: {

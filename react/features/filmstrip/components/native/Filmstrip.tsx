@@ -270,7 +270,7 @@ class Filmstrip extends PureComponent<IProps> {
         return (
             <SafeAreaView
                 edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
-                style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6  }]}>
+                style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
                 {
                     this._separateLocalThumbnail
                     && !isNarrowAspectRatio

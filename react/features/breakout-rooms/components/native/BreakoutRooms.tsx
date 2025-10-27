@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import JitsiScreen from '../../../base/modal/components/JitsiScreen';
-import { isLocalParticipantModerator ,getParticipantCountRemoteOnly} from '../../../base/participants/functions';
+import { isLocalParticipantModerator, getParticipantCountRemoteOnly } from '../../../base/participants/functions';
 import { equals } from '../../../base/redux/functions';
 import {
     getBreakoutRooms,
@@ -30,12 +30,12 @@ const BreakoutRooms = () => {
     const isLocalModerator = useSelector(isLocalParticipantModerator);
     const keyExtractor = useCallback((e: undefined, i: number) => i.toString(), []);
     const rooms = Object.values(useSelector(getBreakoutRooms, equals))
-    .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
+        .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
     // const rooms = Object.values(useSelector(getBreakoutRooms, equals))
     //     .filter(room => room.id !== currentRoomId)
     //     .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || '')); 
 
-    const { remote,fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
+    const { remote, fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
     const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers >= 0;
     const showAutoAssign = useSelector(isAutoAssignParticipantsVisible);
@@ -48,31 +48,31 @@ const BreakoutRooms = () => {
             style = { styles.breakoutRoomsContaineroverflowmenu }
             >
 
-            { /* Fixes warning regarding nested lists */ }
+            { /* Fixes warning regarding nested lists */}
             <FlatList
-    ListHeaderComponent={() => (
-        <View style={{ marginHorizontal: 0 }}>
-            {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
-            {inBreakoutRoom && <LeaveBreakoutRoomButton />}
-            <View>
-            {/* {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null} */}
-            </View>
-            {
-                isBreakoutRoomsSupported &&
-                rooms.map(room => (
-                    <CollapsibleRoom
-                        key={room.id}
-                        room={room}
-                        roomId={room.id} />
-                ))
-            }
-        </View>
-    )}
-    data={[] as ReadonlyArray<undefined>}
-    keyExtractor={keyExtractor}
-    renderItem={null}
-    windowSize={2}
-/>
+                ListHeaderComponent={() => (
+                    <View style={{ marginHorizontal: 0 }}>
+                        {/* { showAutoAssign && <AutoAssignButton /> }     Added by Shadab   */}
+                        {inBreakoutRoom && <LeaveBreakoutRoomButton />}
+                        <View>
+                            {/* {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null} */}
+                        </View>
+                        {
+                            isBreakoutRoomsSupported &&
+                            rooms.map(room => (
+                                <CollapsibleRoom
+                                    key={room.id}
+                                    room={room}
+                                    roomId={room.id} />
+                            ))
+                        }
+                    </View>
+                )}
+                data={[] as ReadonlyArray<undefined>}
+                keyExtractor={keyExtractor}
+                renderItem={null}
+                windowSize={2}
+            />
         </JitsiScreen>
     );
 };

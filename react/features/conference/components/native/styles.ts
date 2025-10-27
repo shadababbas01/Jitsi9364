@@ -173,7 +173,7 @@ export default {
     conference: getFixedPlatformStyle({
         alignSelf: 'stretch',
         backgroundColor: BaseTheme.palette.uiBackground,
-        flex: 1
+        flex: 1,
     }),
 
     displayNameContainer: {

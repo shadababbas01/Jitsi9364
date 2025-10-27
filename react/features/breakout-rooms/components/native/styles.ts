@@ -82,7 +82,8 @@ export default {
         flex: 1,
         flexDirection: 'column',
         height: 'auto',
-        paddingHorizontal: BaseTheme.spacing[0]
+        paddingHorizontal: BaseTheme.spacing[0],
+        marginTop: BaseTheme.spacing[30],
     },
 
     inputContainer: {

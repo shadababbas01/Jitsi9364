@@ -88,9 +88,10 @@ function Toolbox(props: IProps) {
 
     // we have only hangup and raisehand button in _iAmVisitor mode
     if (_iAmVisitor) {
-        additionalButtons.add('raisehand');
+        
         style.justifyContent = 'center';
     }
+    additionalButtons.add('raisehand');
     console.log('this is new message in toolbox', newMessage);
 
     return (
@@ -135,7 +136,7 @@ function Toolbox(props: IProps) {
                         styles = { buttonStylesBorderless }
                         toggledStyles = { backgroundToggledStyle } />
                 } */}
-                { !additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }
+                { additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }
                 toggledStyles = { toggledButtonStyles2 }/>}
                 {!_iAmVisitor && additionalButtons.has('screensharing')
                     && <ScreenSharingButton styles = { buttonStylesBorderless } />}
