@@ -29,11 +29,41 @@ const BreakoutRooms = () => {
         state['features/base/conference'].conference?.getBreakoutRooms()?.isSupported());
     const isLocalModerator = useSelector(isLocalParticipantModerator);
     const keyExtractor = useCallback((e: undefined, i: number) => i.toString(), []);
-    const rooms = Object.values(useSelector(getBreakoutRooms, equals))
-        .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || ''));
-    // const rooms = Object.values(useSelector(getBreakoutRooms, equals))
-    //     .filter(room => room.id !== currentRoomId)
-    //     .sort((p1, p2) => (p1?.name || '').localeCompare(p2?.name || '')); 
+    // Get breakout rooms and sort by creation time (oldest first).
+    // Fallbacks: created timestamp fields, numeric suffix in the name, numeric id, then 0.
+    const roomsObj = useSelector(getBreakoutRooms, equals);
+    const rooms = Object.values(roomsObj || {});
+
+    const getRoomOrder = (r: any) => {
+        if (!r) {
+            return 0;
+        }
+
+        // Try common timestamp-like fields.
+        const ts = r.timestamp ?? r.createdAt ?? r.created ?? r.creationTime ?? r.createTime;
+        if (ts) {
+            const n = typeof ts === 'number' ? ts : Date.parse(String(ts));
+            if (!Number.isNaN(n)) {
+                return n;
+            }
+        }
+
+        // Fallback: numeric suffix in name (e.g. "Breakout Room 10").
+        const m = String(r.name || '').match(/(\d+)(?!.*\d)/);
+        if (m) {
+            return Number(m[1]);
+        }
+
+        // Fallback: numeric id.
+        const idNum = Number(r.id);
+        if (!Number.isNaN(idNum)) {
+            return idNum;
+        }
+
+        return 0;
+    };
+
+    rooms.sort((p1, p2) => getRoomOrder(p1) - getRoomOrder(p2));
 
     const { remote, fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
     const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;

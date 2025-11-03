@@ -32,9 +32,6 @@ const CarMode = (): JSX.Element => {
         dispatch(setIsCarmode(true));
         setPictureInPictureEnabled(false);
         Orientation.lockToPortrait();
-        const orientationChangeListener = Orientation.addOrientationListener(() => {
-            Orientation.lockToPortrait();
-        });
 
         return () => {
             Orientation.unlockAllOrientations();
