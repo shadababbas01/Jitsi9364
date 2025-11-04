@@ -8,12 +8,14 @@ import {
     CLEAR_MESSAGES,
     CLOSE_CHAT,
     EDIT_MESSAGE,
+    HIDE_MEETING_LIMIT_DIALOG,
     OPEN_CHAT,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
     SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
-    SET_PRIVATE_MESSAGE_RECIPIENT
+    SET_PRIVATE_MESSAGE_RECIPIENT,
+    SHOW_MEETING_LIMIT_DIALOG
 } from './actionTypes';
 import { IMessage } from './types';
 
@@ -25,7 +27,10 @@ const DEFAULT_STATE = {
     nbUnreadMessages: 0,
     privateMessageRecipient: undefined,
     lobbyMessageRecipient: undefined,
-    isLobbyChatActive: false
+    isLobbyChatActive: false,
+    meetingLimitDialog: {
+        open: false
+    }
 };
 
 export interface IChatState {
@@ -40,6 +45,11 @@ export interface IChatState {
     messages: IMessage[];
     nbUnreadMessages: number;
     privateMessageRecipient?: IParticipant;
+    meetingLimitDialog: {
+        open: boolean;
+        title?: string;
+        message?: string;
+    };
 }
 
 ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, action): IChatState => {
@@ -56,7 +66,9 @@ ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, ac
             privateMessage: action.privateMessage,
             lobbyChat: action.lobbyChat,
             recipient: action.recipient,
-            timestamp: action.timestamp
+            timestamp: action.timestamp,
+            warning: action.warning,
+            ended: action.ended
         };
 
         // React native, unlike web, needs a reverse sorted message list.
@@ -168,6 +180,24 @@ ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, ac
             isOpen: state.isOpen && state.isLobbyChatActive ? false : state.isOpen,
             isLobbyChatActive: false,
             lobbyMessageRecipient: undefined
+        };
+
+    case SHOW_MEETING_LIMIT_DIALOG:
+        return {
+            ...state,
+            meetingLimitDialog: {
+                open: true,
+                title: action.payload?.title,
+                message: action.payload?.message
+            }
+        };
+
+    case HIDE_MEETING_LIMIT_DIALOG:
+        return {
+            ...state,
+            meetingLimitDialog: {
+                open: false
+            }
         };
     }
 

@@ -10,6 +10,8 @@ import {
     CLOSE_CHAT,
     EDIT_MESSAGE,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
+    SHOW_MEETING_LIMIT_DIALOG,
+    HIDE_MEETING_LIMIT_DIALOG,
     SEND_MESSAGE,
     SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
@@ -260,3 +262,11 @@ export function handleLobbyChatInitialized(participantId: string) {
         return conference?.sendLobbyMessage(payload);
     };
 }
+export const showMeetingLimitDialog = (payload: { title: string; message: string }) => ({
+    type: SHOW_MEETING_LIMIT_DIALOG,
+    payload
+});
+
+export const hideMeetingLimitDialog = () => ({
+    type: HIDE_MEETING_LIMIT_DIALOG
+});

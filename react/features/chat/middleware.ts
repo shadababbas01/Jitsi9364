@@ -37,7 +37,7 @@ import { showToolbox } from '../toolbox/actions';
 
 
 import { ADD_MESSAGE, CLOSE_CHAT, OPEN_CHAT, SEND_MESSAGE, SET_IS_POLL_TAB_FOCUSED } from './actionTypes';
-import { addMessage, clearMessages, closeChat } from './actions.any';
+import { addMessage, clearMessages, closeChat, showMeetingLimitDialog } from './actions.any';
 import { ChatPrivacyDialog } from './components';
 import {
     INCOMING_MSG_SOUND_ID,
@@ -314,10 +314,45 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
 function _onConferenceMessageReceived(store: IStore, { displayName, id, isGuest, message, timestamp, privateMessage }: {
     displayName?: string; id: string; isGuest?: boolean;
     message: string; privateMessage: boolean; timestamp: number; }) {
-    const isGif = isGifMessage(message);
+        let warning = false;
+    let ended = false;
+    let parsedMessage = message;
+    let dialogTitle: string | undefined;
+
+    if (typeof message === 'string') {
+        try {
+            const extra = JSON.parse(message);
+
+            warning = Boolean(extra?.warning);
+            ended = Boolean(extra?.ended);
+
+            if (typeof extra?.message === 'string') {
+                parsedMessage = extra.message;
+            }
+
+            if (typeof extra?.title === 'string') {
+                dialogTitle = extra.title;
+            }
+        } catch (error) {
+            // not JSON, ignore
+        }
+    }
+
+    if (warning || ended) {
+        const fallbackTitle = ended ? 'Meeting ended' : 'Meeting ending soon';
+
+        store.dispatch(showMeetingLimitDialog({
+            message: parsedMessage,
+            title: dialogTitle ?? fallbackTitle
+        }));
+
+        return;
+    }
+
+    const isGif = isGifMessage(parsedMessage);
 
     if (isGif) {
-        _handleGifMessageReceived(store, id, message);
+        _handleGifMessageReceived(store, id, parsedMessage);
         if (getGifDisplayMode(store.getState()) === 'tile') {
             return;
         }
@@ -326,10 +361,12 @@ function _onConferenceMessageReceived(store: IStore, { displayName, id, isGuest,
         displayName,
         id,
         isGuest,
-        message,
+        message: parsedMessage,
         privateMessage,
         lobbyChat: false,
-        timestamp
+        timestamp,
+        warning,
+        ended
     }, true, isGif);
 }
 
@@ -417,9 +454,9 @@ function getLobbyChatDisplayName(state: IReduxState, id: string) {
  * @returns {void}
  */
 function _handleReceivedMessage({ dispatch, getState }: IStore,
-        { displayName, id, isGuest, message, privateMessage, timestamp, lobbyChat }: {
+        { displayName, id, isGuest, message, privateMessage, timestamp, lobbyChat, warning, ended  }: {
         displayName?: string; id: string; isGuest?: boolean; lobbyChat: boolean;
-        message: string; privateMessage: boolean; timestamp: number; },
+        message: string; privateMessage: boolean; timestamp: number; warning?: boolean; ended?: boolean; },
         shouldPlaySound = true,
         isReaction = false
 ) {
@@ -462,7 +499,9 @@ function _handleReceivedMessage({ dispatch, getState }: IStore,
         lobbyChat,
         recipient: getParticipantDisplayName(state, localParticipant?.id ?? ''),
         timestamp: millisecondsTimestamp,
-        isReaction
+        isReaction,
+        warning,
+        ended
     }));
 
     if (shouldShowNotification) {

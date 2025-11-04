@@ -111,3 +111,13 @@ export const SET_IS_POLL_TAB_FOCUSED = 'SET_IS_POLL_TAB_FOCUSED';
   * }
   */
  export const REMOVE_LOBBY_CHAT_PARTICIPANT = 'REMOVE_LOBBY_CHAT_PARTICIPANT';
+
+/**
+ * The type of action which opens the meeting limit dialog.
+ */
+export const SHOW_MEETING_LIMIT_DIALOG = 'SHOW_MEETING_LIMIT_DIALOG';
+
+/**
+ * The type of action which hides the meeting limit dialog.
+ */
+export const HIDE_MEETING_LIMIT_DIALOG = 'HIDE_MEETING_LIMIT_DIALOG';

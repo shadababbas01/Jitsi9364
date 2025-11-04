@@ -14,6 +14,8 @@ export interface IMessage {
     privateMessage: boolean;
     recipient: string;
     timestamp: number;
+    warning?: boolean;
+    ended?: boolean;
 }
 
 /**

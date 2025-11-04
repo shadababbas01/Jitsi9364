@@ -70,6 +70,7 @@ import { getBreakoutRooms, getCurrentRoomId } from '../../../breakout-rooms/func
 import { I } from '@jitsi/excalidraw/types/ga';
 var totalUser = '0';
 import Orientation from 'react-native-orientation-locker';
+import MeetingLimitDialogContainer from '../../../meeting-warning/components/native/MeetingLimitDialogContainer';
 
 /**
  * The type of the React {@code Component} props of {@link Conference}.
@@ -333,6 +334,7 @@ class Conference extends AbstractConference<IProps, State> {
                 barStyle = 'light-content'
                 hidden = { false }
                 translucent = { _fullscreenEnabled } />
+                <MeetingLimitDialogContainer />
                 { this._renderContent() }
             </Container>
         );
