@@ -21,6 +21,8 @@ import styles, { DESKTOP_ENABLED_ICON, DESKTOP_DISABLED_ICON, ADD_CALL_ICON,
     END_CALL_ICON,
     S_END_CALL_ICON,
     P_END_CALL_ICON,
+    DE_END_CALL_ICON,
+    VI_END_CALL_ICON,
     AUDIO_MUTE_ENABLED_ICON,
     SPEAKER_TEAMS_INACTIVE_ICON,
     SPEAKER_ONE_TO_ONE_INACTIVE_ICON,
@@ -212,6 +214,10 @@ class CustomisedToolBox extends Component<Props, *> {
      }
      else if(i18next.language==='ptBR'){
         ecndCallIcon= P_END_CALL_ICON;
+     }else if(i18next.language==='vi'){
+        ecndCallIcon= VI_END_CALL_ICON;
+     }else if(i18next.language==='de'){
+        ecndCallIcon= DE_END_CALL_ICON;
      }
      else{
         ecndCallIcon= END_CALL_ICON

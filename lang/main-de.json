@@ -36,8 +36,8 @@
         "car": "Auto",
         "headphones": "Kopfhörer",
         "none": "Keine Audiogeräte verfügbar",
-        "phone": "Hörer",
-        "speaker": "Lautsprecher"
+        "phone": "Lautsprecher aus",
+        "speaker": "Lautsprecher an"
     },
     "audioOnly": {
         "audioOnly": "Geringe Bandbreite"
@@ -105,7 +105,7 @@
         "labels": {
             "buttonLabel": "Automodus",
             "title": "Automodus",
-            "videoStopped": "Ihre Kamera ist deaktiviert"
+            "videoStopped": "Ihr Video wurde gestoppt"
         }
     },
     "chat": {
@@ -442,9 +442,9 @@
         "shareYourScreen": "Bildschirmfreigabe ein-/ausschalten",
         "shareYourScreenDisabled": "Bildschirmfreigabe deaktiviert.",
         "sharedVideoDialogError": "Fehler: Ungültige URL",
-        "sharedVideoLinkPlaceholder": "YouTube-URL oder direkte Video-URL",
+        "sharedVideoLinkPlaceholder": "YouTube-Link oder direkter Videolink",
         "show": "Anzeigen",
-        "start": "Starte ",
+        "start": "Starten ",
         "startLiveStreaming": "Livestream starten",
         "startRecording": "Aufnahme starten",
         "startRemoteControlErrorMessage": "Beim Versuch, die Fernsteuerung zu starten, ist ein Fehler aufgetreten!",
@@ -617,7 +617,7 @@
         "changeSignIn": "Konten wechseln.",
         "choose": "Livestream auswählen",
         "chooseCTA": "Streaming-Option auswählen. Sie sind aktuell als {{email}} angemeldet.",
-        "enterStreamKey": "Streamschlüssel für den YouTube-Livestream hier eingeben.",
+        "enterStreamKey": "Geben Sie hier Ihren YouTube-Livestream-Schlüssel ein.",
         "error": "Das Livestreaming ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
         "errorAPI": "Beim Abrufen der YouTube-Livestreams ist ein Fehler aufgetreten. Bitte versuchen Sie, sich erneut anzumelden.",
         "errorLiveStreamNotEnabled": "Livestreaming ist für {{email}} nicht aktiviert. Aktivieren Sie das Livestreaming oder melden Sie sich bei einem Konto mit aktiviertem Livestreaming an.",
@@ -626,7 +626,7 @@
         "expandedPending": "Livestream wird gestartet …",
         "failedToStart": "Livestream konnte nicht gestartet werden",
         "getStreamKeyManually": "Wir waren nicht in der Lage, Livestreams abzurufen. Versuchen Sie, Ihren Livestream-Schlüssel von YouTube zu erhalten.",
-        "googlePrivacyPolicy": "Google-Datenschutzerklärung",
+        "googlePrivacyPolicy": "Datenschutzerklärung von Google",
         "inProgress": "Livestreaming gestartet",
         "invalidStreamKey": "Der Livestream-Schlüssel ist u. U. falsch.",
         "limitNotificationDescriptionNative": "Ihr Stream ist begrenzt auf {{limit}} Min. Für unlimitiertes Streaming, nutzen Sie bitte {{app}}.",
@@ -646,7 +646,7 @@
         "streamIdHelp": "Was ist das?",
         "title": "Livestream",
         "unavailableTitle": "Livestreaming nicht verfügbar",
-        "youtubeTerms": "YouTube-Nutzungsbedingungen"
+        "youtubeTerms": "Nutzungsbedingungen von YouTube"
     },
     "lobby": {
         "backToKnockModeButton": "Kein Passwort, stattdessen Beitritt anfragen",
@@ -793,7 +793,7 @@
         "passwordRemovedRemotely": "$t(lockRoomPasswordUppercase) von einer anderen Person entfernt",
         "passwordSetRemotely": "$t(lockRoomPasswordUppercase) von einer anderen Person gesetzt",
         "raiseHandAction": "Melden",
-        "raisedHand": "{{name}} möchte sprechen.",
+        "raisedHand": "{{name}} Würde gerne sprechen.",
         "raisedHands": "{{participantName}} und {{raisedHands}} weitere möchten sprechen",
         "reactionSounds": "Interaktionstöne deaktivieren",
         "reactionSoundsForAll": "Interaktionstöne für alle deaktivieren",
@@ -825,13 +825,13 @@
         "actions": {
             "admit": "Zulassen",
             "admitAll": "Alle zulassen",
-            "allow": "Anwesenden erlauben:",
+            "allow": "Teilnehmern erlauben:",
             "allowVideo": "Kamera einschalten",
             "askUnmute": "Anfragen, Stummschaltung aufzuheben",
             "audioModeration": "Für sich selbst die Stummschaltung aufzuheben",
             "blockEveryoneMicCamera": "Kamera und Mikrofon von allen sperren",
             "breakoutRooms": "Breakout-Räume",
-            "invite": "Person einladen",
+            "invite": "Zum Anruf hinzufügen",
             "moreModerationActions": "Weitere Moderationsoptionen",
             "moreModerationControls": "Weitere Moderationsoptionen",
             "moreParticipantOptions": "Mehr Optionen für Anwesende",
@@ -847,12 +847,12 @@
         "close": "Schließen",
         "headings": {
             "lobby": "Lobby ({{count}})",
-            "participantsList": "Anwesende ({{count}})",
+            "participantsList": "Meeting-Teilnehmer ({{count}})",
             "visitorRequests": " (Anfragen {{count}})",
             "visitors": "Gäste ({{count}})",
             "waitingLobby": "In der Lobby ({{count}})"
         },
-        "search": "Suche Anwesende",
+        "search": "Teilnehmer suchen",
         "title": "Anwesende"
     },
     "passwordDigitsOnly": "Bis zu {{number}} Ziffern",
@@ -976,7 +976,7 @@
         "setEmailLabel": "E-Mail-Adresse für Gravatar",
         "title": "Profil"
     },
-    "raisedHand": "Ich möchte sprechen",
+    "raisedHand": "Würde gerne sprechen",
     "raisedHandsLabel": "Anzahl gehobener Hände",
     "record": {
         "already": {
@@ -1202,7 +1202,7 @@
             "embedMeeting": "Konferenz einbetten",
             "endConference": "Konferenz für alle beenden",
             "enterFullScreen": "Vollbildmodus einschalten",
-            "enterTileView": "Kachelansicht einschalten",
+            "enterTileView": "Kachelansicht aktivieren",
             "exitFullScreen": "Vollbildansicht ausschalten",
             "exitTileView": "Kachelansicht ausschalten",
             "expand": "Ausklappen",
@@ -1217,7 +1217,7 @@
             "invite": "Person einladen",
             "kick": "Person entfernen",
             "laugh": "Lachen",
-            "leaveConference": "Konferenz verlassen",
+            "leaveConference": "Verlassen",
             "like": "Daumen nach oben",
             "linkToSalesforce": "Mit Salesforce verlinken",
             "lobbyButton": "Lobbymodus ein-/ausschalten",
@@ -1235,11 +1235,11 @@
             "muteGUMPending": "Verbinde Ihr Mikrofon",
             "noiseSuppression": "Rauschunterdrückung",
             "openChat": "Chat öffnen",
-            "participants": "Anwesende",
+            "participants": "Teilnehmer",
             "pip": "Bild-in-Bild-Modus ein-/ausschalten",
             "privateMessage": "Private Nachricht senden",
             "profile": "Profil bearbeiten",
-            "raiseHand": "Hand heben",
+            "raiseHand": "Hebe deine Hand",
             "reactions": "Interaktionen",
             "reactionsMenu": "Interaktionsmenü öffnen / schließen",
             "recording": "Aufzeichnung ein-/ausschalten",
@@ -1271,7 +1271,7 @@
         },
         "addPeople": "Personen zur Konferenz hinzufügen",
         "audioOnlyOff": "Modus „Nur Audio“ deaktivieren",
-        "audioOnlyOn": "Modus „Nur Audio“ aktivieren",
+        "audioOnlyOn": "Aktivieren Sie den Audiomodus",
         "audioRoute": "Audiogerät auswählen",
         "audioSettings": "Ton-Einstellungen",
         "authenticate": "Anmelden",
@@ -1292,7 +1292,7 @@
         "enableNoiseSuppression": "Rauschunterdrückung einschalten",
         "endConference": "Konferenz für alle beenden",
         "enterFullScreen": "Vollbildmodus",
-        "enterTileView": "Kachelansicht einschalten",
+        "enterTileView": "Kachelansicht aktivieren",
         "exitFullScreen": "Vollbildmodus verlassen",
         "exitTileView": "Kachelansicht ausschalten",
         "feedback": "Feedback hinterlassen",
@@ -1304,7 +1304,7 @@
         "joinBreakoutRoom": "In Breakout-Raum wechseln",
         "laugh": "Lachen",
         "leaveBreakoutRoom": "Breakout-Raum verlassen",
-        "leaveConference": "Konferenz verlassen",
+        "leaveConference": "Verlassen",
         "like": "Daumen hoch",
         "linkToSalesforce": "Mit Salesforce verknüpfen",
         "lobbyButtonDisable": "Lobbymodus deaktivieren",
@@ -1332,8 +1332,8 @@
         "pip": "Bild-in-Bild-Modus einschalten",
         "privateMessage": "Private Nachricht senden",
         "profile": "Profil bearbeiten",
-        "raiseHand": "Hand heben",
-        "raiseYourHand": "Melden",
+        "raiseHand": "Hebe deine Hand",
+        "raiseYourHand": "MelHebe deine Handden",
         "reactionBoo": "Buhen senden",
         "reactionClap": "Klatschen senden",
         "reactionLaugh": "Lachen senden",
