@@ -869,7 +869,7 @@
             "addOption": "Add option",
             "answerPlaceholder": "Option {{index}}",
             "cancel": "Cancel",
-            "create": "Create a poll",
+            "create": "Create",
             "pollOption": "Poll option {{index}}",
             "pollQuestion": "Poll Question",
             "questionPlaceholder": "Ask a question",

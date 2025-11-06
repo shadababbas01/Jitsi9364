@@ -25,11 +25,12 @@ class DialogContainer extends AbstractDialogContainer {
     _renderReactions() {
         const { _reactionsQueue } = this.props;
 
-        return _reactionsQueue.map(({ reaction, uid }, index) => (<ReactionEmoji
+        return _reactionsQueue.map(({ reaction, uid, participantName }, index) => (<ReactionEmoji
             index = { index }
             key = { uid }
             reaction = { reaction }
-            uid = { uid } />));
+            uid = { uid }
+            participantName = { participantName } />));
     }
 
     /**

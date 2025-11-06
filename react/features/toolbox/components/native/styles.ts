@@ -193,13 +193,42 @@ ColorSchemeRegistry.register('Toolbox', {
     },
 
     emojiAnimation: {
-        color: BaseTheme.palette.icon01,
         position: 'absolute',
         zIndex: 1001,
         elevation: 2,
-        fontSize: 20,
         left: '50%',
-        top: '100%'
+                top: '100%',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 56,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(28, 28, 30, 0.7)',
+        maxWidth: 220,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: {
+            width: 0,
+            height: 6
+        },
+        shadowRadius: 16
+    },
+
+    emojiAnimationEmoji: {
+        color: BaseTheme.palette.icon01,
+        fontSize: 24,
+        lineHeight: 28,
+        textAlign: 'center'
+    },
+
+    emojiAnimationLabel: {
+        marginTop: 4,
+        color: BaseTheme.palette.icon01,
+        fontSize: 11,
+        fontWeight: '600',
+        textAlign: 'center'
     },
 
     /**

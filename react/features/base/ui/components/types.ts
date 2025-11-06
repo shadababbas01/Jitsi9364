@@ -86,6 +86,12 @@ export interface IInputProps {
      * The value of the input.
      */
     value: string | number;
+
+
+    /**
+     * Optional border color when the input is focused.
+     */
+    focusBorderColor?: string;
 }
 
 export interface ISwitchProps {

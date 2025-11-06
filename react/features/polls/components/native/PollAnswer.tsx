@@ -9,7 +9,8 @@ import { BUTTON_TYPES } from '../../../base/ui/constants.native';
 import { isSubmitAnswerDisabled } from '../../functions';
 import AbstractPollAnswer, { AbstractProps } from '../AbstractPollAnswer';
 
-import { chatStyles, dialogStyles } from './styles';
+import { chatStyles, dialogStyles, POLLS_ACCENT_COLOR } from './styles';
+import { DISABLED_TRACK_COLOR } from '../../../base/ui/components/native/switchStyles';
 
 
 const PollAnswer = (props: AbstractProps) => {
@@ -41,6 +42,10 @@ const PollAnswer = (props: AbstractProps) => {
                         <Switch
                             checked = { checkBoxStates[index] }
                             /* eslint-disable-next-line react/jsx-no-bind */
+                            trackColor = {{
+                                true: POLLS_ACCENT_COLOR,
+                                false: DISABLED_TRACK_COLOR
+                            }}
                             onChange = { state => setCheckbox(index, state) } />
                         <Text style = { chatStyles.switchLabel as TextStyle }>{answer.name}</Text>
                     </View>
@@ -58,6 +63,7 @@ const PollAnswer = (props: AbstractProps) => {
                     disabled = { isSubmitAnswerDisabled(checkBoxStates) }
                     labelKey = 'polls.answer.submit'
                     onClick = { submitAnswer }
+                    color = { POLLS_ACCENT_COLOR }
                     style = { chatStyles.pollCreateButton }
                     type = { PRIMARY } />
             </View>

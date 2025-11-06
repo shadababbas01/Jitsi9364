@@ -17,7 +17,8 @@ import type { AbstractProps } from '../AbstractPollsPane';
 
 import PollCreate from './PollCreate';
 import PollsList from './PollsList';
-import { chatStyles } from './styles';
+import { POLLS_ACCENT_COLOR, POLLS_CREATE_BUTTON_COLOR, chatStyles } from './styles';
+
 
 const PollsPane = (props: AbstractProps) => {
     const { createMode, onCreate, setCreateMode, t } = props;
@@ -60,8 +61,9 @@ const PollsPane = (props: AbstractProps) => {
                     accessibilityLabel = 'polls.create.create'
                     labelKey = 'polls.create.create'
                     onClick = { onCreate }
+                    color = { POLLS_CREATE_BUTTON_COLOR }
                     style = { createPollButtonStyles }
-                    type = { BUTTON_TYPES.PRIMARY } />
+                    type = { BUTTON_TYPES.DESTRUCTIVE } />
             }
         </JitsiScreen>
     );

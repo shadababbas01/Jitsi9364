@@ -181,7 +181,9 @@ export default {
     displayNameContainer: {
         margin: 10
     },
-
+    moreButtonContainer: {
+    right: 15,
+    },
     /**
      * View that contains the indicators.
      */
@@ -392,12 +394,16 @@ export default {
         color: 'white',
         fontSize: scaleFontSize(8),
         marginRight: wp('2.415%'),
+        marginTop: hp('0.679%'),
+        marginLeft: hp('3.0%'),
         fontFamily: 'AkzidenzGroteskPro-Bold'
     },
     encryptedTextOneToOneStyle: {
         color: 'rgb(201,207,215)',
         fontSize: scaleFontSize(8),
         marginRight: wp('2.415%'),
+        marginTop: hp('0.679%'),
+        marginLeft: hp('3.0%'),
         fontFamily: 'AkzidenzGroteskPro-Bold'
     },
     calleeContainerStyle: {

@@ -38,10 +38,10 @@ const PollsList = () => {
             {
                 listPolls.length === 0
                 && <View style = { chatStyles.noPollContent as ViewStyle }>
-                    <Icon
+                    {/* <Icon
                         color = { BaseTheme.palette.icon03 }
                         size = { 160 }
-                        src = { IconMessage } />
+                        src = { IconMessage } /> */}
                     <Text style = { chatStyles.noPollText as TextStyle } >
                         {
                             t('polls.results.empty')

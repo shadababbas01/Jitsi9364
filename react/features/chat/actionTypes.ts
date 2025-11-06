@@ -111,3 +111,13 @@ export const SET_IS_POLL_TAB_FOCUSED = 'SET_IS_POLL_TAB_FOCUSED';
   * }
   */
  export const REMOVE_LOBBY_CHAT_PARTICIPANT = 'REMOVE_LOBBY_CHAT_PARTICIPANT';
+
+/**
+ * The type of action which sets whether the chat tab should be visible alongside polls.
+ *
+ * {
+ *     type: SET_CHAT_TAB_VISIBLE,
+ *     isVisible: boolean
+ * }
+ */
+export const SET_CHAT_TAB_VISIBLE = 'SET_CHAT_TAB_VISIBLE';

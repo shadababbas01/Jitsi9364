@@ -11,6 +11,7 @@ import {
     EDIT_MESSAGE,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
     SEND_MESSAGE,
+    SET_CHAT_TAB_VISIBLE,
     SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
@@ -137,6 +138,22 @@ export function setIsPollsTabFocused(isPollsTabFocused: boolean) {
     return {
         isPollsTabFocused,
         type: SET_IS_POLL_TAB_FOCUSED
+    };
+}
+
+/**
+ * Sets whether the chat tab should be visible alongside polls.
+ *
+ * @param {boolean} isVisible - Visibility flag.
+ * @returns {{
+ *     isVisible: boolean,
+ *     type: SET_CHAT_TAB_VISIBLE
+ * }}
+ */
+export function setChatTabVisible(isVisible: boolean) {
+    return {
+        isVisible,
+        type: SET_CHAT_TAB_VISIBLE
     };
 }
 

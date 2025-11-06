@@ -55,6 +55,16 @@ export interface IReactionsAction extends Partial<IReactionsState> {
      */
     reactions?: Array<string>;
 
+   /**
+     * The id of the participant associated with the reactions.
+     */
+    participantId?: string;
+
+    /**
+     * The display name of the participant associated with the reactions.
+     */
+    participantName?: string;
+
     /**
      * The action type.
      */

@@ -303,7 +303,7 @@ console.log(">>>>>>>>>>>>",targetRoom);
             const conference = getCurrentConference(getState);
             const { audio, video } = getState()['features/base/media'];
 
-            dispatch(conferenceWillLeave(conference));
+            dispatch(conferenceWillLeave(conference, true));
 
             try {
                 await conference?.leave(CONFERENCE_LEAVE_REASONS.SWITCH_ROOM);

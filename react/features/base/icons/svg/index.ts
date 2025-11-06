@@ -115,3 +115,6 @@ export { default as ZoomOut } from './Zoomout.svg';
 export { default as IconDotsHorizontalBlack } from './dos-horizontalBlack.svg';
 export { default as IconLaptop } from './laptopIcon.svg';
 export { default as IconMobile } from './mobileIcon.svg';
+export { default as Poll } from './Poll.svg';
+export { default as more } from './more.svg';
+export { default as more2 } from './morewhite.svg';

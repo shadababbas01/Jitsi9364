@@ -7,6 +7,7 @@ import { NotifyClickButton } from '../base/config/configType';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { I_AM_VISITOR_MODE } from '../visitors/actionTypes';
 import { iAmVisitor } from '../visitors/functions';
+import { checkVirtualBackgroundEnabled } from '../virtual-background/functions';
 
 import {
     CLEAR_TOOLBOX_TIMEOUT,
@@ -177,10 +178,18 @@ function _buildButtonsArray(
 function _getToolbarButtons(state: IReduxState): Array<string> {
     const { toolbarButtons, customToolbarButtons } = state['features/base/config'];
     const customButtons = customToolbarButtons?.map(({ id }) => id);
-    let buttons = Array.isArray(toolbarButtons) ? toolbarButtons : TOOLBAR_BUTTONS;
+    let buttons = Array.isArray(toolbarButtons) ? [ ...toolbarButtons ] : [ ...TOOLBAR_BUTTONS ];
 
     if (iAmVisitor(state)) {
         buttons = VISITORS_MODE_BUTTONS.filter(button => buttons.indexOf(button) > -1);
+    }
+
+    if (checkVirtualBackgroundEnabled(state)) {
+        if (!buttons.includes('select-background')) {
+            buttons = [ ...buttons, 'select-background' ];
+        }
+    } else if (buttons.includes('select-background')) {
+        buttons = buttons.filter(button => button !== 'select-background');
     }
 
     if (customButtons) {

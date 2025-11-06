@@ -4,6 +4,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import { Divider } from 'react-native-paper';
 
 import Button from '../../../base/ui/components/native/Button';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import Input from '../../../base/ui/components/native/Input';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
 import styles
@@ -11,7 +12,7 @@ import styles
 import { ANSWERS_LIMIT, CHAR_LIMIT } from '../../constants';
 import AbstractPollCreate, { AbstractProps } from '../AbstractPollCreate';
 
-import { chatStyles, dialogStyles } from './styles';
+import { POLLS_ACCENT_COLOR, chatStyles, dialogStyles } from './styles';
 
 const PollCreate = (props: AbstractProps) => {
     const {
@@ -27,6 +28,7 @@ const PollCreate = (props: AbstractProps) => {
         t
     } = props;
 
+    const inputFocusColor = BaseTheme.palette.text01;
     const answerListRef = useRef<FlatList>(null);
 
     /*
@@ -102,6 +104,7 @@ const PollCreate = (props: AbstractProps) => {
                 style = { dialogStyles.optionContainer as ViewStyle }>
                 <Input
                     blurOnSubmit = { false }
+                    focusBorderColor = { inputFocusColor }
                     label = { t('polls.create.pollOption', { index: index + 1 }) }
                     maxLength = { CHAR_LIMIT }
                     multiline = { true }
@@ -129,6 +132,7 @@ const PollCreate = (props: AbstractProps) => {
                     autoFocus = { true }
                     blurOnSubmit = { false }
                     customStyles = {{ container: dialogStyles.customContainer }}
+                    focusBorderColor = { inputFocusColor }
                     label = { t('polls.create.pollQuestion') }
                     maxLength = { CHAR_LIMIT }
                     multiline = { true }
@@ -172,6 +176,7 @@ const PollCreate = (props: AbstractProps) => {
                             disabled = { isSubmitDisabled }
                             labelKey = 'polls.create.send'
                             onClick = { onSubmit }
+                            color = { POLLS_ACCENT_COLOR }
                             style = { chatStyles.pollCreateButton }
                             type = { PRIMARY } />
                     </View>

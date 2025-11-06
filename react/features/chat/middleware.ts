@@ -122,7 +122,13 @@ MiddlewareRegistry.register(store => next => action => {
         const { participant, data } = action;
 
         if (data?.name === ENDPOINT_REACTION_NAME) {
-            store.dispatch(pushReactions(data.reactions));
+            const participantId = participant.getId();
+
+            store.dispatch(pushReactions(
+                data.reactions,
+                participantId,
+                getParticipantDisplayName(state, participantId)
+            ));
 
             _handleReceivedMessage(store, {
                 id: participant.getId(),

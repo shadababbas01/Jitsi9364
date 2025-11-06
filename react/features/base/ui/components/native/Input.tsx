@@ -40,6 +40,7 @@ interface IProps extends IInputProps {
     returnKeyType?: ReturnKeyTypeOptions | undefined;
     secureTextEntry?: boolean | undefined;
     textContentType?: any;
+    focusBorderColor?: string;
 }
 
 interface ICustomStyles {
@@ -73,7 +74,8 @@ const Input = forwardRef<TextInput, IProps>(({
     returnKeyType,
     secureTextEntry,
     textContentType,
-    value
+    value,
+    focusBorderColor
 }: IProps, ref) => {
     const [ focused, setFocused ] = useState(false);
     const handleChange = useCallback((e: NativeSyntheticEvent<TextInputChangeEventData>) => {
@@ -106,6 +108,7 @@ const Input = forwardRef<TextInput, IProps>(({
         onSubmitEditing?.(text);
     }, [ onSubmitEditing ]);
 
+    const focusStyle = focusBorderColor ? { borderColor: focusBorderColor } : styles.inputFocused;
     return (<View style = { [ styles.inputContainer, customStyles?.container ] }>
         {label && <Text style = { styles.label }>{ label }</Text>}
         <View style = { styles.fieldContainer as StyleProp<ViewStyle> }>
@@ -146,7 +149,7 @@ const Input = forwardRef<TextInput, IProps>(({
                     customStyles?.input,
                     disabled && styles.inputDisabled,
                     error && styles.inputError,
-                    focused && styles.inputFocused,
+                    focused && focusStyle,
                     icon && styles.iconInput,
                     multiline && styles.inputMultiline
                 ] }

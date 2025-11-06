@@ -33,6 +33,7 @@ import LinkToSalesforceButton from './LinkToSalesforceButton';
 import OpenCarmodeButton from './OpenCarmodeButton';
 import RaiseHandButton from './RaiseHandButton';
 import ScreenSharingButton from './ScreenSharingButton';
+import PollsButton from '../../../polls/components/native/PollsButton';
 
 
 /**
@@ -73,11 +74,13 @@ interface IProps {
     /**
      * The width of the screen.
      */
+    
     _width: number;
 
     /**
      * Used for hiding the dialog when the selection was completed.
      */
+     _audioOnly: boolean;
     dispatch: IStore['dispatch'];
 }
 
@@ -123,6 +126,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
             _isSpeakerStatsDisabled,
             _shouldDisplayReactionsButtons,
             _width,
+            _audioOnly,
             dispatch
         } = this.props;
         const toolbarButtons = getMovableButtons(_width);
@@ -149,14 +153,17 @@ class OverflowMenu extends PureComponent<IProps, IState> {
 
         return (
             <BottomSheet
-                renderFooter = { _shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
-                    ? this._renderReactionMenu
-                    : undefined }>
-                { this._renderCustomOverflowMenuButtons(topButtonProps) }
-                <OpenCarmodeButton { ...topButtonProps } />
-                <AudioOnlyButton { ...buttonProps } />
+                renderFooter={
+                    _shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
+                        ? this._renderReactionMenu
+                        : undefined
+                }>
+                <OpenCarmodeButton {...topButtonProps} />
+                <AudioOnlyButton {...buttonProps} />
+
                 {
-                    !_shouldDisplayReactionsButtons && !toolbarButtons.has('raisehand')
+                     !_shouldDisplayReactionsButtons
+                    && !toolbarButtons.has('raisehand')
                     && <RaiseHandButton {...buttonProps} />
                 }
                 {_isBreakoutRoomsSupported && <BreakoutRoomsButton {...buttonProps} />}
@@ -164,15 +171,22 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 {/* <Divider style = { styles.divider as ViewStyle } />
                 <SecurityDialogButton { ...buttonProps } />
                 <RecordButton { ...buttonProps } /> */}
-                <LiveStreamButton {...buttonProps} />
+                
+                {/* Video-centric actions should be hidden in audio-only mode */}
+                {!_audioOnly && <LiveStreamButton {...buttonProps} />}
+
                 {/* <LinkToSalesforceButton { ...buttonProps } /> */}
                 <WhiteboardButton {...buttonProps} />
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
-                <SharedVideoButton {...buttonProps} />
+                 {!_audioOnly && <SharedVideoButton {...buttonProps} />}
+                <PollsButton {...buttonProps} />
+
                 {!toolbarButtons.has('screensharing') && <ScreenSharingButton {...buttonProps} />}
+
+                {!_audioOnly && !toolbarButtons.has('tileview') && <TileViewButton {...buttonProps} />}
+
                 {/* {!_isSpeakerStatsDisabled && <SpeakerStatsButton { ...buttonProps } />} */}
-                {!toolbarButtons.has('tileview') && <TileViewButton {...buttonProps} />}
 
                 {/* @ts-ignore */}
                 {/* <Divider style = { styles.divider as ViewStyle } /> */}
@@ -251,6 +265,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
  */
 function _mapStateToProps(state: IReduxState) {
     const { conference } = state['features/base/conference'];
+    const { enabled: audioOnly } = state['features/base/audio-only'];
     const { customToolbarButtons } = state['features/base/config'];
 
     return {
@@ -258,7 +273,8 @@ function _mapStateToProps(state: IReduxState) {
         _isBreakoutRoomsSupported: conference?.getBreakoutRooms()?.isSupported(),
         _isSpeakerStatsDisabled: isSpeakerStatsDisabled(state),
         _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state),
-        _width: state['features/base/responsive-ui'].clientWidth
+        _width: state['features/base/responsive-ui'].clientWidth,
+        _audioOnly: Boolean(audioOnly)
     };
 }
 
