@@ -11,6 +11,8 @@ import styles
     from '../../../settings/components/native/styles';
 import { ANSWERS_LIMIT, CHAR_LIMIT } from '../../constants';
 import AbstractPollCreate, { AbstractProps } from '../AbstractPollCreate';
+import { Text } from 'react-native';
+
 
 import { POLLS_ACCENT_COLOR, chatStyles, dialogStyles } from './styles';
 
@@ -30,6 +32,7 @@ const PollCreate = (props: AbstractProps) => {
 
     const inputFocusColor = BaseTheme.palette.text01;
     const answerListRef = useRef<FlatList>(null);
+    const prevAnswersLength = useRef<number>(answers.length);
 
     /*
      * This ref stores the Array of answer input fields, allowing us to focus on them.
@@ -53,6 +56,7 @@ const PollCreate = (props: AbstractProps) => {
      * about whether a newly created input field has been rendered yet or not.
      */
     const [ lastFocus, requestFocus ] = useState<number | null>(null);
+    const [ addPressed, setAddPressed ] = useState(false);
     const { PRIMARY, SECONDARY, TERTIARY } = BUTTON_TYPES;
 
     useEffect(() => {
@@ -67,6 +71,16 @@ const PollCreate = (props: AbstractProps) => {
         input.focus();
 
     }, [ answerInputs, lastFocus ]);
+
+    useEffect(() => {
+        if (answers.length > prevAnswersLength.current) {
+            // Scroll newly added option into view.
+            requestAnimationFrame(() => {
+                answerListRef.current?.scrollToEnd({ animated: true });
+            });
+        }
+        prevAnswersLength.current = answers.length;
+    }, [ answers.length ]);
 
 
     const onQuestionKeyDown = useCallback(() => {
@@ -102,6 +116,9 @@ const PollCreate = (props: AbstractProps) => {
         (
             <View
                 style = { dialogStyles.optionContainer as ViewStyle }>
+                    <Text style = { dialogStyles.fieldOption }>
+    { t('polls.create.pollOption', { index: index + 1 }) }
+</Text>
                 <Input
                     blurOnSubmit = { false }
                     focusBorderColor = { inputFocusColor }
@@ -128,6 +145,9 @@ const PollCreate = (props: AbstractProps) => {
     return (
         <View style = { chatStyles.pollCreateContainer as ViewStyle }>
             <View style = { chatStyles.pollCreateSubContainer as ViewStyle }>
+                <Text style = { dialogStyles.fieldTitle }>
+    { t('polls.create.pollQuestion') }
+</Text>
                 <Input
                     autoFocus = { true }
                     blurOnSubmit = { false }
@@ -160,8 +180,16 @@ const PollCreate = (props: AbstractProps) => {
                             // adding and answer
                             addAnswer();
                             requestFocus(answers.length);
+                            requestAnimationFrame(() => {
+                                answerListRef.current?.scrollToEnd({ animated: true });
+                            });
                         } }
-                        style = { chatStyles.pollCreateAddButton }
+                        onPressIn = { () => setAddPressed(true) }
+                        onPressOut = { () => setAddPressed(false) }
+                        style = { [
+                            chatStyles.pollCreateAddButton,
+                            addPressed && chatStyles.pollCreateAddButtonPressed
+                        ] }
                         type = { SECONDARY } />
                     <View
                         style = { chatStyles.buttonRow as ViewStyle }>
@@ -178,7 +206,7 @@ const PollCreate = (props: AbstractProps) => {
                             onClick = { onSubmit }
                             color = { POLLS_ACCENT_COLOR }
                             style = { chatStyles.pollCreateButton }
-                            type = { PRIMARY } />
+                            type = { { backgroundColor: '#EE4136' } } />
                     </View>
                 </View>
             </View>

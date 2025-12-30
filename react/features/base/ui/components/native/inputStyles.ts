@@ -3,7 +3,7 @@ import BaseTheme from '../../../ui/components/BaseTheme.native';
 export default {
     inputContainer: {
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
     },
 
     label: {
@@ -31,6 +31,7 @@ export default {
         borderRadius: BaseTheme.shape.borderRadius,
         borderWidth: 2,
         color: BaseTheme.palette.text01,
+        fontSize: 13,
         paddingHorizontal: BaseTheme.spacing[3],
         height: BaseTheme.spacing[7],
         lineHeight: 20
@@ -53,7 +54,7 @@ export default {
     },
 
     inputMultiline: {
-        height: BaseTheme.spacing[10],
+        height: BaseTheme.spacing[8] ,
         paddingTop: BaseTheme.spacing[2]
     },
 
@@ -68,7 +69,7 @@ export default {
         right: 0,
         top: 14,
         width: BaseTheme.spacing[6],
-        height: BaseTheme.spacing[7]
+        height: BaseTheme.spacing[7] - 2
     },
 
     clearIcon: {

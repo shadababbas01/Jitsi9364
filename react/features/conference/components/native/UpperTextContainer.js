@@ -44,7 +44,7 @@ class UpperTextContainer extends Component {
         }
         const upperhead =
             upperText === 'CONFERENCE CALL'
-                ? getTranslatedText('conferenceCall')
+                ? getTranslatedText('conferencecall')
                 : getTranslatedText('startedcallwith');
         return (
             <View style={styles.parentViewStyle}>

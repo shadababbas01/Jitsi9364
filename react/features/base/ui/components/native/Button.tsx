@@ -15,6 +15,8 @@ export interface IProps extends IButtonProps {
     contentStyle?: Object | undefined;
     labelStyle?: Object | undefined;
     mode?: any;
+    onPressIn?: ((e?: any) => void) | undefined;
+    onPressOut?: ((e?: any) => void) | undefined;
     style?: Object | undefined;
 }
 
@@ -28,6 +30,8 @@ const Button: React.FC<IProps> = ({
     labelStyle,
     mode = BUTTON_MODES.CONTAINED,
     onClick: onPress,
+    onPressIn,
+    onPressOut,
     style,
     type
 }: IProps) => {
@@ -75,6 +79,8 @@ const Button: React.FC<IProps> = ({
                 accessibilityLabel = { accessibilityLabel }
                 disabled = { disabled }
                 onPress = { onPress }
+                onPressIn = { onPressIn }
+                onPressOut = { onPressOut }
                 style = { [
                     buttonStyles,
                     style
@@ -107,6 +113,8 @@ const Button: React.FC<IProps> = ({
             ] }
             mode = { mode }
             onPress = { onPress }
+            onPressIn = { onPressIn }
+            onPressOut = { onPressOut }
             style = { [
                 buttonStyles,
                 style

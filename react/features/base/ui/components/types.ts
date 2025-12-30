@@ -35,6 +35,16 @@ export interface IButtonProps {
     onClick?: (e?: React.MouseEvent<HTMLButtonElement> | GestureResponderEvent) => void;
 
     /**
+     * Press in callback (native).
+     */
+    onPressIn?: (e?: GestureResponderEvent) => void;
+
+    /**
+     * Press out callback (native).
+     */
+    onPressOut?: (e?: GestureResponderEvent) => void;
+
+    /**
      * Key press callback.
      */
     onKeyPress?: (e?: React.KeyboardEvent<HTMLButtonElement>) => void;

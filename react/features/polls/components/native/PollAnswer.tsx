@@ -65,7 +65,7 @@ const PollAnswer = (props: AbstractProps) => {
                     onClick = { submitAnswer }
                     color = { POLLS_ACCENT_COLOR }
                     style = { chatStyles.pollCreateButton }
-                    type = { PRIMARY } />
+                    type = { { backgroundColor: '#EE4136' } } />
             </View>
         </>
     );

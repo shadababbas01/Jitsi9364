@@ -12,6 +12,22 @@ export const dialogStyles = createStyleSheet({
         marginHorizontal: BaseTheme.spacing[3],
         marginTop: BaseTheme.spacing[2]
     },
+    fieldTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginStart: 20,
+    letterSpacing: 0.5,
+    color: BaseTheme.palette.text01,
+    marginBottom: 6
+},
+fieldOption: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginStart: 5,
+    color: BaseTheme.palette.text01,
+    letterSpacing: 0.5,
+    marginBottom: BaseTheme.spacing[1]
+},
 
     questionText: {
         ...BaseTheme.typography.bodyShortBold,
@@ -28,13 +44,15 @@ export const dialogStyles = createStyleSheet({
 
     optionContainer: {
         flexDirection: 'column',
-        marginTop: BaseTheme.spacing[3],
+        marginTop: BaseTheme.spacing[2],
+        marginBottom: BaseTheme.spacing[3],
         marginHorizontal: BaseTheme.spacing[3]
     },
 
     optionRemoveButton: {
-        marginTop: BaseTheme.spacing[2],
-        width: 128
+        alignSelf: 'flex-start',
+        marginTop: BaseTheme.spacing[0],
+        paddingHorizontal: BaseTheme.spacing[2]
     },
 
     optionRemoveButtonText: {
@@ -194,6 +212,10 @@ export const chatStyles = createStyleSheet({
     pollCreateAddButton: {
         marginHorizontal: BaseTheme.spacing[1],
         marginVertical: BaseTheme.spacing[2]
+    },
+
+    pollCreateAddButtonPressed: {
+        backgroundColor: BaseTheme.palette.ui04
     },
 
     pollCreateButton: {

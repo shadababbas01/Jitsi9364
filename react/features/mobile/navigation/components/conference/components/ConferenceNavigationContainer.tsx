@@ -119,6 +119,7 @@ const ConferenceNavigationContainer = () => {
                     name = { chatScreenName }
                     options = {{
                         ...chatScreenOptions,
+                        headerTitleAlign: 'center', // added by shadab
                         title: t(chatTitleString)
                     }} />
                 <ConferenceStack.Screen
@@ -126,7 +127,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.participants }
                     options = {{
                         ...participantsScreenOptions,
-                        headerTitleAlign: 'center', // added by jaswant
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('participantsPane.title')
                     }} />
                 <ConferenceStack.Screen
@@ -134,7 +135,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.security }
                     options = {{
                         ...securityScreenOptions,
-                        headerTitleAlign: 'center', // added by jaswant
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('security.title')
                     }} />
                 <ConferenceStack.Screen
@@ -142,7 +143,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.recording }
                     options = {{
                         ...recordingScreenOptions,
-                        headerTitleAlign: 'center', // added by jaswant
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('recording.title')
                     }} />
                 <ConferenceStack.Screen
