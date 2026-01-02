@@ -21,9 +21,14 @@ interface IProps {
      * Collapsible list title.
      */
     title: Object;
+
+    /**
+     * Optional component rendered on the right side of the header row.
+     */
+    rightAction?: React.ReactNode;
 }
 
-const CollapsibleList = ({ children, onLongPress, title }: IProps) => {
+const CollapsibleList = ({ children, onLongPress, rightAction, title }: IProps) => {
     const [ collapsed, setCollapsed ] = useState(false);
     const _toggleCollapsed = useCallback(() => {
         setCollapsed(!collapsed);
@@ -36,15 +41,22 @@ const CollapsibleList = ({ children, onLongPress, title }: IProps) => {
                 onPress = { _toggleCollapsed }
                 style = { styles.collapsibleList as ViewStyle }>
                 <TouchableOpacity
-                    onPress = { _toggleCollapsed }
-                    style = { styles.arrowIcon as ViewStyle }>
-                    <Icon
-                        size = { 18 }
-                        src = { collapsed ? IconArrowDown : IconArrowUp } />
-                </TouchableOpacity>
-                <Text style = { styles.listTile as TextStyle }>
-                    { title }
-                </Text>
+                onPress = { _toggleCollapsed }
+                style = { styles.arrowIcon as ViewStyle }>
+                <Icon
+                    size = { 18 }
+                    src = { collapsed ? IconArrowDown : IconArrowUp } />
+            </TouchableOpacity>
+            <Text
+                numberOfLines = { 1 }
+                style = { styles.listTile as TextStyle }>
+                { title }
+            </Text>
+            { rightAction ? (
+                <View style = { styles.headerAction as ViewStyle }>
+                    { rightAction }
+                </View>
+            ) : null }
             </TouchableOpacity>
             { !collapsed && children }
         </View>

@@ -54,7 +54,8 @@ export default {
         fontSize: 15,
         color: BaseTheme.palette.text01,
         fontWeight: 'bold',
-        marginLeft: BaseTheme.spacing[2]
+        marginLeft: BaseTheme.spacing[2],
+        flex: 1
     },
 
     autoAssignLabel: {
@@ -74,6 +75,20 @@ export default {
         flexDirection: 'column',
         height: 'auto',
         paddingHorizontal: BaseTheme.spacing[3]
+    },
+    headerAction: {
+        marginLeft: BaseTheme.spacing[2]
+    },
+    joinButton: {
+        backgroundColor: BaseTheme.palette.link01,
+        borderRadius: BaseTheme.shape.borderRadius,
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[1],
+        backgroundColor: '#ee4136' 
+    },
+    joinButtonText: {
+    color: '#FFFFFF',
+        fontWeight: 'bold',
     },
     breakoutRoomsContaineroverflowmenu: {
         backgroundColor: BaseTheme.palette.ui01,

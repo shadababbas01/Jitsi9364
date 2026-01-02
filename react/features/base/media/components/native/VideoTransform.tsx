@@ -417,6 +417,9 @@ class VideoTransform extends Component<IProps, IState> {
                 width: layout.width * newScale
             };
 
+            const overflowX = Math.max(0, (transformedSize.width - layout.width) / 2);
+            const overflowY = Math.max(0, (transformedSize.height - layout.height) / 2);
+
             // The A and D points of the transformed View.
             const transformedLayout = {
                 a: {
@@ -429,32 +432,35 @@ class VideoTransform extends Component<IProps, IState> {
                 }
             };
 
-            let _MAX_OFFSET = isAspectRatioWide ? 0 : MAX_OFFSET;
+            // Allow at least the overflow amount so the user can pan to corners when zoomed.
+            let _MAX_OFFSET_X = Math.max(overflowX, MAX_OFFSET);
+            let _MAX_OFFSET_Y = Math.max(overflowY, MAX_OFFSET);
 
             if (newScaleUnlimited < scale) {
                 // This is a negative scale event so we dynamically reduce the
                 // MAX_OFFSET to get the screen back to the center on
                 // downscaling.
-                _MAX_OFFSET = Math.min(MAX_OFFSET, MAX_OFFSET * (newScale - 1));
+                _MAX_OFFSET_X = Math.min(_MAX_OFFSET_X, _MAX_OFFSET_X * Math.max(newScale - 1, 0));
+                _MAX_OFFSET_Y = Math.min(_MAX_OFFSET_Y, _MAX_OFFSET_Y * Math.max(newScale - 1, 0));
             }
 
             // Correct move matrix if it goes out of the view
             // too much (_MAX_OFFSET).
             newTranslateX
                 -= Math.max(
-                    transformedLayout.a.x - originalLayout.a.x - _MAX_OFFSET,
+                    transformedLayout.a.x - originalLayout.a.x - _MAX_OFFSET_X,
                     0);
             newTranslateX
                 += Math.max(
-                    originalLayout.d.x - transformedLayout.d.x - _MAX_OFFSET,
+                    originalLayout.d.x - transformedLayout.d.x - _MAX_OFFSET_X,
                     0);
             newTranslateY
                 -= Math.max(
-                    transformedLayout.a.y - originalLayout.a.y - _MAX_OFFSET,
+                    transformedLayout.a.y - originalLayout.a.y - _MAX_OFFSET_Y,
                     0);
             newTranslateY
                 += Math.max(
-                    originalLayout.d.y - transformedLayout.d.y - _MAX_OFFSET,
+                    originalLayout.d.y - transformedLayout.d.y - _MAX_OFFSET_Y,
                     0);
 
             this.setState({
@@ -602,6 +608,14 @@ class VideoTransform extends Component<IProps, IState> {
                 && this._didMove(gestureState)) {
             // this is a move event
             const position = this._getTouchPosition(evt);
+
+            // Only allow panning when the content is zoomed in.
+            if (this.state.transform.scale <= MIN_SCALE) {
+                this.initialPosition = position;
+
+                return;
+            }
+
             const move = {
                 x: position.x - this.initialPosition.x,
                 y: position.y - this.initialPosition.y
@@ -609,7 +623,7 @@ class VideoTransform extends Component<IProps, IState> {
 
             this.initialPosition = position;
 
-            // this._onGesture('move', move);
+            this._onGesture('move', move);
         }
     }
 
