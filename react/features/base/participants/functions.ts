@@ -265,6 +265,31 @@ export function getParticipantCount(stateful: IStateful) {
 
 export function getParticipantCountRemoteOnly(stateful: IStateful) {
     const state = toState(stateful);
+    const { rooms } = state['features/breakout-rooms'] || { rooms: {} };
+    const roomValues = Object.values(rooms || {});
+
+    if (roomValues.length) {
+        const localParticipant = getLocalParticipant(stateful);
+        let total = 0;
+        let localSeen = false;
+
+        for (const room of roomValues) {
+            const participants = room?.participants || {};
+            const jids = Object.keys(participants);
+            total += jids.length;
+
+            if (!localSeen && localParticipant?.id) {
+                localSeen = jids.some(jid => jid.endsWith(localParticipant.id));
+            }
+        }
+
+        if (localSeen) {
+            total -= 1;
+        }
+
+        return Math.max(0, total);
+    }
+
     const {
         local,
         remote,
