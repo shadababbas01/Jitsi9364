@@ -7,14 +7,18 @@ import {
     ADD_MESSAGE,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
     OPEN_CHAT,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
+    RESET_TRANSCRIPTION_CONSENT,
     SET_CHAT_TAB_VISIBLE,
     SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
-    SET_PRIVATE_MESSAGE_RECIPIENT
+    SET_PRIVATE_MESSAGE_RECIPIENT,
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { IMessage } from './types';
 
@@ -27,7 +31,12 @@ const DEFAULT_STATE = {
     nbUnreadMessages: 0,
     privateMessageRecipient: undefined,
     lobbyMessageRecipient: undefined,
-    isLobbyChatActive: false
+    isLobbyChatActive: false,
+    showTranscriptionConsent: false,
+    transcriptionStartedByCurrentUser: false,
+    transcriptionModeratorName: null,
+    transcriptionStarterId: null,
+    consentDismissedForSession: false
 };
 
 export interface IChatState {
@@ -43,6 +52,11 @@ export interface IChatState {
     messages: IMessage[];
     nbUnreadMessages: number;
     privateMessageRecipient?: IParticipant;
+    showTranscriptionConsent: boolean;
+    transcriptionStartedByCurrentUser: boolean;
+    transcriptionModeratorName?: string | null;
+    transcriptionStarterId?: string | null;
+    consentDismissedForSession: boolean;
 }
 
 ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, action): IChatState => {
@@ -182,6 +196,44 @@ ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, ac
                 isLobbyChatActive: false,
                 lobbyMessageRecipient: undefined
             };
+             case SHOW_TRANSCRIPTION_CONSENT:
+        return {
+            ...state,
+            showTranscriptionConsent: true,
+            transcriptionModeratorName: action.moderatorName,
+            transcriptionStarterId: action.transcriptionStarterId,
+            consentDismissedForSession: false
+        };
+    case DISMISS_TRANSCRIPTION_CONSENT:
+        return {
+            ...state,
+            showTranscriptionConsent: false,
+            transcriptionModeratorName: null,
+            transcriptionStarterId: null,
+            transcriptionStartedByCurrentUser: false,
+            consentDismissedForSession: true
+        };
+    case SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER:
+        return {
+            ...state,
+            transcriptionStartedByCurrentUser: action.startedByCurrentUser
+        };
+    case RESET_TRANSCRIPTION_CONSENT:
+        return {
+            ...state,
+            consentDismissedForSession: false
+        };
+    case SET_REQUESTING_SUBTITLES:
+        if (!action.enabled) {
+            return {
+                ...state,
+                showTranscriptionConsent: false,
+                transcriptionModeratorName: null,
+                transcriptionStarterId: null,
+                transcriptionStartedByCurrentUser: false
+            };
+        }
+        return state;
     }
 
     return state;

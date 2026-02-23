@@ -8,14 +8,19 @@ import {
     ADD_MESSAGE,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
+    NOTIFY_TRANSCRIPTION_STARTED,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
+    RESET_TRANSCRIPTION_CONSENT,
     SEND_MESSAGE,
     SET_CHAT_TAB_VISIBLE,
     SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
-    SET_PRIVATE_MESSAGE_RECIPIENT
+    SET_PRIVATE_MESSAGE_RECIPIENT,
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 
 /**
@@ -275,5 +280,68 @@ export function handleLobbyChatInitialized(participantId: string) {
 
         // notify other moderators.
         return conference?.sendLobbyMessage(payload);
+    };
+}
+
+/**
+ * Notifies participants that transcription has started.
+ *
+ * @param {string} moderatorName - The moderator that triggered transcription.
+ * @returns {Object}
+ */
+export function notifyTranscriptionStarted(moderatorName: string) {
+    return {
+        type: NOTIFY_TRANSCRIPTION_STARTED,
+        moderatorName
+    };
+}
+
+/**
+ * Tracks whether the local user started transcription.
+ *
+ * @param {boolean} startedByCurrentUser - Whether the local user started transcription.
+ * @returns {Object}
+ */
+export function setTranscriptionStartedByCurrentUser(startedByCurrentUser: boolean) {
+    return {
+        type: SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+        startedByCurrentUser
+    };
+}
+
+/**
+ * Shows the transcription consent popup for the session.
+ *
+ * @param {string} moderatorName - The name of the moderator who started transcription.
+ * @param {string} transcriptionStarterId - The participant ID of the moderator who started it.
+ * @returns {Object}
+ */
+export function showTranscriptionConsent(moderatorName: string, transcriptionStarterId?: string) {
+    return {
+        type: SHOW_TRANSCRIPTION_CONSENT,
+        moderatorName,
+        transcriptionStarterId
+    };
+}
+
+/**
+ * Dismisses the transcription consent popup for the current session.
+ *
+ * @returns {Object}
+ */
+export function dismissTranscriptionConsent() {
+    return {
+        type: DISMISS_TRANSCRIPTION_CONSENT
+    };
+}
+
+/**
+ * Resets the session flag that tracks whether consent has been dismissed.
+ *
+ * @returns {Object}
+ */
+export function resetTranscriptionConsent() {
+    return {
+        type: RESET_TRANSCRIPTION_CONSENT
     };
 }

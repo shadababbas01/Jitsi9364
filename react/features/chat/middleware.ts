@@ -10,7 +10,7 @@ import {
 import { getCurrentConference } from '../base/conference/functions';
 import { IJitsiConference } from '../base/conference/reducer';
 import { openDialog } from '../base/dialog/actions';
-import i18next from '../base/i18n/i18next';
+import i18next, { DEFAULT_LANGUAGE } from '../base/i18n/i18next';
 import {
     JitsiConferenceErrors,
     JitsiConferenceEvents
@@ -18,7 +18,8 @@ import {
 import {
     getLocalParticipant,
     getParticipantById,
-    getParticipantDisplayName
+    getParticipantDisplayName,
+    getParticipants
 } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import StateListenerRegistry from '../base/redux/StateListenerRegistry';
@@ -36,8 +37,26 @@ import { getReactionMessageFromBuffer, isReactionsEnabled } from '../reactions/f
 import { showToolbox } from '../toolbox/actions';
 
 
-import { ADD_MESSAGE, CLOSE_CHAT, OPEN_CHAT, SEND_MESSAGE, SET_IS_POLL_TAB_FOCUSED } from './actionTypes';
-import { addMessage, clearMessages, closeChat } from './actions.any';
+import {
+    ADD_MESSAGE,
+    CLOSE_CHAT,
+    NOTIFY_TRANSCRIPTION_STARTED,
+    OPEN_CHAT,
+    SEND_MESSAGE,
+    SET_IS_POLL_TAB_FOCUSED,
+    SHOW_TRANSCRIPTION_CONSENT,
+    TRANSCRIPTION_STATUS_REQUEST,
+    TRANSCRIPTION_STATUS_RESPONSE
+} from './actionTypes';
+import {
+    addMessage,
+    clearMessages,
+    closeChat,
+    dismissTranscriptionConsent,
+    setTranscriptionStartedByCurrentUser,
+    showTranscriptionConsent
+} from './actions.any';
+import { setRequestingSubtitles } from '../subtitles/actions.any';
 import { ChatPrivacyDialog } from './components';
 import {
     INCOMING_MSG_SOUND_ID,
@@ -114,12 +133,24 @@ MiddlewareRegistry.register(store => next => action => {
 
     case ENDPOINT_MESSAGE_RECEIVED: {
         const state = store.getState();
+                const { participant, data } = action;
+
+        if (data?.name === SHOW_TRANSCRIPTION_CONSENT) {
+            if (localParticipant?.id !== data.from) {
+                const moderatorName
+                    = getParticipantDisplayName(state, data.from)
+                        || data.moderatorName
+                        || 'Moderator';
+
+                store.dispatch(showTranscriptionConsent(moderatorName, data.from));
+            }
+        }
 
         if (!isReactionsEnabled(state)) {
             return;
         }
 
-        const { participant, data } = action;
+        
 
         if (data?.name === ENDPOINT_REACTION_NAME) {
             const participantId = participant.getId();
@@ -227,6 +258,31 @@ MiddlewareRegistry.register(store => next => action => {
             }, false, true);
         }
     }
+        case NOTIFY_TRANSCRIPTION_STARTED: {
+        const state = getState();
+        const conference = getCurrentConference(state);
+        const local = getLocalParticipant(state);
+
+        if (conference && local) {
+            const participantsMap = getParticipants(state);
+
+            Array.from(participantsMap.values())
+                .filter(participant => participant.id !== local.id)
+                .forEach(participant => {
+                    if (!participant.id) {
+                        return;
+                    }
+
+                    conference.sendEndpointMessage(participant.id, {
+                        name: SHOW_TRANSCRIPTION_CONSENT,
+                        from: local.id,
+                        moderatorName: action.moderatorName || local.displayName || 'Moderator'
+                    });
+                });
+        }
+
+        break;
+    }
     }
 
     return next(action);
@@ -236,10 +292,85 @@ MiddlewareRegistry.register(store => next => action => {
  * Set up state change listener to perform maintenance tasks when the conference
  * is left or failed, e.g. Clear messages or close the chat modal if it's left
  * open.
+ * is left, failed, or changes.
  */
+let transcriptionActiveListener: ((command: any) => void) | undefined;
+let transcriptionStatusRequestListener: ((command: any) => void) | undefined;
+let transcriptionStatusResponseListener: ((command: any) => void) | undefined;
+let transcriptionStatusRequested = false;
+let transcriptionStatusResponseHandled = false;
 StateListenerRegistry.register(
     state => getCurrentConference(state),
     (conference, { dispatch, getState }, previousConference) => {
+         if (previousConference && transcriptionActiveListener) {
+            previousConference.removeCommandListener?.(
+                'transcription-active',
+                transcriptionActiveListener);
+            transcriptionActiveListener = undefined;
+        }
+         if (previousConference && transcriptionStatusRequestListener) {
+            previousConference.removeCommandListener?.(
+                'transcription-status-request',
+                transcriptionStatusRequestListener);
+            transcriptionStatusRequestListener = undefined;
+        }
+        if (previousConference && transcriptionStatusResponseListener) {
+            previousConference.removeCommandListener?.(
+                'transcription-status-response',
+                transcriptionStatusResponseListener);
+            transcriptionStatusResponseListener = undefined;
+        }
+        transcriptionStatusRequested = false;
+        transcriptionStatusResponseHandled = false;
+
+        if (conference) {
+            transcriptionActiveListener = (command: any) => {
+                const value = `${command?.value ?? ''}`.toLowerCase();
+                const isActive = value === 'true' || value === 'on';
+                const senderId = command?.from ?? command?.attributes?.from;
+                const localParticipant = getLocalParticipant(getState());
+
+                if (!isActive) {
+                    dispatch(dismissTranscriptionConsent());
+                    return;
+                }
+
+                if (senderId && localParticipant?.id === senderId) {
+                    return;
+                }
+
+                const moderatorName = getParticipantDisplayName(getState(), senderId)
+                    || 'Moderator';
+
+                dispatch(showTranscriptionConsent(moderatorName, senderId));
+            };
+
+            conference.addCommandListener(
+                'transcription-active',
+                transcriptionActiveListener);
+
+            transcriptionStatusRequestListener = (command: any) => _handleTranscriptionStatusRequest(
+                command,
+                conference,
+                dispatch,
+                getState);
+
+            conference.addCommandListener(
+                'transcription-status-request',
+                transcriptionStatusRequestListener);
+
+            transcriptionStatusResponseListener = (command: any) => _handleTranscriptionStatusResponse(
+                command,
+                dispatch,
+                getState);
+
+            conference.addCommandListener(
+                'transcription-status-response',
+                transcriptionStatusResponseListener);
+
+            _requestTranscriptionStatusIfNeeded(conference, getState);
+        }
+
         if (conference !== previousConference) {
             // conference changed, left or failed...
 
@@ -261,6 +392,105 @@ StateListenerRegistry.register(
         }
     }
 );
+function _requestTranscriptionStatusIfNeeded(
+        conference: IJitsiConference,
+        getState: IStore['getState']) {
+    if (transcriptionStatusRequested) {
+        return;
+    }
+
+    const state = getState();
+    const localParticipant = getLocalParticipant(state);
+
+    if (!localParticipant?.id) {
+        return;
+    }
+
+    transcriptionStatusResponseHandled = false;
+
+    conference.sendEndpointMessage('', {
+        name: TRANSCRIPTION_STATUS_REQUEST,
+        from: localParticipant.id
+    });
+
+    transcriptionStatusRequested = true;
+}
+
+function _handleTranscriptionStatusRequest(
+        command: any,
+        conference: IJitsiConference,
+        dispatch: IStore['dispatch'],
+        getState: IStore['getState']) {
+    if (!command) {
+        return;
+    }
+
+    const state = getState();
+    const senderId = command?.from ?? command?.attributes?.from;
+    const localParticipant = getLocalParticipant(state);
+
+    if (!senderId || !localParticipant?.id || senderId === localParticipant.id) {
+        return;
+    }
+
+    const subtitlesState = state['features/subtitles'];
+    const isActive = Boolean(subtitlesState?._displaySubtitles && subtitlesState?._requestingSubtitles);
+
+    if (!isActive) {
+        return;
+    }
+
+    const language = subtitlesState?._language ?? `translation-languages:${DEFAULT_LANGUAGE}`;
+    const moderatorName = getParticipantDisplayName(state, localParticipant.id)
+        || state['features/chat'].transcriptionModeratorName
+        || 'Moderator';
+
+    conference.sendEndpointMessage(senderId, {
+        name: TRANSCRIPTION_STATUS_RESPONSE,
+        from: localParticipant.id,
+        status: 'on',
+        language,
+        moderatorName
+    });
+}
+
+function _handleTranscriptionStatusResponse(
+        command: any,
+        dispatch: IStore['dispatch'],
+        getState: IStore['getState']) {
+    if (transcriptionStatusResponseHandled || !command) {
+        return;
+    }
+
+    const state = getState();
+    const senderId = command?.from ?? command?.attributes?.from;
+    const localParticipant = getLocalParticipant(state);
+
+    if (!senderId || !localParticipant?.id || senderId === localParticipant.id) {
+        return;
+    }
+
+    const isActive = (`${command?.status ?? ''}`).toLowerCase() === 'on';
+
+    if (!isActive) {
+        return;
+    }
+
+    const subtitlesState = state['features/subtitles'];
+
+    if (subtitlesState?._displaySubtitles && subtitlesState?._requestingSubtitles) {
+        return;
+    }
+
+    const language = command?.language
+        || subtitlesState?._language
+        || `translation-languages:${DEFAULT_LANGUAGE}`;
+
+    transcriptionStatusResponseHandled = true;
+
+dispatch(setTranscriptionStartedByCurrentUser(false));
+    dispatch(setRequestingSubtitles(true, true, language));
+}
 
 /**
  * Registers listener for {@link JitsiConferenceEvents.MESSAGE_RECEIVED} that

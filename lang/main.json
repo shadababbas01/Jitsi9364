@@ -144,6 +144,12 @@
         "dontShowAgain": "Don’t show me this again",
         "installExtensionText": "Install the extension for Google Calendar and Office 365 integration"
     },
+    "closedCaptionsTab": {
+        "emptyState": "The live captions content will be available once a moderator starts it",
+        "startClosedCaptionsButton": "Start live captions",
+        "closeLiveCaptionButton": "Turn Off Live Captions",
+        "historyTitle": "Live caption history"
+    },
     "connectingOverlay": {
         "joiningRoom": "Connecting..."
         },
@@ -1189,6 +1195,7 @@
             "callQuality": "Manage video quality",
             "carmode": "Car Mode",
             "cc": "Toggle subtitles",
+            "liveTranscription": "Open live transcription",
             "chat": "Open / Close chat",
             "clap": "Clap",
             "closeChat": "Close chat",
@@ -1351,7 +1358,7 @@
         "silence": "Silence",
         "speakerStats": "Participants stats",
         "startScreenSharing": "Start screen sharing",
-        "startSubtitles": "Subtitles • {{language}}",
+        "startSubtitles": "Live Captions • {{language}}",
         "stopAudioSharing": "Stop audio sharing",
         "stopScreenSharing": "Stop screen sharing",
         "stopSharedVideo": "Stop video",
@@ -1375,9 +1382,40 @@
         "sourceLanguageHere": "here",
         "start": "Start showing subtitles",
         "stop": "Stop showing subtitles",
-        "subtitles": "Subtitles",
+        "liveTranscription": "Live transcription",
+        "languageLabel": "Transcription language",
+        "speakerLabel": "Speaker: {{speaker}}",
+        "noTranscription": "Waiting for the first transcript...",
+        "subtitles": "Live captions",
         "subtitlesOff": "Off",
         "tr": "TR"
+    },
+    "transcriptionConsent": {
+        "title": "Transcription Notice",
+        "warning": "Important: Your voice will be recorded and stored",
+        "message": "{{moderatorName}} has started transcription. Your voice will be stored on the server for transcription purposes. If you wish to continue, press \"Continue\", otherwise please leave the call.",
+        "liveCaptionsNotice": "{{moderatorName}} has started Live Captions for this meeting. Your voice will be recorded, and transcribed for all participants.",
+        "defaultModeratorName": "The moderator",
+        "continue": "Continue",
+        "leaveCall": "Leave Call"
+    },
+        "summarySetup": {
+        "title": "AI Meeting Summary",
+        "description": "Get an instant AI-generated summary tailored to your meeting type.",
+        "enableLabel": "Enable AI Meeting Summary",
+        "disableLabel": "Disable AI Meeting Summary",
+        "templateLabel": "Choose a summary template",
+        "categories": {
+            "meeting": "Meeting",
+            "interview": "Interview",
+            "standup": "Standup"
+        },
+        "notifications": {
+            "enabled": "AI Meeting Summary has been enabled.",
+            "disabled": "AI Meeting Summary has been disabled."
+        },
+        "statusEnabled": "AI summary is active for this meeting.",
+        "statusDisabled": "AI summary is paused until you turn it back on."
     },
     "unpinParticipant": "{{participantName}} - Unpin",
     "userMedia": {

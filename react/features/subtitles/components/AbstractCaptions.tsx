@@ -1,7 +1,7 @@
 import React, { Component, ReactElement } from 'react';
 
 import { IReduxState } from '../../app/types';
-
+import { formatTranscriptMessage } from '../helpers';
 
 /**
  * {@code AbstractCaptions} Properties.
@@ -100,17 +100,7 @@ function _constructTranscripts(state: IReduxState): Map<string, string> {
 
     for (const [ id, transcriptMessage ] of _transcriptMessages) {
         if (transcriptMessage) {
-            let text = `${transcriptMessage.participant.name}: `;
-
-            if (transcriptMessage.final) {
-                text += transcriptMessage.final;
-            } else {
-                const stable = transcriptMessage.stable || '';
-                const unstable = transcriptMessage.unstable || '';
-
-                text += stable + unstable;
-            }
-
+           const text = formatTranscriptMessage(transcriptMessage);
             transcripts.set(id, text);
         }
     }

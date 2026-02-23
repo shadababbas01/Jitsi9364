@@ -1,11 +1,18 @@
 import ReducerRegistry from '../base/redux/ReducerRegistry';
+import { TRANSCRIBER_LEFT } from '../transcribing/actionTypes';
+import { formatTranscriptMessage, ITranscriptHistoryMessage } from './helpers';
 
 import {
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_REQUESTING_SUBTITLES,
     TOGGLE_REQUESTING_SUBTITLES,
-    UPDATE_TRANSCRIPT_MESSAGE
+    UPDATE_TRANSCRIPT_MESSAGE,
+    SET_SUMMARY_ENABLED,
+    SET_SUMMARY_CATEGORY,
+    SET_INTERVIEW_CONSENT
 } from './actionTypes';
+const MAX_HISTORY_ENTRIES = 200;
+
 
 /**
  * Default State for 'features/transcription' feature.
@@ -14,7 +21,12 @@ const defaultState = {
     _displaySubtitles: false,
     _transcriptMessages: new Map(),
     _requestingSubtitles: false,
-    _language: null
+    _language: null,
+    _history: [] as ITranscriptHistoryMessage[],
+    _summaryEnabled: false,
+    _summaryCategory: null as string | null,
+    _interviewConsent: null as boolean | null,
+    _summaryStateSynced: false
 };
 
 interface ITranscriptMessage {
@@ -29,6 +41,11 @@ export interface ISubtitlesState {
     _language: string | null;
     _requestingSubtitles: boolean;
     _transcriptMessages: Map<string, ITranscriptMessage> | any;
+    _history: ITranscriptHistoryMessage[];
+    _summaryEnabled: boolean;
+    _summaryCategory: string | null;
+    _interviewConsent: boolean | null;
+    _summaryStateSynced: boolean;
 }
 
 /**
@@ -53,6 +70,40 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         return {
             ...state,
             _requestingSubtitles: !state._requestingSubtitles
+        };
+
+    case TRANSCRIBER_LEFT: {
+        const {
+            _summaryEnabled,
+            _summaryCategory,
+            _interviewConsent,
+            _summaryStateSynced
+        } = state;
+        return {
+            ...state,
+            ...defaultState,
+            _summaryEnabled,
+            _summaryCategory,
+            _interviewConsent,
+            _summaryStateSynced
+        };
+    }
+    case SET_SUMMARY_ENABLED:
+        return {
+            ...state,
+            _summaryEnabled: Boolean(action.enabled),
+            _summaryStateSynced: true
+        };
+    case SET_SUMMARY_CATEGORY:
+        return {
+            ...state,
+            _summaryCategory: action.category,
+            _summaryStateSynced: true
+        };
+    case SET_INTERVIEW_CONSENT:
+        return {
+            ...state,
+            _interviewConsent: Boolean(action.accepted)
         };
     }
 
@@ -95,9 +146,35 @@ function _updateTranscriptMessage(state: ISubtitlesState, { transcriptMessageID,
 
     // Updates the new message for the given key in the Map.
     newTranscriptMessages.set(transcriptMessageID, newTranscriptMessage);
+     let history = state._history;
+    const hasFinalText = Boolean(newTranscriptMessage?.final);
+
+    if (hasFinalText) {
+        const alreadyRecorded = history.some(entry => entry.id === transcriptMessageID);
+
+        if (!alreadyRecorded) {
+            const formattedText = formatTranscriptMessage(newTranscriptMessage);
+
+            if (formattedText) {
+                history = [
+                    ...history,
+                    {
+                        id: transcriptMessageID,
+                        language: newTranscriptMessage.language,
+                        text: formattedText
+                    }
+                ];
+
+                if (history.length > MAX_HISTORY_ENTRIES) {
+                    history = history.slice(history.length - MAX_HISTORY_ENTRIES);
+                }
+            }
+        }
+    }
 
     return {
         ...state,
-        _transcriptMessages: newTranscriptMessages
+        _transcriptMessages: newTranscriptMessages,
+        _history: history
     };
 }

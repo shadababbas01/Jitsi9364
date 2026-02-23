@@ -44,3 +44,27 @@ export const TOGGLE_REQUESTING_SUBTITLES
  */
 export const SET_REQUESTING_SUBTITLES
     = 'SET_REQUESTING_SUBTITLES';
+
+/**
+ * Action to store received subtitles in history.
+ */
+export const STORE_SUBTITLE = 'STORE_SUBTITLE';
+
+/**
+ * The type of (redux) action which indicates that an error occurred while starting subtitles.
+ *
+ * {
+ *      type: SET_SUBTITLES_ERROR,
+ *      hasError: boolean
+ * }
+ */
+export const SET_SUBTITLES_ERROR = 'SET_SUBTITLES_ERROR';
+
+
+// In actionTypes.ts
+export const SET_SUBTITLES_LANGUAGE = 'SET_SUBTITLES_LANGUAGE';
+
+// Summary control state
+export const SET_SUMMARY_ENABLED = 'SET_SUMMARY_ENABLED';
+export const SET_SUMMARY_CATEGORY = 'SET_SUMMARY_CATEGORY';
+export const SET_INTERVIEW_CONSENT = 'SET_INTERVIEW_CONSENT';

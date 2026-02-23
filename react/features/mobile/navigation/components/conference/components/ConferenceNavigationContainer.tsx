@@ -44,6 +44,9 @@ import SpeakerStats
 import LanguageSelectorDialog
 // @ts-ignore
     from '../../../../../subtitles/components/native/LanguageSelectorDialog';
+import SummarySettingsScreen
+// @ts-ignore
+    from '../../../../../subtitles/components/native/SummarySettingsScreen';
 import Whiteboard from '../../../../../whiteboard/components/native/Whiteboard';
 // @ts-ignore
 import { screen } from '../../../routes';
@@ -65,7 +68,8 @@ import {
     sharedDocumentScreenOptions,
     speakerStatsScreenOptions,
     subtitlesScreenOptions,
-    whiteboardScreenOptions
+    whiteboardScreenOptions,
+    summaryScreenOptions
     // @ts-ignore
 } from '../../../screenOptions';
 // @ts-ignore
@@ -218,6 +222,13 @@ const ConferenceNavigationContainer = () => {
                     options = {{
                         ...subtitlesScreenOptions,
                         title: t('transcribing.subtitles')
+                    }} />
+                     <ConferenceStack.Screen
+                    component = { SummarySettingsScreen }
+                    name = { screen.conference.summary }
+                    options = {{
+                        ...summaryScreenOptions,
+                        title: t('summarySetup.title')
                     }} />
                 <ConferenceStack.Screen
                     component = { BreakoutRooms }

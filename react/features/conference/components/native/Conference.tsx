@@ -1,6 +1,6 @@
 
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
     BackHandler,
     NativeModules,
@@ -12,12 +12,13 @@ import {
     DeviceEventEmitter
 } from 'react-native';
 import { EdgeInsets, withSafeAreaInsets } from 'react-native-safe-area-context';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import {
     getParticipants,getParticipantCountRemoteOnly
 } from '../../../base/participants/functions';
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
+import { IJitsiConference } from '../../../base/conference/reducer';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { FULLSCREEN_ENABLED, PIP_ENABLED } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
@@ -38,15 +39,25 @@ import TileView from '../../../filmstrip/components/native/TileView';
 import { FILMSTRIP_SIZE } from '../../../filmstrip/constants';
 import { isFilmstripVisible } from '../../../filmstrip/functions.native';
 import CalleeInfoContainer from '../../../invite/components/callee-info/CalleeInfoContainer';
+
+import { IParticipant } from '../../../base/participants/types';
 import LargeVideo from '../../../large-video/components/LargeVideo.native';
 import { getIsLobbyVisible } from '../../../lobby/functions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
+import { DEFAULT_LANGUAGE } from '../../../base/i18n/i18next';
 import { setPictureInPictureEnabled } from '../../../mobile/picture-in-picture/functions';
 import Captions from '../../../subtitles/components/native/Captions';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import TranscriptionConsentDialog
+    from '../../../chat/components/native/TranscriptionConsentDialog';
+import {
+    dismissTranscriptionConsent,
+    setTranscriptionStartedByCurrentUser,
+    showTranscriptionConsent
+} from '../../../chat/actions.any';
 import {
     AbstractConference,
     abstractMapStateToProps
@@ -64,6 +75,7 @@ import CustomisedToolBox from './CustomisedToolBox';
 import AudioScreen from './AudioScreen';
 import UpperTextContainer from './UpperTextContainer';
 import CalleeDetails from './CalleeDetails';
+import { setRequestingSubtitles } from '../../../subtitles/actions.any';
 import { Chat } from '../../../chat';
 import ConferenceOld from './Conferenceold';
 import { getBreakoutRooms, getCurrentRoomId } from '../../../breakout-rooms/functions';
@@ -138,7 +150,25 @@ interface IProps extends AbstractProps {
      * The indicator which determines whether the Toolbox is visible.
      */
     _toolboxVisible: boolean;
+    /**
+     * The current conference instance.
+     */
+    conference?: IJitsiConference;
 
+    /**
+     * Map of remote participants.
+     */
+    participants: Map<string, IParticipant>;
+
+    /**
+     * Local participant ID.
+     */
+    localParticipantId?: string;
+
+    /**
+     * Currently selected subtitles language.
+     */
+    subtitlesLanguage?: string | null;
     /**
      * The redux {@code dispatch} function.
      */
@@ -186,6 +216,8 @@ class Conference extends AbstractConference<IProps, State> {
     subscriptionsetInCallMessage;
     subscriptionConnectionStatus;
     subscriptionviewcalldata;
+    _transcriptionActiveListener?: (command: any) => void;
+    _transcriptionActiveConference?: IJitsiConference;
 
     /**
      * Initializes a new Conference instance.
@@ -218,7 +250,12 @@ class Conference extends AbstractConference<IProps, State> {
         this._setSpeakerState = this._setSpeakerState.bind(this);
         this.showAttendees =  this.showAttendees.bind(this);
         if (isPlatformiOS()) {
-            this.nativeEventEmitter = new NativeEventEmitter(JSCommunicateComponent);
+            const hasEmitterMethods = JSCommunicateComponent
+                && typeof JSCommunicateComponent.addListener === 'function'
+                && typeof JSCommunicateComponent.removeListeners === 'function';
+            this.nativeEventEmitter = hasEmitterMethods
+                ? new NativeEventEmitter(JSCommunicateComponent)
+                : new NativeEventEmitter();
         }
         //const { audioOnly} = this.props;
       //  console.log("Audio Only--->",this.props);
@@ -270,6 +307,62 @@ class Conference extends AbstractConference<IProps, State> {
         // } added by jaswant
     }
 
+    _handleTranscriptionActiveCommand(command: any) {
+        if (!command) {
+            return;
+        }
+
+        const { dispatch, participants, localParticipantId, subtitlesLanguage } = this.props;
+        const value = `${command.value ?? ''}`.toLowerCase();
+        const isActive = value === 'true' || value === 'on';
+        const senderId = command?.from ?? command?.attributes?.from;
+
+        if (!isActive) {
+            dispatch(setRequestingSubtitles(false, false, null));
+            dispatch(setTranscriptionStartedByCurrentUser(false));
+            dispatch(dismissTranscriptionConsent());
+            return;
+        }
+
+        if (senderId && senderId === localParticipantId) {
+            return;
+        }
+
+        const remoteParticipant = senderId ? participants?.get(senderId) : undefined;
+        const moderatorName = remoteParticipant?.name || 'Moderator';
+        const language = subtitlesLanguage ?? `translation-languages:${DEFAULT_LANGUAGE}`;
+
+        dispatch(setTranscriptionStartedByCurrentUser(false));
+        dispatch(showTranscriptionConsent(moderatorName, senderId));
+        dispatch(setRequestingSubtitles(true, true, language));
+    }
+
+    _registerTranscriptionActiveListener(conference?: IJitsiConference) {
+        this._unregisterTranscriptionActiveListener();
+
+        if (!conference) {
+            return;
+        }
+
+        this._transcriptionActiveConference = conference;
+        this._transcriptionActiveListener = (command: any) => this._handleTranscriptionActiveCommand(command);
+
+        conference.addCommandListener(
+            'transcription-active',
+            this._transcriptionActiveListener);
+    }
+
+    _unregisterTranscriptionActiveListener() {
+        if (this._transcriptionActiveConference && this._transcriptionActiveListener) {
+            this._transcriptionActiveConference.removeCommandListener?.(
+                'transcription-active',
+                this._transcriptionActiveListener);
+        }
+
+        this._transcriptionActiveListener = undefined;
+        this._transcriptionActiveConference = undefined;
+    }
+
     /**
      * Implements {@code Component#componentDidUpdate}.
      *
@@ -290,6 +383,9 @@ class Conference extends AbstractConference<IProps, State> {
             // }
 
             navigate(screen.conference.main);
+        }
+        if (this.props.conference !== prevProps.conference) {
+            this._registerTranscriptionActiveListener(this.props.conference);
         }
     }
 
@@ -316,6 +412,7 @@ class Conference extends AbstractConference<IProps, State> {
         if (this.subscriptionConnectionStatus && this.subscriptionConnectionStatus.remove) {
             this.subscriptionConnectionStatus.remove();
         }
+        this._unregisterTranscriptionActiveListener();
     }
 
     /**
@@ -552,55 +649,69 @@ _connectionStatus(event) {
         }
     
         return (
-            !audioOnly ? (
-                <ConferenceOld 
-                    setMessagestate={this._setMessagestate}
-                    ismessage={inCallMessage} 
-                />
-            ) : (
-                <AudioScreen>
-                    <SafeAreaView style={isTeamsCall ? { backgroundColor: 'black', flex: 1 } : { backgroundColor: 'rgb(252,252,252)', flex: 1 }}>
-                        <View style={isTeamsCall ? styles.mainContainerTeamsStyle : styles.mainContainerOneToOneStyle}>
-                            <UpperTextContainer isTeamsCall={isTeamsCall} />
-                            <CalleeDetails 
-                                connectionState={connectionStatus}
-                                connected={_connecting}
-                                isTeamsCall={isTeamsCall}
-                                roomName={roomName}
-                                secsToMinString={secsToMinString}
-                                participant={participant} 
-                            />
-                            <CustomisedToolBox
-                                isTeamsCall={isTeamsCall}
-                                speakerOn={speakerOn}
-                                setSpeakerState={this._setSpeakerState}
-                                showAttendees={this.showAttendees}
-                                isShowingAttendees={showAttendees}
-                                newMessage={newMessageAvailable}
-                                setMessagestate={this._setMessagestate}
-                                ismessage={inCallMessage}
-                            />
-                            {showAttendees && <Attendees showAttendees={this.showAttendees} />}
-                            
-                            <SafeAreaView
-                                pointerEvents='box-none'
-                                style={_toolboxVisible ? [styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 }] : styles.titleBarSafeViewTransparent}
-                            >
-                                <View pointerEvents='box-none' style={styles.expandedLabelWrapper}>
-                                    <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
-                                </View>
-                                <View pointerEvents='box-none' style={styles.alwaysOnTitleBar}>
-                                    <AlwaysOnLabels createOnPress={this._createOnPress} show={false} />
+            <>
+                
+                {
+                    !audioOnly ? (
+                        <ConferenceOld
+                            setMessagestate={this._setMessagestate}
+                            ismessage={inCallMessage} />
+                    ) : (
+                        <AudioScreen>
+                            <SafeAreaView style={isTeamsCall ? { backgroundColor: 'black', flex: 1 } : { backgroundColor: 'rgb(252,252,252)',flex:1}}>
+                                    <UpperTextContainer isTeamsCall={isTeamsCall} />
+                                    <View style={isTeamsCall ? styles.mainContainerTeamsStyle : styles.mainContainerOneToOneStyle}>
+                                       
+                                        <CalleeDetails connectionState={connectionStatus} connected={_connecting} isTeamsCall={isTeamsCall} roomName={roomName} secsToMinString={secsToMinString} />
+                                        {/* <Chat /> */}
+                                        {/* <AddPeopleDialog /> */}
+                                        <CustomisedToolBox
+                                            isTeamsCall={isTeamsCall}
+                                            speakerOn={speakerOn}
+                                            setSpeakerState={this._setSpeakerState}
+                                            showAttendees={this.showAttendees}
+                                            isShowingAttendees={showAttendees}
+                                            setMessagestate={this._setMessagestate}
+                                            ismessage={inCallMessage}
+                                        />
+                                        {
+                                            showAttendees && <Attendees showAttendees={this.showAttendees} />
+                                        }
+                                    <SafeAreaView 
+                                pointerEvents='box-none' 
+                                 style={
+                                            (_toolboxVisible
+                                                ? [styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 }]
+                                                : styles.titleBarSafeViewTransparent) as ViewStyle
+                                        }>
+                                        <View
+                                            pointerEvents='box-none'
+                                            style={styles.expandedLabelWrapper}>
+                                            <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
+                                        </View>
+                                        <View
+                                            pointerEvents='box-none'
+                                            style={styles.alwaysOnTitleBar as ViewStyle}>
+                                            {/* eslint-disable-next-line react/jsx-no-bind */}
+                                            <AlwaysOnLabels createOnPress={this._createOnPress} show={false} />
+                                        </View>
+                                        {this._renderNotificationsContainer()}
+                                    </SafeAreaView>
+
+                                    {/* <TestConnectionInfo /> */}
+                                    {/* {
+                                this._renderConferenceNotification()
+                            } */}
+                                    {/* <View style={styles.customFilmstripViewBoxStyle} >
+                                        <Filmstrip connectionState={connectionStatus} />
+                                    </View> */}
                                 </View>
                             </SafeAreaView>
-    
-                            <View style={styles.customFilmstripViewBoxStyle}>
-                                <Filmstrip connectionState={this._connectionStatus} />
-                            </View>
-                        </View>
-                    </SafeAreaView>
-                </AudioScreen>
-            )
+                            <TranscriptionConsentDialog />
+                        </AudioScreen>
+                    )
+                }
+            </>
         );
     }
 
@@ -706,6 +817,9 @@ function _mapStateToProps(state, ownProps) {
      
        
     const _settings = state['features/base/settings'];
+
+    const localParticipantId = state['features/base/participants'].local?.id;
+    const subtitlesLanguage = state['features/subtitles']._language;
 // if(totalUser!=participantsCount){
 //     totalUser  = participantsCount
 // // NativeModules.NativeCallsNew.totalUsers(participantsCount);
@@ -726,6 +840,9 @@ function _mapStateToProps(state, ownProps) {
         _showLobby: getIsLobbyVisible(state),
         _toolboxVisible: isToolboxVisible(state),
         participants,
+        conference,
+        localParticipantId,
+        subtitlesLanguage,
         roomName: _settings.teamName || '',
         isTeamsCall: _settings.isGroupCall,
         audioOnly: state['features/base/audio-only'].enabled,

@@ -143,6 +143,8 @@ export const recordingScreenOptions = presentationScreenOptions;
  * Screen options for subtitles modal.
  */
 export const subtitlesScreenOptions = presentationScreenOptions;
+export const summaryScreenOptions = presentationScreenOptions;
+
 
 /**
  * Screen options for lobby modal.

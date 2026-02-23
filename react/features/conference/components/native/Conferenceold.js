@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import { withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
+import TranscriptionConsentDialog
+    from '../../../chat/components/native/TranscriptionConsentDialog';
+
 
 import { appNavigate } from '../../../app/actions';
 import { FULLSCREEN_ENABLED, PIP_ENABLED } from '../../../base/flags/constants';
@@ -519,7 +522,7 @@ class Conference extends AbstractConference<Props, State> {
                 </SafeAreaView>
 
                 <TestConnectionInfo />
-
+ {/* <TranscriptionConsentDialog /> */}
                 {
                     _shouldDisplayTileView
                     && <>

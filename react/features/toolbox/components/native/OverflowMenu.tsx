@@ -22,6 +22,7 @@ import SharedVideoButton from '../../../shared-video/components/native/SharedVid
 import SpeakerStatsButton from '../../../speaker-stats/components/native/SpeakerStatsButton';
 import { isSpeakerStatsDisabled } from '../../../speaker-stats/functions';
 import ClosedCaptionButton from '../../../subtitles/components/native/ClosedCaptionButton';
+import SummarySettingsButton from '../../../subtitles/components/native/SummarySettingsButton';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import styles from '../../../video-menu/components/native/styles';
 import WhiteboardButton from '../../../whiteboard/components/native/WhiteboardButton';
@@ -174,6 +175,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 
                 {/* Video-centric actions should be hidden in audio-only mode */}
                 {!_audioOnly && <LiveStreamButton {...buttonProps} />}
+                 <ClosedCaptionButton {...buttonProps} />
+                <SummarySettingsButton { ...buttonProps } />
 
                 {/* <LinkToSalesforceButton { ...buttonProps } /> */}
                 <WhiteboardButton {...buttonProps} />
