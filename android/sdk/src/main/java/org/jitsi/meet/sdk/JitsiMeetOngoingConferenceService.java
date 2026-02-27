@@ -199,19 +199,23 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
             if (isAudioMuted != null) {
                 this.isAudioMuted = Boolean.parseBoolean(intent.getStringExtra("muted"));
             }
+// tap back activity is not used for now, as it is not working as expected. It is opening the app but not navigating to the conference screen. We need to investigate this further and fix it in future.
 
-            if (tapBackActivity == null) {
-                String targetActivityName = intent.getExtras().getString(ACTIVITY_DATA_KEY);
-                Class<? extends Activity> targetActivity = null;
-                try {
-                    targetActivity = Class.forName(targetActivityName).asSubclass(Activity.class);
-                    tapBackActivity = targetActivity;
-                } catch (ClassNotFoundException e) {
-                    JitsiMeetLogger.w(TAG + " Could not find target Activity: " + targetActivityName);
-                }
-            }
+            // if (tapBackActivity == null) {
+            //     String targetActivityName = intent.getExtras().getString(ACTIVITY_DATA_KEY);
+            //     Class<? extends Activity> targetActivity = null;
+            //     try {
+            //         targetActivity = Class.forName(targetActivityName).asSubclass(Activity.class);
+            //         tapBackActivity = targetActivity;
+            //     } catch (ClassNotFoundException e) {
+            //         JitsiMeetLogger.w(TAG + " Could not find target Activity: " + targetActivityName);
+            //     }
+            // }
 
-            Notification notification = OngoingNotification.buildOngoingConferenceNotification(this.isAudioMuted, this, tapBackActivity);
+            // Notification notification = OngoingNotification.buildOngoingConferenceNotification(this.isAudioMuted, this, tapBackActivity);
+
+            Notification notification = OngoingNotification.buildOngoingConferenceNotification(isAudioMuted, this, tapBackActivity);
+            System.out.println("this is line jitsimeetongoing  --> 142");
             if (notification == null) {
                 stopSelf();
                 JitsiMeetLogger.w(TAG + " Couldn't start service, notification is null");
@@ -295,13 +299,15 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
         public void onReceive(Context context, Intent intent) {
             Class tapBackActivity = JitsiMeetOngoingConferenceService.this.tapBackActivity;
             isAudioMuted = Boolean.parseBoolean(intent.getStringExtra("muted"));
+            // Notification notification = OngoingNotification.buildOngoingConferenceNotification(isAudioMuted, context, tapBackActivity);
             Notification notification = OngoingNotification.buildOngoingConferenceNotification(isAudioMuted, context, tapBackActivity);
+            System.out.println("this is line jitsimeetongoing  --> 230");
             if (notification == null) {
                 stopSelf();
                 JitsiMeetLogger.w(TAG + " Couldn't update service, notification is null");
             } else {
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(NOTIFICATION_ID, notification);
+                // NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                // notificationManager.notify(NOTIFICATION_ID, notification);
 
                 JitsiMeetLogger.i(TAG + " audio muted changed");
             }

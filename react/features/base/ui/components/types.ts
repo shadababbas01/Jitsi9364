@@ -33,6 +33,16 @@ export interface IButtonProps {
     onClick?: (e?: any) => void;
 
     /**
+     * Press in callback (native).
+     */
+    onPressIn?: (e?: GestureResponderEvent) => void;
+
+    /**
+     * Press out callback (native).
+     */
+    onPressOut?: (e?: GestureResponderEvent) => void;
+
+    /**
      * Key press callback.
      */
     onKeyPress?: (e?: React.KeyboardEvent<HTMLButtonElement>) => void;
@@ -84,6 +94,12 @@ export interface IInputProps {
      * The value of the input.
      */
     value: string | number;
+
+
+    /**
+     * Optional border color when the input is focused.
+     */
+    focusBorderColor?: string;
 }
 
 export interface ISwitchProps {

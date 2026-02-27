@@ -18,6 +18,9 @@ package org.jitsi.meet.sdk;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.app.Activity;
+import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -42,7 +45,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-class ReactInstanceManagerHolder {
+public class ReactInstanceManagerHolder {
     private static final String TAG = ReactInstanceManagerHolder.class.getSimpleName();
 
     /**
@@ -54,6 +57,7 @@ class ReactInstanceManagerHolder {
      * React Native bridge. The instance manager allows embedding applications
      * to create multiple root views off the same JavaScript bundle.
      */
+    private static Context mContext;
     private static ReactInstanceManager reactInstanceManager;
 
     private static List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
@@ -68,6 +72,8 @@ class ReactInstanceManagerHolder {
                 new LogBridgeModule(reactContext),
                 new PictureInPictureModule(reactContext),
                 new ProximityModule(reactContext),
+                new OpenMelpModule(reactContext),
+                new OpenMelpChatModule(reactContext),
                 new org.jitsi.meet.sdk.net.NAT64AddrInfoModule(reactContext)));
 
         if (AudioModeModule.useConnectionService()) {
@@ -158,20 +164,21 @@ class ReactInstanceManagerHolder {
      * @param eventName {@code String} containing the event name.
      * @param data {@code Object} optional ancillary data for the event.
      */
-    static void emitEvent(
+    public static void emitEvent(
             String eventName,
             @Nullable Object data) {
         ReactInstanceManager reactInstanceManager
             = ReactInstanceManagerHolder.getReactInstanceManager();
-
+            System.out.println("This is event emit 1");
         if (reactInstanceManager != null) {
             @SuppressLint("VisibleForTests") ReactContext reactContext
                 = reactInstanceManager.getCurrentReactContext();
-
+                System.out.println("This is event emit 2");
             if (reactContext != null) {
                 reactContext
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                     .emit(eventName, data);
+                    System.out.println("This is event emit 3");
             }
         }
     }
@@ -196,6 +203,25 @@ class ReactInstanceManagerHolder {
                 ? reactContext.getNativeModule(nativeModuleClass) : null;
     }
 
+    /**
+     * Gets the current {@link Activity} linked to React Native.
+     *
+     * @return An activity attached to React Native.
+     */
+    static Activity getCurrentActivity() {
+        ReactContext reactContext
+            = reactInstanceManager != null
+            ? reactInstanceManager.getCurrentReactContext() : null;
+        return reactContext != null ? reactContext.getCurrentActivity() : null;
+    }
+
+    public static void setCurrentActivity(Activity context){
+        mContext = context;
+    }
+    public static Activity getExtraActivity(){
+        return (Activity) mContext;
+    }
+
     static ReactInstanceManager getReactInstanceManager() {
         return reactInstanceManager;
     }
@@ -208,7 +234,15 @@ class ReactInstanceManagerHolder {
      *
      * @param app {@code Application}
      */
-    static void initReactInstanceManager(Application app) {
+
+    public static void initReactInstanceManager(Activity activity) {
+        if (activity == null) {
+            return;
+        }
+        initReactInstanceManager(activity.getApplication());
+    }
+
+    public static void initReactInstanceManager(Application app) {
         if (reactInstanceManager != null) {
             return;
         }

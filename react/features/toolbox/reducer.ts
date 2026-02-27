@@ -105,7 +105,7 @@ const INITIAL_STATE = {
      *
      * @type {boolean}
      */
-    visible: false
+    visible: true
 };
 
 export interface IToolboxState {

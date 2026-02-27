@@ -9,16 +9,23 @@ import {
     ADD_MESSAGE_REACTION,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
     OPEN_CHAT,
+    NOTIFY_TRANSCRIPTION_STARTED,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
+    RESET_TRANSCRIPTION_CONSENT,
     SEND_MESSAGE,
     SEND_REACTION,
     SET_FOCUSED_TAB,
+    SET_CHAT_TAB_VISIBLE,
+    SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
-    SET_PRIVATE_MESSAGE_RECIPIENT
+    SET_PRIVATE_MESSAGE_RECIPIENT,
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { ChatTabs } from './constants';
 
@@ -191,35 +198,20 @@ export function setPrivateMessageRecipientById(participantId: string) {
 }
 
 /**
- * Set the value of the currently focused tab.
+ * Sets whether the chat tab should be visible alongside polls.
  *
- * @param {string} tabId - The id of the currently focused tab.
+ * @param {boolean} isVisible - Visibility flag.
  * @returns {{
- *    type: SET_FOCUSED_TAB,
- *    tabId: string
+ *     isVisible: boolean,
+ *     type: SET_CHAT_TAB_VISIBLE
  * }}
  */
-export function setFocusedTab(tabId: ChatTabs) {
+export function setChatTabVisible(isVisible: boolean) {
     return {
-        type: SET_FOCUSED_TAB,
-        tabId
+        isVisible,
+        type: SET_CHAT_TAB_VISIBLE
     };
 }
-
-/**
- * Opens the chat panel with CC tab active.
- *
- * @returns {Object} The redux action.
- */
-export function openCCPanel() {
-    return async (dispatch: IStore['dispatch']) => {
-        dispatch(setFocusedTab(ChatTabs.CLOSED_CAPTIONS));
-        dispatch({
-            type: OPEN_CHAT
-        });
-    };
-}
-
 
 /**
  * Initiates the sending of messages between a moderator and a lobby attendee.
@@ -355,5 +347,68 @@ export function handleLobbyChatInitialized(participantId: string) {
 
         // notify other moderators.
         return conference?.sendLobbyMessage(payload);
+    };
+}
+
+/**
+ * Notifies participants that transcription has started.
+ *
+ * @param {string} moderatorName - The moderator that triggered transcription.
+ * @returns {Object}
+ */
+export function notifyTranscriptionStarted(moderatorName: string) {
+    return {
+        type: NOTIFY_TRANSCRIPTION_STARTED,
+        moderatorName
+    };
+}
+
+/**
+ * Tracks whether the local user started transcription.
+ *
+ * @param {boolean} startedByCurrentUser - Whether the local user started transcription.
+ * @returns {Object}
+ */
+export function setTranscriptionStartedByCurrentUser(startedByCurrentUser: boolean) {
+    return {
+        type: SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+        startedByCurrentUser
+    };
+}
+
+/**
+ * Shows the transcription consent popup for the session.
+ *
+ * @param {string} moderatorName - The name of the moderator who started transcription.
+ * @param {string} transcriptionStarterId - The participant ID of the moderator who started it.
+ * @returns {Object}
+ */
+export function showTranscriptionConsent(moderatorName: string, transcriptionStarterId?: string) {
+    return {
+        type: SHOW_TRANSCRIPTION_CONSENT,
+        moderatorName,
+        transcriptionStarterId
+    };
+}
+
+/**
+ * Dismisses the transcription consent popup for the current session.
+ *
+ * @returns {Object}
+ */
+export function dismissTranscriptionConsent() {
+    return {
+        type: DISMISS_TRANSCRIPTION_CONSENT
+    };
+}
+
+/**
+ * Resets the session flag that tracks whether consent has been dismissed.
+ *
+ * @returns {Object}
+ */
+export function resetTranscriptionConsent() {
+    return {
+        type: RESET_TRANSCRIPTION_CONSENT
     };
 }

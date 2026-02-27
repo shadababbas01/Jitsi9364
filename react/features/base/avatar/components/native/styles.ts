@@ -13,7 +13,7 @@ export default {
     avatarContainer: (size: number = DEFAULT_SIZE) => {
         return {
             alignItems: 'center',
-            borderRadius: size / 2,
+            borderRadius: 5,
             height: size,
             justifyContent: 'center',
             overflow: 'hidden',
@@ -48,7 +48,7 @@ export default {
 
         return {
             backgroundColor: color,
-            borderRadius: size / 2,
+            borderRadius: size,
             bottom: 0,
             height: size * 0.3,
             position: 'absolute',

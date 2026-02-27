@@ -120,6 +120,17 @@ export interface IReactionEmojiProps {
      * Id of the reaction.
      */
     uid: string;
+
+
+    /**
+     * Display name of the participant who triggered the reaction.
+     */
+    participantName?: string;
+
+    /**
+     * Participant associated with this reaction.
+     */
+    participantId?: string;
 }
 
 export const SOUNDS_THRESHOLDS = [ 1, 4, 10 ];

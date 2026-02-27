@@ -11,7 +11,7 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import Icon from '../../../base/icons/components/Icon';
-import { IconDotsHorizontal, IconRingGroup } from '../../../base/icons/svg';
+import { IconDotsHorizontal, IconRingGroup, IconDotsHorizontalBlack } from '../../../base/icons/svg';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import Button from '../../../base/ui/components/native/Button';
 import IconButton from '../../../base/ui/components/native/IconButton';
@@ -19,6 +19,13 @@ import { BUTTON_TYPES } from '../../../base/ui/constants.native';
 import {
     navigate
 } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
+import {
+    getBreakoutRooms,
+    getCurrentRoomId,
+    isAddBreakoutRoomButtonVisible,
+    isAutoAssignParticipantsVisible,
+    isInBreakoutRoom
+} from '../../../breakout-rooms/functions';
 import { screen } from '../../../mobile/navigation/routes';
 // @ts-ignore
 import MuteEveryoneDialog from '../../../video-menu/components/native/MuteEveryoneDialog';
@@ -26,6 +33,8 @@ import { isMoreActionsVisible, isMuteAllVisible } from '../../functions';
 
 import { ContextMenuMore } from './ContextMenuMore';
 import styles from './styles';
+import JitsiScreen from '../../../base/modal/components/JitsiScreen';
+import AddBreakoutRoomButton from '../../../breakout-rooms/components/native/AddBreakoutRoomButton';
 
 
 /**
@@ -41,50 +50,56 @@ const ParticipantsPaneFooter = (): JSX.Element => {
     const isBreakoutRoomsEnabled = useSelector((state: IReduxState) =>
         getFeatureFlag(state, BREAKOUT_ROOMS_BUTTON_ENABLED, true)
     );
-    const openMoreMenu = useCallback(() => dispatch(openSheet(ContextMenuMore)), [ dispatch ]);
+    const { remote, fakeParticipants, sortedRemoteVirtualScreenshareParticipants } = useSelector((state: IReduxState) => state['features/base/participants']);
+    const remoteUsers = remote.size - fakeParticipants.size - sortedRemoteVirtualScreenshareParticipants.size;
+    const showAddBreakoutRoom = useSelector(isAddBreakoutRoomButtonVisible) && remoteUsers >= 0;
+    const openMoreMenu = useCallback(() => dispatch(openSheet(ContextMenuMore)), [dispatch]);
     const muteAll = useCallback(() => dispatch(openDialog(MuteEveryoneDialog)),
-        [ dispatch ]);
+        [dispatch]);
     const showMoreActions = useSelector(isMoreActionsVisible);
     const showMuteAll = useSelector(isMuteAllVisible);
 
     return (
-        <View style = { styles.participantsPaneFooterContainer as ViewStyle }>
-            {
-                isBreakoutRoomsSupported
-                && isBreakoutRoomsEnabled
+        <View style={styles.participantsPaneFooterContainer as ViewStyle}>
+            {/* {
+                showAddBreakoutRoom // This checks if `bool` is true
                 && <Button
-                    accessibilityLabel = 'participantsPane.actions.breakoutRooms'
+                    accessibilityLabel='participantsPane.actions.breakoutRooms'
                     // eslint-disable-next-line react/jsx-no-bind, no-confusing-arrow
-                    icon = { () => (
+                    icon={() => (
                         <Icon
-                            color = { BaseTheme.palette.icon04 }
-                            size = { 20 }
-                            src = { IconRingGroup } />
-                    ) }
-                    labelKey = 'participantsPane.actions.breakoutRooms'
+                            color={BaseTheme.palette.icon04}
+                            size={20}
+                            src={IconRingGroup} />
+                    )}
+                    labelKey='participantsPane.actions.breakoutRooms'
                     // eslint-disable-next-line react/jsx-no-bind, no-confusing-arrow
-                    onClick = { () => navigate(screen.conference.breakoutRooms) }
-                    style = { styles.breakoutRoomsButton }
-                    type = { BUTTON_TYPES.SECONDARY } />
-            }
+                    onClick={() => navigate(screen.conference.breakoutRooms)}
+                    style={styles.breakoutRoomsButton}
+                    type={BUTTON_TYPES.SECONDARY} />
+            } */}
+            {/* <View>
+            {showAddBreakoutRoom ? <AddBreakoutRoomButton /> : null}
+            </View> */}
 
-            <View style = { styles.participantsPaneFooter as ViewStyle }>
+            <View style={styles.participantsPaneFooter as ViewStyle}>
                 {
                     showMuteAll && (
                         <Button
-                            accessibilityLabel = 'participantsPane.actions.muteAll'
-                            labelKey = 'participantsPane.actions.muteAll'
-                            onClick = { muteAll }
-                            type = { BUTTON_TYPES.SECONDARY } />
+                            accessibilityLabel='participantsPane.actions.muteAll'
+                            labelKey='participantsPane.actions.muteAll'
+                            onClick={muteAll}
+                            style={styles.moreButton2}
+                            type={BUTTON_TYPES.SECONDARY} />
                     )
                 }
                 {
                     showMoreActions && (
                         <IconButton
-                            onPress = { openMoreMenu }
-                            src = { IconDotsHorizontal }
-                            style = { styles.moreButton }
-                            type = { BUTTON_TYPES.SECONDARY } />
+                            onPress={openMoreMenu}
+                            src={IconDotsHorizontalBlack}
+                            style={styles.moreButton}
+                            type={BUTTON_TYPES.SECONDARY} />
                     )
                 }
             </View>

@@ -454,6 +454,7 @@ function _conferenceJoined(state: IConferenceState, { conference }: { conference
     // with a password.
     // FIXME Technically JitsiConference.room is a private field.
     const locked = conference.room?.locked ? LOCKED_REMOTELY : undefined;
+    conference.setLocalParticipantProperty('deviceType', 'android');
 
     return assign(state, {
         authRequired: undefined,

@@ -283,6 +283,25 @@ export default class AbstractButton<P extends IProps, S = any> extends Component
         ) || this.accessibilityLabel;
     }
 
+
+        // added by jaswant
+
+        _getView(props) {
+
+            return (
+    
+                <ToolboxItem
+    
+                    disabled = { this._isDisabled() }
+    
+                    onClick = { this._onClick }
+    
+                    { ...props } />
+    
+            );
+    
+        }
+
     /**
      * Gets the current styles, taking the toggled state into account. If no
      * toggled styles are provided, the regular styles will also be used in the
@@ -397,12 +416,13 @@ export default class AbstractButton<P extends IProps, S = any> extends Component
             tooltip: this._getTooltip()
         };
 
-        return (
-            <ToolboxItem
-                disabled = { this._isDisabled() }
-                onClick = { this._onClick }
-                onKeyDown = { this._onKeyDown }
-                { ...props } />
-        );
+        // return (
+        //     <ToolboxItem
+        //         disabled = { this._isDisabled() }
+        //         onClick = { this._onClick }
+        //         onKeyDown = { this._onKeyDown }
+        //         { ...props } />
+        // );
+        return this._getView(props);
     }
 }

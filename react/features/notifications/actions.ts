@@ -5,6 +5,7 @@ import { IConfig } from '../base/config/configType';
 import { NOTIFICATIONS_ENABLED } from '../base/flags/constants';
 import { getFeatureFlag } from '../base/flags/functions';
 import { getParticipantCount } from '../base/participants/functions';
+import { getCurrentConference } from '../base/conference/functions';
 
 import {
     CLEAR_NOTIFICATIONS,
@@ -305,6 +306,10 @@ const _throttledNotifyParticipantLeft = throttle((dispatch: IStore['dispatch'], 
             titleKey: 'notify.leftOneMember'
         };
     }
+    const breakoutRooms = getCurrentConference(getState)?.getBreakoutRooms();
+    console.log("No. of breakout rooms from actions.ts:", breakoutRooms);
+    console.log("No. of breakout rooms from actions.ts:", breakoutRooms ? Object.keys(breakoutRooms).length : 0);
+
 
     if (notificationProps) {
         dispatch(

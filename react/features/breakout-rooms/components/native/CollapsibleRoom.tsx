@@ -1,14 +1,19 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { FlatList, NativeModules, Text, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { createBreakoutRoomsEvent } from '../../../analytics/AnalyticsEvents';
 import { openSheet } from '../../../base/dialog/actions';
+import { sendAnalytics } from '../../../analytics/functions';
 import CollapsibleList from '../../../participants-pane/components/native/CollapsibleList';
+import { getBreakoutRoomsConfig, getCurrentRoomId } from '../../functions';
+import { moveToRoom } from '../../actions';
 import { IRoom } from '../../types';
 
 import BreakoutRoomContextMenu from './BreakoutRoomContextMenu';
 import BreakoutRoomParticipantItem from './BreakoutRoomParticipantItem';
+import styles from './styles';
 
 interface IProps {
 
@@ -32,18 +37,44 @@ function _keyExtractor(item: any) {
 
 export const CollapsibleRoom = ({ room, roomId }: IProps) => {
     const dispatch = useDispatch();
+    const currentRoomId = useSelector(getCurrentRoomId);
+    const { hideJoinRoomButton } = useSelector(getBreakoutRoomsConfig);
     const { t } = useTranslation();
     const _openContextMenu = useCallback(() => {
         dispatch(openSheet(BreakoutRoomContextMenu, { room }));
     }, [ room ]);
+    const onJoinRoom = useCallback(() => {
+        NativeModules.NativeCallsNew?.switchingRoom?.(true);
+        NativeModules.OpenMelpChat?.switchingRoom?.(true);
+        sendAnalytics(createBreakoutRoomsEvent('join'));
+        dispatch(moveToRoom(room.jid));
+    }, [ dispatch, room ]);
+
+    const joinAction = useMemo(() => {
+        if (hideJoinRoomButton || currentRoomId === room.id) {
+            return null;
+        }
+
+        return (
+            <TouchableOpacity
+                onPress = { onJoinRoom }
+                style = { styles.joinButton }>
+                <Text style = { styles.joinButtonText }>
+                    { t('breakoutRooms.actions.join') }
+                </Text>
+            </TouchableOpacity>
+        );
+    }, [ hideJoinRoomButton, currentRoomId, room.id, onJoinRoom, t ]);
     const roomParticipantsNr = Object.values(room.participants || {}).length;
     const title
         = `${room.name
     || t('breakoutRooms.mainRoom')} (${roomParticipantsNr})`;
 
     return (
+        <View style={{ marginHorizontal: 23 }}>
         <CollapsibleList
             onLongPress = { _openContextMenu }
+            rightAction = { joinAction }
             title = { title }>
             <FlatList
                 data = { Object.values(room.participants || {}) }
@@ -62,5 +93,6 @@ export const CollapsibleRoom = ({ room, roomId }: IProps) => {
                 showsHorizontalScrollIndicator = { false }
                 windowSize = { 2 } />
         </CollapsibleList>
+        </View>
     );
 };

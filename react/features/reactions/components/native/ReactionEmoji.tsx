@@ -6,6 +6,7 @@ import { IReduxState } from '../../../app/types';
 import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry';
 import { removeReaction } from '../../actions.any';
 import { IReactionEmojiProps, REACTIONS } from '../../constants';
+import { getParticipantDisplayName } from '../../../base/participants/functions';
 
 interface IProps extends IReactionEmojiProps {
 
@@ -14,15 +15,17 @@ interface IProps extends IReactionEmojiProps {
      * Used to differentiate between first and other animations.
      */
     index: number;
+    displayName?: string;
 }
 
 
 /**
  * Animated reaction emoji.
+ * Animated reaction emoji with username.
  *
  * @returns {ReactElement}
  */
-function ReactionEmoji({ reaction, uid, index }: IProps) {
+function ReactionEmoji({ reaction, uid, index, participantName }: IProps) {
     const _styles: any = useSelector((state: IReduxState) => ColorSchemeRegistry.get(state, 'Toolbox'));
     const _height = useSelector((state: IReduxState) => state['features/base/responsive-ui'].clientHeight);
     const dispatch = useDispatch();
@@ -44,23 +47,21 @@ function ReactionEmoji({ reaction, uid, index }: IProps) {
 
 
     useEffect(() => {
-        setTimeout(() => dispatch(removeReaction(uid)), 5000);
-    }, []);
+        const t = setTimeout(() => dispatch(removeReaction(uid)), 5000);
+        return () => clearTimeout(t);
+    }, [ dispatch, uid ]);
 
     useEffect(() => {
-        Animated.timing(
-            animationVal,
-            {
-                toValue: 1,
-                duration: 5000,
-                useNativeDriver: true
-            }
-        ).start();
+        Animated.timing(animationVal, {
+            toValue: 1,
+            duration: 5000,
+            useNativeDriver: true
+        }).start();
     }, [ animationVal ]);
 
 
     return (
-        <Animated.Text
+        <Animated.View
             style = {{
                 ..._styles.emojiAnimation,
                 transform: [
@@ -86,8 +87,19 @@ function ReactionEmoji({ reaction, uid, index }: IProps) {
                     outputRange: [ 1, 1, 1, 0 ]
                 })
             }}>
-            {REACTIONS[reaction].emoji}
-        </Animated.Text>
+                        <Animated.Text
+                style = { _styles.emojiAnimationEmoji }>
+                {REACTIONS[reaction].emoji}
+            </Animated.Text>
+            {participantName ? (
+                <Animated.Text
+                    ellipsizeMode = 'tail'
+                    numberOfLines = { 1 }
+                    style = { _styles.emojiAnimationLabel }>
+                    {participantName}
+                </Animated.Text>
+            ) : null}
+        </Animated.View>
     );
 }
 

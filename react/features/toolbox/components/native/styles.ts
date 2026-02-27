@@ -2,7 +2,7 @@ import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry'
 import { schemeColor } from '../../../base/color-scheme/functions';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
-const BUTTON_SIZE = 48;
+const BUTTON_SIZE = 42;
 
 // Toolbox, toolbar:
 
@@ -16,9 +16,13 @@ const toolbarButton = {
     flexDirection: 'row',
     height: BUTTON_SIZE,
     justifyContent: 'center',
-    marginHorizontal: 6,
+    marginHorizontal: 11,
     marginVertical: 6,
-    width: BUTTON_SIZE
+    width: BUTTON_SIZE,
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 3.84,
 };
 
 /**
@@ -27,7 +31,7 @@ const toolbarButton = {
 const toolbarButtonIcon = {
     alignSelf: 'center',
     color: BaseTheme.palette.icon04,
-    fontSize: 24
+    fontSize: 42
 };
 
 
@@ -85,7 +89,7 @@ const styles = {
      */
     toolbox: {
         alignItems: 'center',
-        backgroundColor: BaseTheme.palette.uiBackground,
+        // backgroundColor: BaseTheme.palette.uiBackground,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         flexDirection: 'row',
@@ -96,13 +100,13 @@ const styles = {
      * The style of the root/top-level container of {@link Toolbox}.
      */
     toolboxContainer: {
-        backgroundColor: BaseTheme.palette.uiBackground,
+        // backgroundColor: BaseTheme.palette.uiBackground,
         flexDirection: 'column',
+        alignItems: 'center',
         maxWidth: 580,
-        marginHorizontal: 'auto',
-        marginVertical: BaseTheme.spacing[0],
-        paddingHorizontal: BaseTheme.spacing[2],
-        width: '100%'
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        width: '100%',
     },
 
     toolboxButtonIconContainer: {
@@ -132,7 +136,7 @@ ColorSchemeRegistry.register('Toolbox', {
         iconStyle: whiteToolbarButtonIcon,
         style: {
             ...toolbarButton,
-            backgroundColor: 'transparent'
+            backgroundColor: 'grey'
         },
         underlayColor: 'transparent'
     },
@@ -156,7 +160,7 @@ ColorSchemeRegistry.register('Toolbox', {
         iconStyle: whiteToolbarButtonIcon,
         style: {
             ...toolbarButton,
-            backgroundColor: schemeColor('hangup')
+            // backgroundColor: schemeColor('hangup')
         },
         underlayColor: BaseTheme.palette.ui04
     },
@@ -194,19 +198,55 @@ ColorSchemeRegistry.register('Toolbox', {
     },
 
     emojiAnimation: {
-        color: BaseTheme.palette.icon01,
         position: 'absolute',
         zIndex: 1001,
         elevation: 2,
-        fontSize: 20,
         left: '50%',
-        top: '100%'
+                top: '100%',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 56,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(28, 28, 30, 0.7)',
+        maxWidth: 220,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: {
+            width: 0,
+            height: 6
+        },
+        shadowRadius: 16
+    },
+
+    emojiAnimationEmoji: {
+        color: BaseTheme.palette.icon01,
+        fontSize: 24,
+        lineHeight: 28,
+        textAlign: 'center'
+    },
+
+    emojiAnimationLabel: {
+        marginTop: 4,
+        color: BaseTheme.palette.icon01,
+        fontSize: 11,
+        fontWeight: '600',
+        textAlign: 'center'
     },
 
     /**
      * Styles for toggled buttons in the toolbar.
      */
     toggledButtonStyles: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton
+        },
+        underlayColor: 'transparent'
+    },
+    toggledButtonStyles2: {
         iconStyle: whiteToolbarButtonIcon,
         style: {
             ...toolbarButton

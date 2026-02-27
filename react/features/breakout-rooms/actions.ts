@@ -52,6 +52,7 @@ export function createBreakoutRoom(name?: string) {
 
         getCurrentConference(state)?.getBreakoutRooms()
             ?.createBreakoutRoom(subject);
+            console.log("no. of breakout rooms ", getCurrentConference(state)?.getBreakoutRooms());
     };
 }
 
@@ -84,15 +85,99 @@ export function closeBreakoutRoom(roomId: string) {
  * @param {string} name - New name / subject for the breakout room.
  * @returns {Function}
  */
-export function renameBreakoutRoom(breakoutRoomJid: string, name = '') {
-    return (_dispatch: IStore['dispatch'], getState: IStore['getState']) => {
-        const trimmedName = name.trim();
+ export function renameBreakoutRoom(breakoutRoomJid: string, name = '') {
+    return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
+        return new Promise((resolve, reject) => {
+            const trimmedName = name.trim();
 
-        if (trimmedName.length !== 0) {
-            sendAnalytics(createBreakoutRoomsEvent('rename'));
-            getCurrentConference(getState)?.getBreakoutRooms()
-                ?.renameBreakoutRoom(breakoutRoomJid, trimmedName);
-        }
+            if (!trimmedName) {
+                console.warn('Breakout room name cannot be empty');
+                reject(new Error('Breakout room name cannot be empty'));
+                return;
+            }
+
+            try {
+                // Extensive logging
+                console.log('Rename Breakout Room Attempt - Input:', {
+                    roomJid: breakoutRoomJid,
+                    newName: trimmedName
+                });
+
+                // Send analytics
+                sendAnalytics(createBreakoutRoomsEvent('rename'));
+
+                // Get current conference
+                const conference = getCurrentConference(getState);
+                
+                if (!conference) {
+                    console.error('No active conference found');
+                    reject(new Error('No active conference'));
+                    return;
+                }
+
+                // Detailed conference object logging
+                console.log('Conference Object:', {
+                    conference,
+                    methods: Object.keys(conference)
+                });
+
+                // Get breakout rooms
+                const breakoutRooms = conference.getBreakoutRooms?.();
+                
+                if (!breakoutRooms) {
+                    console.error('Breakout rooms not available');
+                    console.log('Conference methods:', Object.keys(conference));
+                    reject(new Error('Breakout rooms not available'));
+                    return;
+                }
+
+                // Detailed breakout rooms logging
+                console.log('Breakout Rooms Object:', {
+                    breakoutRooms,
+                    methods: Object.keys(breakoutRooms)
+                });
+
+                // Alternative rename approaches
+                let renameResult;
+                if (typeof breakoutRooms.renameBreakoutRoom === 'function') {
+                    // Preferred method
+                    renameResult = breakoutRooms.renameBreakoutRoom(breakoutRoomJid, trimmedName);
+                } else if (typeof conference.renameBreakoutRoom === 'function') {
+                    // Fallback method
+                    renameResult = conference.renameBreakoutRoom(breakoutRoomJid, trimmedName);
+                } else {
+                    console.error('No renameBreakoutRoom method found');
+                    reject(new Error('Rename method not available'));
+                    return;
+                }
+
+                // Advanced logging for rename result
+                console.log('Rename Result:', {
+                    result: renameResult,
+                    type: typeof renameResult
+                });
+
+                // Check for promise-like object
+                if (renameResult && typeof renameResult.then === 'function') {
+                    renameResult
+                        .then(() => resolve(true))
+                        .catch((error) => {
+                            console.error('Rename Promise Failed:', error);
+                            reject(error);
+                        });
+                } else if (renameResult === undefined) {
+                    // If undefined, assume success but log a warning
+                    console.warn('Rename method returned undefined - assuming success');
+                    resolve(true);
+                } else {
+                    // For other return types
+                    resolve(renameResult);
+                }
+            } catch (error) {
+                console.error('Unexpected Error in Rename Attempt:', error);
+                reject(error);
+            }
+        });
     };
 }
 
@@ -192,11 +277,6 @@ export function moveToRoom(roomId?: string) {
         // Check if we got a full JID.
         if (_roomId && _roomId?.indexOf('@') !== -1) {
             const [ id, ...domainParts ] = _roomId.split('@');
-
-            // On mobile we first store the room and the connection is created
-            // later, so let's attach the domain to the room String object as
-            // a little hack.
-
             // eslint-disable-next-line no-new-wrappers
             _roomId = new String(id);
 
@@ -208,7 +288,7 @@ export function moveToRoom(roomId?: string) {
         const goToMainRoom = roomIdStr === mainRoomId;
         const rooms = getBreakoutRooms(getState);
         const targetRoom = rooms[roomIdStr ?? ''];
-
+console.log(">>>>>>>>>>>>",targetRoom);
         if (!targetRoom) {
             logger.warn(`Unknown room: ${targetRoom}`);
 
@@ -223,7 +303,7 @@ export function moveToRoom(roomId?: string) {
             const conference = getCurrentConference(getState);
             const { audio, video } = getState()['features/base/media'];
 
-            dispatch(conferenceWillLeave(conference));
+            dispatch(conferenceWillLeave(conference, true));
 
             try {
                 await conference?.leave(CONFERENCE_LEAVE_REASONS.SWITCH_ROOM);

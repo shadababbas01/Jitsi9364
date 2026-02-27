@@ -24,7 +24,7 @@ export default createStyleSheet({
      * Style for the {@code Icon} element in a row.
      */
     deviceIcon: {
-        color: BaseTheme.palette.icon01,
+        color: '#ee4136', // added by jaswant
         fontSize: BaseTheme.spacing[4]
     },
 
@@ -41,6 +41,6 @@ export default createStyleSheet({
      * Style for a row which is marked as selected.
      */
     selectedText: {
-        color: BaseTheme.palette.action01
+        color: '#ee4136' //added by jaswant
     }
 });

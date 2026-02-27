@@ -1,9 +1,10 @@
 import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
+import logger from '../../../app/logger';
 import DialInSummary from '../../../invite/components/dial-in-summary/native/DialInSummary';
 import Prejoin from '../../../prejoin/components/native/Prejoin';
 import UnsafeRoomWarning from '../../../prejoin/components/native/UnsafeRoomWarning';
@@ -54,14 +55,19 @@ interface IProps {
 
 
 const RootNavigationContainer = ({ dispatch, isUnsafeRoomWarningAvailable, isWelcomePageAvailable }: IProps) => {
-    const initialRouteName = isWelcomePageAvailable
-        ? screen.welcome.main : screen.connecting;
+    // TODO(shadab): confirm integration type (react-native-jitsi-meet / native JitsiMeetActivity / WebView),
+    // call trigger (UI button vs background), and navigation stack details to fine-tune launch flow.
+    const initialRouteName = isWelcomePageAvailable ? screen.welcome.main : screen.connecting;
     const onReady = useCallback(() => {
         dispatch({
             type: _ROOT_NAVIGATION_READY,
             ready: true
         });
     }, [ dispatch ]);
+
+    useEffect(() => {
+        logger.info(`[JitsiUI] RootNavigation init: welcome=${isWelcomePageAvailable} initialRoute=${initialRouteName}`);
+    }, [ isWelcomePageAvailable, initialRouteName ]);
 
     return (
         <NavigationContainer
@@ -89,11 +95,11 @@ const RootNavigationContainer = ({ dispatch, isUnsafeRoomWarningAvailable, isWel
                 <RootStack.Screen
                     component = { ConnectingPage }
                     name = { screen.connecting }
-                    options = { connectingScreenOptions } />
-                <RootStack.Screen
+                options = { connectingScreenOptions } />
+                {/* <RootStack.Screen
                     component = { Prejoin }
                     name = { screen.preJoin }
-                    options = { preJoinScreenOptions } />
+                     options = { preJoinScreenOptions } /> */}
                 {
                     isUnsafeRoomWarningAvailable
                     && <RootStack.Screen

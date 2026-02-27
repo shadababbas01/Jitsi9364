@@ -81,7 +81,8 @@ const DEFAULT_STATE = {
     remoteVideoSources: new Set<string>(),
     sortedRemoteVirtualScreenshareParticipants: new Map(),
     sortedRemoteParticipants: new Map(),
-    speakersList: new Map()
+    speakersList: new Map(),
+    deviceType: 'android'
 };
 
 export interface IParticipantsState {
@@ -100,6 +101,7 @@ export interface IParticipantsState {
     sortedRemoteParticipants: Map<string, string>;
     sortedRemoteVirtualScreenshareParticipants: Map<string, string>;
     speakersList: Map<string, string>;
+    deviceType: string;
 }
 
 /**
@@ -555,7 +557,7 @@ function _getDisplayName(state: Object, name?: string): string {
     // @ts-ignore
     const config = state['features/base/config'];
 
-    return name ?? (config?.defaultRemoteDisplayName || 'Fellow Jitster');
+    return name ?? (config?.defaultRemoteDisplayName || '');
 }
 
 /**

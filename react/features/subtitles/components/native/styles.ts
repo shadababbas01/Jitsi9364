@@ -59,5 +59,56 @@ export default {
     itemsContainer: {
         marginHorizontal: BaseTheme.spacing[4],
         marginVertical: BaseTheme.spacing[4]
+            },
+    scrollContent: {
+        flexGrow: 1
+    },
+    header: {
+        paddingHorizontal: BaseTheme.spacing[4],
+        paddingTop: BaseTheme.spacing[4]
+    },
+    headerTitle: {
+        ...BaseTheme.typography.heading4,
+        color: BaseTheme.palette.text01
+    },
+    headerSubtitle: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: BaseTheme.palette.text02,
+        marginTop: BaseTheme.spacing[1]
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[4],
+        marginTop: BaseTheme.spacing[4]
+    },
+    button: {
+        flex: 1,
+        marginHorizontal: BaseTheme.spacing[1]
+    },
+    languageListSection: {
+        marginTop: BaseTheme.spacing[2]
+    },
+    historySection: {
+        borderTopColor: BaseTheme.palette.ui03,
+        borderTopWidth: 1,
+        margin: BaseTheme.spacing[4],
+        marginTop: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[2]
+    },
+    historyTitle: {
+        ...BaseTheme.typography.bodyShortBoldLarge,
+        color: BaseTheme.palette.text01,
+        marginBottom: BaseTheme.spacing[2]
+    },
+    historyItem: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: BaseTheme.palette.text01,
+        marginBottom: BaseTheme.spacing[1]
+    },
+    historyEmpty: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: BaseTheme.palette.text02,
+        fontStyle: 'italic'
     }
 };

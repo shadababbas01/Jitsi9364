@@ -45,3 +45,5 @@ export const CONFERENCE_LEAVE_REASONS = {
  * The ID of the notification that is shown when the user is muted by focus.
  */
 export const START_MUTED_NOTIFICATION_ID = 'start-muted';
+export const CONFERENCE_DESTROYED_LEAVE_TIMEOUT = 15000; // added by jaswant
+export const CONFERENCE_DESTROYED_KICK_OUT_TIMEOUT = 2000; // added by jaswant

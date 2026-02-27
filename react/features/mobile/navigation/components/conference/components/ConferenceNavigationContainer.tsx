@@ -1,3 +1,4 @@
+
 /* eslint-disable lines-around-comment */
 
 import { NavigationContainer, Theme } from '@react-navigation/native';
@@ -43,6 +44,9 @@ import SpeakerStats
 import LanguageSelectorDialog
 // @ts-ignore
     from '../../../../../subtitles/components/native/LanguageSelectorDialog';
+import SummarySettingsScreen
+// @ts-ignore
+    from '../../../../../subtitles/components/native/SummarySettingsScreen';
 import Whiteboard from '../../../../../whiteboard/components/native/Whiteboard';
 // @ts-ignore
 import { screen } from '../../../routes';
@@ -64,7 +68,8 @@ import {
     sharedDocumentScreenOptions,
     speakerStatsScreenOptions,
     subtitlesScreenOptions,
-    whiteboardScreenOptions
+    whiteboardScreenOptions,
+    summaryScreenOptions
     // @ts-ignore
 } from '../../../screenOptions';
 // @ts-ignore
@@ -77,6 +82,7 @@ import {
     conferenceNavigationRef
     // @ts-ignore
 } from '../ConferenceNavigationContainerRef';
+import { HeaderTitle } from '@react-navigation/elements';
 
 
 const ConferenceStack = createStackNavigator();
@@ -117,6 +123,7 @@ const ConferenceNavigationContainer = () => {
                     name = { chatScreenName }
                     options = {{
                         ...chatScreenOptions,
+                        headerTitleAlign: 'center', // added by shadab
                         title: t(chatTitleString)
                     }} />
                 <ConferenceStack.Screen
@@ -124,6 +131,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.participants }
                     options = {{
                         ...participantsScreenOptions,
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('participantsPane.title')
                     }} />
                 <ConferenceStack.Screen
@@ -131,6 +139,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.security }
                     options = {{
                         ...securityScreenOptions,
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('security.title')
                     }} />
                 <ConferenceStack.Screen
@@ -138,6 +147,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.recording }
                     options = {{
                         ...recordingScreenOptions,
+                        headerTitleAlign: 'center', // added by shadab
                         title: t('recording.title')
                     }} />
                 <ConferenceStack.Screen
@@ -145,6 +155,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.liveStream }
                     options = {{
                         ...liveStreamScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('liveStreaming.title')
                     }} />
                 <ConferenceStack.Screen
@@ -180,6 +191,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.invite }
                     options = {{
                         ...inviteScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('addPeople.add')
                     }} />
                 <ConferenceStack.Screen
@@ -187,6 +199,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.sharedDocument }
                     options = {{
                         ...sharedDocumentScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('documentSharing.title')
                     }} />
                 <ConferenceStack.Screen
@@ -200,6 +213,7 @@ const ConferenceNavigationContainer = () => {
                     name = { screen.conference.carmode }
                     options = {{
                         ...carmodeScreenOptions,
+                        headerTitleAlign: 'center', // added by jaswant
                         title: t('carmode.labels.title')
                     }} />
                 <ConferenceStack.Screen
@@ -209,11 +223,19 @@ const ConferenceNavigationContainer = () => {
                         ...subtitlesScreenOptions,
                         title: t('transcribing.subtitles')
                     }} />
+                     <ConferenceStack.Screen
+                    component = { SummarySettingsScreen }
+                    name = { screen.conference.summary }
+                    options = {{
+                        ...summaryScreenOptions,
+                        title: t('summarySetup.title')
+                    }} />
                 <ConferenceStack.Screen
                     component = { BreakoutRooms }
                     name = { screen.conference.breakoutRooms }
                     options = {{
                         ...breakoutRoomsScreenOptions,
+                        headerTitleAlign: 'center',
                         title: t('breakoutRooms.title')
                     }} />
                 <ConferenceStack.Screen

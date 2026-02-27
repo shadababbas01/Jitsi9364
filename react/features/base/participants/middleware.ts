@@ -523,7 +523,20 @@ StateListenerRegistry.register(
                         conference,
                         id: participant.getId(),
                         remoteControlSessionStatus: value
-                    }))
+                    })),
+                    'deviceType': (participant: IJitsiParticipant, value: string) => {
+                        console.log(`Participant ${participant.getId()} is using device: ${value}`);
+                        
+                        // Update participant in Redux store
+                        store.dispatch(participantUpdated({
+                            conference,
+                            id: participant.getId(),
+                            deviceType: value
+                        }));
+                        
+                        // Additional custom handling
+                        handleParticipantDeviceType(participant, value);
+                    }
             };
 
             // update properties for the participants that are already in the conference
@@ -554,7 +567,19 @@ StateListenerRegistry.register(
         }
     }
 );
-
+const handleParticipantDeviceType = (participant: IJitsiParticipant, deviceType: string) => {
+    // Custom logic for handling device type
+    console.log(`Processing device type ${deviceType} for participant ${participant.getId()}`);
+    
+    // Example: Send to analytics
+    // analytics.track('participant_device_type', {
+    //     participantId: participant.getId(),
+    //     deviceType: deviceType
+    // });
+    
+    // Example: Update UI based on device type
+    // updateParticipantUI(participant.getId(), deviceType);
+};
 /**
  * Handles a E2EE enabled status update.
  *
@@ -612,7 +637,8 @@ function _localParticipantJoined({ getState, dispatch }: IStore, next: Function,
         avatarURL: settings.avatarURL,
         email: settings.email,
         name: settings.displayName,
-        id: ''
+        id: '',
+        deviceType: 'android'
     }));
 
     return result;

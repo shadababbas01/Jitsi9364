@@ -1,6 +1,9 @@
 import { createStyleSheet } from '../../../base/styles/functions.native';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
+export const POLLS_ACCENT_COLOR = '#EE4136';
+export const POLLS_ACCENT_COLOR_white = '#ffff';
+export const POLLS_CREATE_BUTTON_COLOR = '#7C7C7C';
 
 export const dialogStyles = createStyleSheet({
 
@@ -15,6 +18,22 @@ export const dialogStyles = createStyleSheet({
         marginHorizontal: BaseTheme.spacing[3],
         marginTop: BaseTheme.spacing[2]
     },
+    fieldTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginStart: 20,
+    letterSpacing: 0.5,
+    color: BaseTheme.palette.text01,
+    marginBottom: 6
+},
+fieldOption: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginStart: 5,
+    color: BaseTheme.palette.text01,
+    letterSpacing: 0.5,
+    marginBottom: BaseTheme.spacing[1]
+},
 
     questionText: {
         ...BaseTheme.typography.bodyShortBold,
@@ -31,12 +50,15 @@ export const dialogStyles = createStyleSheet({
 
     optionContainer: {
         flexDirection: 'column',
-        marginTop: BaseTheme.spacing[3],
+        marginTop: BaseTheme.spacing[2],
+        marginBottom: BaseTheme.spacing[3],
         marginHorizontal: BaseTheme.spacing[3]
     },
 
     optionRemoveButton: {
-        width: 128
+        alignSelf: 'flex-start',
+        marginTop: BaseTheme.spacing[0],
+        paddingHorizontal: BaseTheme.spacing[2]
     },
 
     optionRemoveButtonText: {
@@ -72,7 +94,7 @@ export const resultsStyles = createStyleSheet({
     },
 
     bar: {
-        backgroundColor: BaseTheme.palette.action01,
+        backgroundColor: POLLS_ACCENT_COLOR,
         borderRadius: BaseTheme.shape.borderRadius,
         height: 6
     },
@@ -128,7 +150,7 @@ export const pollsStyles = createStyleSheet({
     },
 
     noPollText: {
-        flex: 1,
+        flex: 0.8,
         color: BaseTheme.palette.text03,
         textAlign: 'center',
         maxWidth: '70%'
@@ -196,13 +218,20 @@ export const pollsStyles = createStyleSheet({
         marginVertical: BaseTheme.spacing[2]
     },
 
+    pollCreateAddButtonPressed: {
+        backgroundColor: BaseTheme.palette.ui04
+    },
+
     pollCreateButton: {
         marginHorizontal: BaseTheme.spacing[1],
         flex: 1
     },
 
     toggleText: {
-        color: BaseTheme.palette.action01
+                color: POLLS_ACCENT_COLOR
+    },
+    toggleTextwhite: {
+        color: POLLS_ACCENT_COLOR_white
     },
 
     createPollButtonIos: {

@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-background-timer/android/src/main/java/com/ocetnik/timer/BackgroundTimerModule.java b/node_modules/react-native-background-timer/android/src/main/java/com/ocetnik/timer/BackgroundTimerModule.java
+index 1c9d2b3..f6a2e61 100644
+--- a/node_modules/react-native-background-timer/android/src/main/java/com/ocetnik/timer/BackgroundTimerModule.java
++++ b/node_modules/react-native-background-timer/android/src/main/java/com/ocetnik/timer/BackgroundTimerModule.java
+@@ -31,6 +31,16 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
+     public String getName() {
+         return "RNBackgroundTimer";
+     }
+ 
++    @ReactMethod
++    public void addListener(String eventName) {
++        // Required for RN built-in EventEmitter.
++    }
++
++    @ReactMethod
++    public void removeListeners(Integer count) {
++        // Required for RN built-in EventEmitter.
++    }
++
+     @ReactMethod
+     public void start(final int delay) {
+         if (!wakeLock.isHeld()) wakeLock.acquire();

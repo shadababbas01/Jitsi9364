@@ -63,7 +63,11 @@ import {
     setSubject,
     updateConferenceMetadata
 } from './actions';
-import { CONFERENCE_LEAVE_REASONS } from './constants';
+import {
+    CONFERENCE_DESTROYED_LEAVE_TIMEOUT,
+    CONFERENCE_LEAVE_REASONS,
+    TRIGGER_READY_TO_CLOSE_REASONS
+} from './constants';
 import {
     _addLocalTracksToConference,
     _removeLocalTracksFromConference,
@@ -185,6 +189,25 @@ function _conferenceFailed({ dispatch, getState }: IStore, next: Function, actio
 
     // Handle specific failure reasons.
     switch (error.name) {
+        case JitsiConferenceErrors.CONFERENCE_DESTROYED: {
+            const [ reason ] = error.params;
+    
+            // dispatch(showWarningNotification({
+            //     description: reason,
+            //     titleKey: 'dialog.sessTerminated'
+            // }, NOTIFICATION_TIMEOUT_TYPE.LONG));
+    
+            if (TRIGGER_READY_TO_CLOSE_REASONS.includes(reason)) {
+                // if (typeof APP === 'undefined') {
+                //     dispatch(readyToClose());
+                // } else {
+                //     APP.API.notifyReadyToClose();
+                // } added by jaswant
+                setTimeout(() => dispatch(leaveConference()), CONFERENCE_DESTROYED_LEAVE_TIMEOUT);
+            }
+    
+            break;
+        }
     case JitsiConferenceErrors.CONFERENCE_RESTARTED: {
         if (enableForcedReload) {
             dispatch(showErrorNotification({
@@ -333,8 +356,8 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
         requireDisplayName
     } = getState()['features/base/config'];
 
-    retryAsVisitorOnMaxError = true;
-
+    // retryAsVisitorOnMaxError = true;
+    console.log('conference joined')
     dispatch(removeLobbyChatParticipant(true));
 
     pendingSubjectChange && dispatch(setSubject(pendingSubjectChange));

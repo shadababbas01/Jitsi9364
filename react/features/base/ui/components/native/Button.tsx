@@ -17,6 +17,8 @@ export interface IProps extends IButtonProps {
     id?: string;
     labelStyle?: Object | undefined;
     mode?: any;
+    onPressIn?: ((e?: any) => void) | undefined;
+    onPressOut?: ((e?: any) => void) | undefined;
     style?: Object | undefined;
 }
 
@@ -31,6 +33,8 @@ const Button: React.FC<IProps> = ({
     labelStyle,
     mode = BUTTON_MODES.CONTAINED,
     onClick: onPress,
+    onPressIn,
+    onPressOut,
     style,
     type
 }: IProps) => {
@@ -79,6 +83,8 @@ const Button: React.FC<IProps> = ({
                 disabled = { disabled }
                 id = { id }
                 onPress = { onPress }
+                onPressIn = { onPressIn }
+                onPressOut = { onPressOut }
                 style = { [
                     buttonStyles,
                     style
@@ -110,6 +116,8 @@ const Button: React.FC<IProps> = ({
             ] as StyleProp<object> }
             mode = { mode }
             onPress = { onPress }
+            onPressIn = { onPressIn }
+            onPressOut = { onPressOut }
             style = { [
                 buttonStyles,
                 style

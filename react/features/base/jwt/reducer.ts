@@ -10,6 +10,7 @@ export interface IJwtState {
         name: string;
     };
     delayedLoadOfAvatarUrl?: string;
+    roomName?: string // added by shadab
     group?: string;
     jwt?: string;
     knownAvatarUrl?: string;

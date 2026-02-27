@@ -34,13 +34,16 @@ export function getReactionMessageFromBuffer(buffer: Array<string>): string {
  * Returns reactions array with uid.
  *
  * @param {Array} buffer - The reactions buffer.
+ *  * @param {string} participantName - Display name of the participant associated with the reactions.
+
  * @returns {Array}
  */
-export function getReactionsWithId(buffer: Array<string>): Array<IReactionEmojiProps> {
+export function getReactionsWithId(buffer: Array<string>, participantName?: string): Array<IReactionEmojiProps> {
     return buffer.map<IReactionEmojiProps>(reaction => {
         return {
             reaction,
-            uid: uuidv4()
+            uid: uuidv4(),
+            participantName
         };
     });
 }

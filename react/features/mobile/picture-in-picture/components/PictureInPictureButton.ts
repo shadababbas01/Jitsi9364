@@ -29,7 +29,8 @@ class PictureInPictureButton extends AbstractButton<IProps> {
      * @protected
      * @returns {void}
      */
-    override _handleClick() {
+    _handleClick() {
+        //  NativeModules.NativeCallsNew.pipMode();
         this.props.dispatch(enterPictureInPicture());
     }
 
@@ -39,8 +40,9 @@ class PictureInPictureButton extends AbstractButton<IProps> {
      * @inheritdoc
      * @returns {React$Node}
      */
-    override render() {
-        return this.props._enabled ? super.render() : null;
+    render() {
+        //return this.props._enabled ? super.render() : null;
+        return true ? super.render() : null;
     }
 }
 

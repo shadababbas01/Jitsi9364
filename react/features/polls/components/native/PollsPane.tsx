@@ -19,6 +19,8 @@ import {
 import PollCreate from './PollCreate';
 import PollsList from './PollsList';
 import { pollsStyles } from './styles';
+import { POLLS_ACCENT_COLOR, POLLS_CREATE_BUTTON_COLOR, chatStyles } from './styles';
+
 
 const PollsPane = (props: AbstractProps) => {
     const { createMode, isCreatePollsDisabled, onCreate, setCreateMode, t } = props;
@@ -54,16 +56,16 @@ const PollsPane = (props: AbstractProps) => {
             {
                 createMode
                     ? <PollCreate setCreateMode = { setCreateMode } />
-                    : <>
-                        <PollsList setCreateMode = { setCreateMode } />
-                        {!isCreatePollsDisabled && <Button
-                            accessibilityLabel = 'polls.create.create'
-                            id = { t('polls.create.create') }
-                            labelKey = 'polls.create.create'
-                            onClick = { onCreate }
-                            style = { createPollButtonStyles }
-                            type = { BUTTON_TYPES.PRIMARY } />}
-                    </>
+                    : <PollsList />
+            }
+            {
+                !createMode && <Button
+                    accessibilityLabel = 'polls.create.create'
+                    labelKey = 'polls.create.create'
+                    onClick = { onCreate }
+                    color = { POLLS_CREATE_BUTTON_COLOR }
+                    style = { createPollButtonStyles }
+                    type = { BUTTON_TYPES.DESTRUCTIVE } />
             }
         </JitsiScreen>
     );

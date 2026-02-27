@@ -125,7 +125,7 @@ export const SET_LOBBY_CHAT_RECIPIENT = 'SET_LOBBY_CHAT_RECIPIENT';
  *     payload: boolean
  * }
  */
-export const SET_LOBBY_CHAT_ACTIVE_STATE = 'SET_LOBBY_CHAT_ACTIVE_STATE';
+// export const SET_LOBBY_CHAT_ACTIVE_STATE = 'SET_LOBBY_CHAT_ACTIVE_STATE';
 
 /**
  * The type of action removes the lobby messaging from participant.
@@ -134,7 +134,7 @@ export const SET_LOBBY_CHAT_ACTIVE_STATE = 'SET_LOBBY_CHAT_ACTIVE_STATE';
  *     type: REMOVE_LOBBY_CHAT_PARTICIPANT
  * }
  */
-export const REMOVE_LOBBY_CHAT_PARTICIPANT = 'REMOVE_LOBBY_CHAT_PARTICIPANT';
+// export const REMOVE_LOBBY_CHAT_PARTICIPANT = 'REMOVE_LOBBY_CHAT_PARTICIPANT';
 
 /**
  * The type of action which signals to set the width of the chat panel.
@@ -172,3 +172,38 @@ export const SET_CHAT_IS_RESIZING = 'SET_CHAT_IS_RESIZING';
   * }
   */
  export const NOTIFY_PRIVATE_RECIPIENTS_CHANGED = 'NOTIFY_PRIVATE_RECIPIENTS_CHANGED';
+ export const SET_LOBBY_CHAT_ACTIVE_STATE = 'SET_LOBBY_CHAT_ACTIVE_STATE';
+
+ /**
+  * The type of action removes the lobby messaging from participant.
+  *
+  * {
+  *     type: REMOVE_LOBBY_CHAT_PARTICIPANT
+  * }
+  */
+ export const REMOVE_LOBBY_CHAT_PARTICIPANT = 'REMOVE_LOBBY_CHAT_PARTICIPANT';
+/**
+ * The type of action removes the lobby messaging from participant.
+ *
+ * {
+ *     type: REMOVE_LOBBY_CHAT_PARTICIPANT
+ * }
+ */
+
+export const NOTIFY_TRANSCRIPTION_STARTED = 'NOTIFY_TRANSCRIPTION_STARTED';
+export const SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER = 'SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER';
+export const SHOW_TRANSCRIPTION_CONSENT = 'SHOW_TRANSCRIPTION_CONSENT';
+export const DISMISS_TRANSCRIPTION_CONSENT = 'DISMISS_TRANSCRIPTION_CONSENT';
+export const RESET_TRANSCRIPTION_CONSENT = 'RESET_TRANSCRIPTION_CONSENT';
+
+export const TRANSCRIPTION_STATUS_REQUEST = 'TRANSCRIPTION_STATUS_REQUEST';
+export const TRANSCRIPTION_STATUS_RESPONSE = 'TRANSCRIPTION_STATUS_RESPONSE';
+/**
+ * The type of action which sets whether the chat tab should be visible alongside polls.
+ *
+ * {
+ *     type: SET_CHAT_TAB_VISIBLE,
+ *     isVisible: boolean
+ * }
+ */
+export const SET_CHAT_TAB_VISIBLE = 'SET_CHAT_TAB_VISIBLE';

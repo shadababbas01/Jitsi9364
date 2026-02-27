@@ -42,14 +42,12 @@ const PollsList = ({ setCreateMode }: IPollListProps) => {
         <>
             {
                 listPolls.length === 0
-                && <View style = { pollsStyles.noPollContent as ViewStyle }>
-                    <Icon
+                && <View style = { chatStyles.noPollContent as ViewStyle }>
+                    {/* <Icon
                         color = { BaseTheme.palette.icon03 }
                         size = { 160 }
-                        src = { IconMessage } />
-                    <Text
-                        id = 'no-polls-text'
-                        style = { pollsStyles.noPollText as TextStyle } >
+                        src = { IconMessage } /> */}
+                    <Text style = { chatStyles.noPollText as TextStyle } >
                         {
                             t('polls.results.empty')
                         }

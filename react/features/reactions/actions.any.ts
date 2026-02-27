@@ -95,10 +95,15 @@ export function addReactionsToChat(message: string): IReactionsAction {
  * @param {Array} reactions - The reactions to be animated.
  * @returns {IReactionsAction}
  */
-export function pushReactions(reactions: Array<string>): IReactionsAction {
+export function pushReactions(
+        reactions: Array<string>,
+        participantId?: string,
+        participantName?: string): IReactionsAction {
     return {
         type: PUSH_REACTIONS,
-        reactions
+        reactions,
+        participantId,
+        participantName
     };
 }
 

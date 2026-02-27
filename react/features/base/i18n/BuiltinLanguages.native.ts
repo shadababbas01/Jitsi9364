@@ -70,6 +70,11 @@ const _LANGUAGES = {
         main: require('../../../../lang/main-fr-CA')
     },
 
+    // Hindi
+    'hi': {
+        main: require('../../../../lang/main-hi')
+    },
+
     // Croatian
     'hr': {
         main: require('../../../../lang/main-hr')

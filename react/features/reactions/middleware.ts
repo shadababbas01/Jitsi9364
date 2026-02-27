@@ -9,7 +9,9 @@ import { CONFERENCE_JOIN_IN_PROGRESS, SET_START_REACTIONS_MUTED } from '../base/
 import { setStartReactionsMuted } from '../base/conference/actions';
 import {
     getParticipantById,
+    getParticipantDisplayName,
     getParticipantCount,
+    getLocalParticipant,
     isLocalParticipantModerator
 } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
@@ -117,13 +119,23 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
         const state = getState();
         const { buffer } = state['features/reactions'];
         const participantCount = getParticipantCount(state);
+        const localParticipant = getLocalParticipant(state);
+        const localParticipantId = localParticipant?.id;
+        const localParticipantName
+            = localParticipant?.name
+                || (localParticipantId ? getParticipantDisplayName(state, localParticipantId) : undefined);
+
 
         batch(() => {
             if (participantCount > 1) {
                 dispatch(sendReactions());
             }
             dispatch(addReactionsToChat(getReactionMessageFromBuffer(buffer)));
-            dispatch(pushReactions(buffer));
+            dispatch(pushReactions(
+                buffer,
+                localParticipantId,
+                localParticipantName
+            ));
         });
 
         sendReactionsWebhook(state, buffer);
@@ -136,7 +148,11 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
         const { queue, notificationDisplayed } = state['features/reactions'];
         const { soundsReactions } = state['features/base/settings'];
         const disabledSounds = getDisabledSounds(state);
-        const reactions = action.reactions;
+        const reactions = action.reactions ?? [];
+        const { participantId, participantName } = action;
+        const displayName = participantName
+            || (participantId ? getParticipantDisplayName(state, participantId) : undefined);
+
 
         batch(() => {
             if (!notificationDisplayed && soundsReactions && !disabledSounds.includes(REACTION_SOUND)
@@ -150,7 +166,7 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
                     dispatch(playSound(`${REACTIONS[reaction.reaction].soundId}${reaction.threshold}`))
                 );
             }
-            dispatch(setReactionQueue([ ...queue, ...getReactionsWithId(reactions) ]));
+            dispatch(setReactionQueue([ ...queue, ...getReactionsWithId(reactions, displayName) ]));
         });
         break;
     }

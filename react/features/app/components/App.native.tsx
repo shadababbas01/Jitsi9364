@@ -5,10 +5,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 // @ts-ignore
 import { hideSplash } from 'react-native-splash-view';
 
+import i18next from 'i18next';
 import BottomSheetContainer from '../../base/dialog/components/native/BottomSheetContainer';
 import DialogContainer from '../../base/dialog/components/native/DialogContainer';
 import { updateFlags } from '../../base/flags/actions';
-import { CALL_INTEGRATION_ENABLED } from '../../base/flags/constants';
+import { CALL_INTEGRATION_ENABLED, SERVER_URL_CHANGE_ENABLED } from '../../base/flags/constants';
 import { clientResized, setSafeAreaInsets } from '../../base/responsive-ui/actions';
 import DimensionsDetector from '../../base/responsive-ui/components/DimensionsDetector.native';
 import { updateSettings } from '../../base/settings/actions';
@@ -16,6 +17,8 @@ import JitsiThemePaperProvider from '../../base/ui/components/JitsiThemeProvider
 import { isEmbedded } from '../../base/util/embedUtils.native';
 import { _getRouteToRender } from '../getRouteToRender.native';
 import logger from '../logger';
+
+import { getFeatureFlag } from '../../base/flags/functions';
 
 import { AbstractApp, IProps as AbstractAppProps } from './AbstractApp';
 
@@ -31,6 +34,19 @@ const { AppInfo } = NativeModules;
 const DialogContainerWrapper = Platform.select({
     default: View
 });
+
+const isRemoteDebuggingEnabled = () => {
+    const globalAny = global as any;
+
+    return Boolean(
+        __DEV__
+        && (
+            globalAny.__REMOTEDEV__
+            || globalAny.__DEBUGGER__
+            || typeof globalAny.nativeCallSyncHook !== 'function'
+        )
+    );
+};
 
 /**
  * The type of React {@code Component} props of {@link App}.
@@ -90,6 +106,10 @@ export class App extends AbstractApp<IProps> {
         const liteTxt = AppInfo.isLiteSDK ? ' (lite)' : '';
 
         logger.info(`Loaded SDK ${AppInfo.sdkVersion}${liteTxt} isEmbedded=${isEmbedded()}`);
+
+        if (isRemoteDebuggingEnabled()) {
+            logger.warn('[JitsiUI] Remote JS debugging detected. Disable DevTools/remote debugger if UI is blank.');
+        }
     }
 
     /**
@@ -169,10 +189,25 @@ export class App extends AbstractApp<IProps> {
         // @ts-ignore
         dispatch?.(updateSettings(userInfo || {}));
 
+    //    dispatch?.(updateSettings(this.props.userInfo || {})); // added by jaswant
+    dispatch?.(updateSettings(this.props.incomingCallInfo || {}));
+
         // Update settings with feature-flag.
         if (typeof callIntegrationEnabled !== 'undefined') {
             dispatch?.(updateSettings({ disableCallIntegration: !callIntegrationEnabled }));
         }
+        if (this.props.url && this.props.url.config) {
+            dispatch(updateSettings({ isPrivateRoom: this.props.url.config.isPrivateRoom,
+                isGroupCall: this.props.url.config.isGroupCall,
+                userPicUrl: this.props.url.config.userPicUrl,
+                teamName: this.props.url.config.teamName
+                ,zoomtype:'cover' }));
+        }
+        i18next.changeLanguage((i18next.language=='pt'?'ptBR':i18next.language));
+        i18next.changeLanguage((i18next.language=='zh'?'zhCN':i18next.language));
+        i18next.changeLanguage((i18next.language=='es'?'esUS':i18next.language));
+        i18next.changeLanguage((i18next.language=='in'?'id':i18next.language));
+        console.log("this is in app language we sent in app native -->", i18next.language);
     }
 
     /**

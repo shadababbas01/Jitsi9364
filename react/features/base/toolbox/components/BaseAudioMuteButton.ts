@@ -1,4 +1,4 @@
-import { IconMic, IconMicSlash } from '../../icons/svg';
+import { IconMic, IconMicSlash, IconCameraRefresh } from '../../icons/svg';
 
 import AbstractButton, { IProps } from './AbstractButton';
 

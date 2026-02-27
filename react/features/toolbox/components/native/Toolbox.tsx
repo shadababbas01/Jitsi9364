@@ -23,11 +23,13 @@ interface IProps {
      * Whether we are in visitors mode.
      */
     _iAmVisitor: boolean;
+    ismessage: boolean;
 
     /**
      * The color-schemed stylesheet of the feature.
      */
     _styles: any;
+    setMessagestate: (state: boolean) => void;
 
     /**
      * The indicator which determines whether the toolbox is visible.
@@ -37,7 +39,8 @@ interface IProps {
     /**
      * Redux store dispatch method.
      */
-    dispatch: IStore['dispatch'];
+    _width: number;
+    newMessage: any;
 }
 
 /**
@@ -47,12 +50,7 @@ interface IProps {
  * @returns {React$Element}
  */
 function Toolbox(props: IProps) {
-    const {
-        _iAmVisitor,
-        _styles,
-        _visible,
-        dispatch
-    } = props;
+    const { _endConferenceSupported, _shouldDisplayReactionsButtons, _styles, _visible, _iAmVisitor, _width, newMessage,setMessagestate, ismessage } = props;
 
     if (!_visible) {
         return null;
@@ -76,13 +74,24 @@ function Toolbox(props: IProps) {
     });
 
     const bottomEdge = Platform.OS === 'ios' && _visible;
-    const { buttonStylesBorderless, hangupButtonStyles } = _styles;
+    const { buttonStylesBorderless, hangupButtonStyles, toggledButtonStyles, toggledButtonStyles2 } = _styles;
+    const additionalButtons = getMovableButtons(_width);
+    const backgroundToggledStyle = {
+        ...toggledButtonStyles,
+        style: [
+            toggledButtonStyles.style,
+            _styles.backgroundToggle
+        ]
+    };
     const style = { ...styles.toolbox };
 
     // We have only hangup and raisehand button in _iAmVisitor mode
     if (_iAmVisitor) {
+        
         style.justifyContent = 'center';
     }
+    additionalButtons.add('raisehand');
+    console.log('this is new message in toolbox', newMessage);
 
     const renderToolboxButtons = () => {
         if (!mainMenuButtons?.length) {
@@ -116,7 +125,55 @@ function Toolbox(props: IProps) {
                 edges = { [ bottomEdge && 'bottom' ].filter(Boolean) }
                 pointerEvents = 'box-none'
                 style = { style as ViewStyle }>
-                { renderToolboxButtons() }
+                    {additionalButtons.has('chat')
+                      && <ChatButton setMessagestate={setMessagestate} ismessage={ismessage}
+                          styles = { buttonStylesBorderless } />
+                        }
+                        {!_iAmVisitor && <AudioMuteButton
+                    styles = { buttonStylesBorderless }
+                    toggledStyles = { toggledButtonStyles } />
+                }
+                        {/* added by jaswant { false &&_endConferenceSupported
+                    ? <HangupMenuButton
+                        styles = { hangupMenuButtonStyles }
+                        toggledStyles = { toggledButtonStyles } />
+                    : <HangupButton
+                        styles = { hangupButtonStyles } />
+                } */
+                // <HangupButton
+                    // styles = { hangupButtonStyles } />
+                <HangupMenuButton
+                styles = { hangupButtonStyles }
+                toggledStyles = { toggledButtonStyles } />
+                }
+                
+                {!_iAmVisitor && <VideoMuteButton
+                    styles = { buttonStylesBorderless }
+                    // toggledStyles = { toggledButtonStyles } 
+                    />
+                }
+                {/* {additionalButtons.has('chat')
+                    && <ChatButton
+                        styles = { buttonStylesBorderless }
+                        toggledStyles = { backgroundToggledStyle } />
+                } */}
+                { additionalButtons.has('raisehand') && <RaiseHandButton styles = { buttonStylesBorderless }
+                toggledStyles = { toggledButtonStyles2 }/>}
+                {!_iAmVisitor && additionalButtons.has('screensharing')
+                    && <ScreenSharingButton styles = { buttonStylesBorderless } />}
+                {/*additionalButtons.has('raisehand') && (_shouldDisplayReactionsButtons
+                    ? <ReactionsMenuButton
+                        styles = { buttonStylesBoPrderless }
+                        toggledStyles = { backgroundToggledStyle } />
+                    : <RaiseHandButton
+                        styles = { buttonStylesBorderless }
+                toggledStyles = { backgroundToggledStyle } />)*/}
+                {additionalButtons.has('tileview') && <TileViewButton styles = { buttonStylesBorderless } />}
+                {!_iAmVisitor && <OverflowMenuButton
+                    styles = { buttonStylesBorderless }
+                    toggledStyles = { toggledButtonStyles } />
+                }
+                
             </SafeAreaView>
         </View>
     );

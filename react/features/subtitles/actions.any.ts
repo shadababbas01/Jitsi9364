@@ -7,7 +7,11 @@ import {
     SET_SUBTITLES_ERROR,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
-    UPDATE_TRANSCRIPT_MESSAGE
+    UPDATE_TRANSCRIPT_MESSAGE,
+    SET_SUBTITLES_LANGUAGE,
+    SET_SUMMARY_ENABLED,
+    SET_SUMMARY_CATEGORY,
+    SET_INTERVIEW_CONSENT
 } from './actionTypes';
 import { ISubtitle } from './types';
 
@@ -26,6 +30,15 @@ export function removeTranscriptMessage(transcriptMessageID: string) {
         transcriptMessageID
     };
 }
+/**
+ * Signals that a cached transcript has to be removed from the state.
+ *
+ * @param {string} transcriptMessageID -The transcript message_id to be removed.
+ * @returns {{
+ *      type: REMOVE_CACHED_TRANSCRIPT_MESSAGE,
+ *      transcriptMessageID: string
+ * }}
+ */
 
 /**
  * Signals that a cached transcript has to be removed from the state.
@@ -64,6 +77,21 @@ export function updateTranscriptMessage(transcriptMessageID: string,
     };
 }
 
+/**
+ * Stores a received subtitle in the history.
+ *
+ * @param {ISubtitle} subtitle - The subtitle to store.
+ * @returns {{
+ *     type: STORE_SUBTITLE,
+ *     subtitle: ISubtitle
+ * }}
+ */
+export function storeSubtitle(subtitle: ISubtitle) {
+    return {
+        type: STORE_SUBTITLE,
+        subtitle
+    };
+}
 /**
  * Signals that the local user has toggled the ClosedCaption button.
  *
@@ -107,22 +135,6 @@ export function setRequestingSubtitles(
 }
 
 /**
- * Stores a received subtitle in the history.
- *
- * @param {ISubtitle} subtitle - The subtitle to store.
- * @returns {{
- *     type: STORE_SUBTITLE,
- *     subtitle: ISubtitle
- * }}
- */
-export function storeSubtitle(subtitle: ISubtitle) {
-    return {
-        type: STORE_SUBTITLE,
-        subtitle
-    };
-}
-
-/**
  * Signals that an error occurred while starting subtitles.
  *
  * @param {boolean} hasError - Whether an error occurred or not.
@@ -137,3 +149,25 @@ export function setSubtitlesError(hasError: boolean) {
         hasError
     };
 }
+
+// In actions.any.ts
+export const setSubtitlesLanguage = (language: string) => ({
+    type: SET_SUBTITLES_LANGUAGE,
+    language
+});
+
+// Summary state updates
+export const setSummaryEnabled = (enabled: boolean) => ({
+    type: SET_SUMMARY_ENABLED,
+    enabled
+});
+
+export const setSummaryCategory = (category: string) => ({
+    type: SET_SUMMARY_CATEGORY,
+    category
+});
+
+export const setInterviewConsent = (accepted: boolean) => ({
+    type: SET_INTERVIEW_CONSENT,
+    accepted
+});

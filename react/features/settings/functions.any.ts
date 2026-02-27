@@ -119,7 +119,8 @@ function normalizeCurrentLanguage(language: string) {
 export function getMoreTabProps(stateful: IStateful) {
     const state = toState(stateful);
     const stageFilmstripEnabled = isStageFilmstripEnabled(state);
-    const language = normalizeCurrentLanguage(i18next.language) || DEFAULT_LANGUAGE;
+    const language = i18next.language || DEFAULT_LANGUAGE;
+    console.log("this is app language -->", language);
     const configuredTabs: string[] = interfaceConfig.SETTINGS_SECTIONS || [];
 
     // when self view is controlled by the config we hide the settings

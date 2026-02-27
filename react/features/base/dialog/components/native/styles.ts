@@ -50,8 +50,20 @@ export const inputDialog = {
         fontStyle: 'italic',
         fontWeight: 'bold',
         marginTop: BaseTheme.spacing[3]
+    },
+    formMessage2: {
+        alignSelf: 'flex-start',
+        fontWeight: 'bold',
+        marginTop: -BaseTheme.spacing[2]
+
+    },
+    minusmargin2: {
+        marginTop: -BaseTheme.spacing[2]
+
     }
 };
+
+
 
 /**
  * The React {@code Component} styles of {@code BottomSheet}. These have

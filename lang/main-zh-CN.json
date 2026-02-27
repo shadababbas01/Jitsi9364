@@ -67,17 +67,17 @@
             "renameBreakoutRoom": "重命名分组讨论室",
             "sendToBreakoutRoom": "将参会者移至："
         },
-        "breakoutList": "分组讨论室列表",
-        "buttonLabel": "分组讨论室",
-        "defaultName": "分组讨论室 #{{index}}",
         "hideParticipantList": "隐藏成员列表",
+        "breakoutList": "分组讨论列表",
+        "buttonLabel": "分组讨论室",
+        "defaultName": "分组讨论室#{{index}}",
         "mainRoom": "主会议室",
         "notifications": {
             "joined": "正在加入“{{name}}”分组讨论室",
             "joinedMainRoom": "正在加入主会议室",
             "joinedTitle": "分组讨论室"
         },
-        "showParticipantList": "显示成员列表",
+        "showParticipantList": "显示参与者列表",
         "title": "分组讨论室"
     },
     "calendarSync": {

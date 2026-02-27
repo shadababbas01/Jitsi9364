@@ -9,17 +9,19 @@ import {
     ADD_MESSAGE_REACTION,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
     OPEN_CHAT,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
-    SET_CHAT_IS_RESIZING,
-    SET_CHAT_WIDTH,
-    SET_FOCUSED_TAB,
+    RESET_TRANSCRIPTION_CONSENT,
+    SET_CHAT_TAB_VISIBLE,
+    SET_IS_POLL_TAB_FOCUSED,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
     SET_PRIVATE_MESSAGE_RECIPIENT,
-    SET_USER_CHAT_WIDTH
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { CHAT_SIZE, ChatTabs } from './constants';
 import { IMessage } from './types';
@@ -27,6 +29,9 @@ import { IMessage } from './types';
 const DEFAULT_STATE = {
     groupChatWithPermissions: false,
     isOpen: false,
+    isPollsTabFocused: false,
+    isChatTabVisible: true,
+    lastReadMessage: undefined,
     messages: [],
     notifyPrivateRecipientsChangedTimestamp: undefined,
     reactions: {},
@@ -35,12 +40,11 @@ const DEFAULT_STATE = {
     privateMessageRecipient: undefined,
     lobbyMessageRecipient: undefined,
     isLobbyChatActive: false,
-    focusedTab: ChatTabs.CHAT,
-    isResizing: false,
-    width: {
-        current: CHAT_SIZE,
-        userSet: null
-    }
+    showTranscriptionConsent: false,
+    transcriptionStartedByCurrentUser: false,
+    transcriptionModeratorName: null,
+    transcriptionStarterId: null,
+    consentDismissedForSession: false
 };
 
 export interface IChatState {
@@ -48,7 +52,8 @@ export interface IChatState {
     groupChatWithPermissions: boolean;
     isLobbyChatActive: boolean;
     isOpen: boolean;
-    isResizing: boolean;
+    isPollsTabFocused: boolean;
+    isChatTabVisible: boolean;
     lastReadMessage?: IMessage;
     lobbyMessageRecipient?: {
         id: string;
@@ -57,241 +62,189 @@ export interface IChatState {
     messages: IMessage[];
     nbUnreadFiles: number;
     nbUnreadMessages: number;
-    notifyPrivateRecipientsChangedTimestamp?: number;
-    privateMessageRecipient?: IParticipant | IVisitorChatParticipant;
-    width: {
-        current: number;
-        userSet: number | null;
-    };
+    privateMessageRecipient?: IParticipant;
+    showTranscriptionConsent: boolean;
+    transcriptionStartedByCurrentUser: boolean;
+    transcriptionModeratorName?: string | null;
+    transcriptionStarterId?: string | null;
+    consentDismissedForSession: boolean;
 }
 
 ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, action): IChatState => {
     switch (action.type) {
-    case ADD_MESSAGE: {
-        const newMessage: IMessage = {
-            displayName: action.displayName,
-            error: action.error,
-            isFromGuest: Boolean(action.isFromGuest),
-            isFromVisitor: Boolean(action.isFromVisitor),
-            participantId: action.participantId,
-            isReaction: action.isReaction,
-            messageId: action.messageId,
-            messageType: action.messageType,
-            message: action.message,
-            reactions: action.reactions,
-            privateMessage: action.privateMessage,
-            lobbyChat: action.lobbyChat,
-            recipient: action.recipient,
-            sentToVisitor: Boolean(action.sentToVisitor),
-            timestamp: action.timestamp
-        };
+        case ADD_MESSAGE: {
+            const newMessage: IMessage = {
+                displayName: action.displayName,
+                error: action.error,
+                id: action.id,
+                isReaction: action.isReaction,
+                messageId: uuidv4(),
+                messageType: action.messageType,
+                message: action.message,
+                privateMessage: action.privateMessage,
+                lobbyChat: action.lobbyChat,
+                recipient: action.recipient,
+                timestamp: action.timestamp
+            };
 
-        // React native, unlike web, needs a reverse sorted message list.
-        const messages = navigator.product === 'ReactNative'
-            ? [
-                newMessage,
-                ...state.messages
-            ]
-            : [
-                ...state.messages,
-                newMessage
-            ];
+            // React native, unlike web, needs a reverse sorted message list.
+            const messages = navigator.product === 'ReactNative'
+                ? [
+                    newMessage,
+                    ...state.messages
+                ]
+                : [
+                    ...state.messages,
+                    newMessage
+                ];
 
-        return {
-            ...state,
-            lastReadMessage:
-                action.hasRead ? newMessage : state.lastReadMessage,
-            nbUnreadMessages: state.focusedTab !== ChatTabs.CHAT ? state.nbUnreadMessages + 1 : state.nbUnreadMessages,
-            messages
-        };
-    }
-
-    case ADD_MESSAGE_REACTION: {
-        const { participantId, reactionList, messageId } = action;
-
-        const messages = state.messages.map(message => {
-            if (messageId === message.messageId) {
-                const newReactions = new Map(message.reactions);
-
-                reactionList.forEach((reaction: string) => {
-                    let participants = newReactions.get(reaction);
-
-                    if (!participants) {
-                        participants = new Set();
-                        newReactions.set(reaction, participants);
-                    }
-
-                    participants.add(participantId);
-                });
-
-                return {
-                    ...message,
-                    reactions: newReactions
-                };
-            }
-
-            return message;
-        });
-
-        return {
-            ...state,
-            messages
-        };
-    }
-
-    case CLEAR_MESSAGES:
-        return {
-            ...state,
-            lastReadMessage: undefined,
-            messages: []
-        };
-
-    case EDIT_MESSAGE: {
-        let found = false;
-        const newMessage = action.message;
-        const messages = state.messages.map(m => {
-            if (m.messageId === newMessage.messageId) {
-                found = true;
-
-                return newMessage;
-            }
-
-            return m;
-        });
-
-        // no change
-        if (!found) {
-            return state;
-        }
-
-        return {
-            ...state,
-            messages
-        };
-    }
-
-    case SET_PRIVATE_MESSAGE_RECIPIENT:
-        return {
-            ...state,
-            privateMessageRecipient: action.participant
-        };
-
-    case OPEN_CHAT:
-        return {
-            ...state,
-            isOpen: true,
-            privateMessageRecipient: action.participant
-        };
-
-    case CLOSE_CHAT:
-        return {
-            ...state,
-            isOpen: false,
-            lastReadMessage: state.messages[
-                navigator.product === 'ReactNative' ? 0 : state.messages.length - 1],
-            privateMessageRecipient: action.participant,
-            isLobbyChatActive: false
-        };
-
-    case SET_LOBBY_CHAT_RECIPIENT:
-        return {
-            ...state,
-            isLobbyChatActive: true,
-            lobbyMessageRecipient: action.participant,
-            privateMessageRecipient: undefined,
-            isOpen: action.open
-        };
-    case SET_LOBBY_CHAT_ACTIVE_STATE:
-        return {
-            ...state,
-            isLobbyChatActive: action.payload,
-            isOpen: action.payload || state.isOpen,
-            privateMessageRecipient: undefined
-        };
-    case REMOVE_LOBBY_CHAT_PARTICIPANT:
-        return {
-            ...state,
-            messages: state.messages.filter(m => {
-                if (action.removeLobbyChatMessages) {
-                    return !m.lobbyChat;
-                }
-
-                return true;
-            }),
-            isOpen: state.isOpen && state.isLobbyChatActive ? false : state.isOpen,
-            isLobbyChatActive: false,
-            lobbyMessageRecipient: undefined
-        };
-    case UPDATE_CONFERENCE_METADATA: {
-        const { metadata } = action;
-
-        if (metadata?.permissions) {
             return {
                 ...state,
-                groupChatWithPermissions: Boolean(metadata.permissions.groupChatRestricted)
+                lastReadMessage:
+                    action.hasRead ? newMessage : state.lastReadMessage,
+                nbUnreadMessages: state.isPollsTabFocused ? state.nbUnreadMessages + 1 : state.nbUnreadMessages,
+                messages
             };
         }
 
-        break;
-    }
-    case SET_FOCUSED_TAB:
-        return {
-            ...state,
-            focusedTab: action.tabId,
-            nbUnreadMessages: action.tabId === ChatTabs.CHAT ? 0 : state.nbUnreadMessages,
-            nbUnreadFiles: action.tabId === ChatTabs.FILE_SHARING ? 0 : state.nbUnreadFiles
-        };
+        case CLEAR_MESSAGES:
+            return {
+                ...state,
+                lastReadMessage: undefined,
+                messages: []
+            };
 
-    case SET_CHAT_WIDTH: {
-        return {
-            ...state,
-            width: {
-                ...state.width,
-                current: action.width
+        case EDIT_MESSAGE: {
+            let found = false;
+            const newMessage = action.message;
+            const messages = state.messages.map(m => {
+                if (m.messageId === newMessage.messageId) {
+                    found = true;
+
+                    return newMessage;
+                }
+
+                return m;
+            });
+
+            // no change
+            if (!found) {
+                return state;
             }
-        };
-    }
 
-    case SET_USER_CHAT_WIDTH: {
-        const { width } = action;
+            return {
+                ...state,
+                messages
+            };
+        }
 
+        case SET_PRIVATE_MESSAGE_RECIPIENT:
+            return {
+                ...state,
+                privateMessageRecipient: action.participant
+            };
+
+        case OPEN_CHAT:
+            return {
+                ...state,
+                isPollsTabFocused: false,
+                isChatTabVisible: true,
+                isOpen: true,
+                privateMessageRecipient: action.participant
+            };
+
+        case CLOSE_CHAT:
+            return {
+                ...state,
+                isOpen: false,
+                lastReadMessage: state.messages[
+                    navigator.product === 'ReactNative' ? 0 : state.messages.length - 1],
+                privateMessageRecipient: action.participant,
+                isLobbyChatActive: false
+            };
+
+        case SET_IS_POLL_TAB_FOCUSED: {
+            return {
+                ...state,
+                isPollsTabFocused: action.isPollsTabFocused,
+                nbUnreadMessages: 0
+            };
+        }
+
+
+        case SET_CHAT_TAB_VISIBLE:
+            return {
+                ...state,
+                isChatTabVisible: action.isVisible
+            };
+
+        case SET_LOBBY_CHAT_RECIPIENT:
+            return {
+                ...state,
+                isLobbyChatActive: true,
+                lobbyMessageRecipient: action.participant,
+                privateMessageRecipient: undefined,
+                isOpen: action.open
+            };
+        case SET_LOBBY_CHAT_ACTIVE_STATE:
+            return {
+                ...state,
+                isLobbyChatActive: action.payload,
+                isOpen: action.payload || state.isOpen,
+                privateMessageRecipient: undefined
+            };
+        case REMOVE_LOBBY_CHAT_PARTICIPANT:
+            return {
+                ...state,
+                messages: state.messages.filter(m => {
+                    if (action.removeLobbyChatMessages) {
+                        return !m.lobbyChat;
+                    }
+
+                    return true;
+                }),
+                isOpen: state.isOpen && state.isLobbyChatActive ? false : state.isOpen,
+                isLobbyChatActive: false,
+                lobbyMessageRecipient: undefined
+            };
+             case SHOW_TRANSCRIPTION_CONSENT:
         return {
             ...state,
-            width: {
-                current: width,
-                userSet: width
-            }
+            showTranscriptionConsent: true,
+            transcriptionModeratorName: action.moderatorName,
+            transcriptionStarterId: action.transcriptionStarterId,
+            consentDismissedForSession: false
         };
-    }
-
-    case SET_CHAT_IS_RESIZING: {
+    case DISMISS_TRANSCRIPTION_CONSENT:
         return {
             ...state,
-            isResizing: action.resizing
+            showTranscriptionConsent: false,
+            transcriptionModeratorName: null,
+            transcriptionStarterId: null,
+            transcriptionStartedByCurrentUser: false,
+            consentDismissedForSession: true
         };
-    }
-    case NOTIFY_PRIVATE_RECIPIENTS_CHANGED:
+    case SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER:
         return {
             ...state,
-            notifyPrivateRecipientsChangedTimestamp: action.payload
+            transcriptionStartedByCurrentUser: action.startedByCurrentUser
         };
-
-    case ADD_FILE:
+    case RESET_TRANSCRIPTION_CONSENT:
         return {
             ...state,
-            nbUnreadFiles: action.shouldIncrementUnread ? state.nbUnreadFiles + 1 : state.nbUnreadFiles
+            consentDismissedForSession: false
         };
-
-    case _FILE_LIST_RECEIVED: {
-        const remoteFilesCount = Object.values(action.files).filter(
-            (file: any) => file.authorParticipantId !== action.localParticipantId
-        ).length;
-
-        return {
-            ...state,
-            nbUnreadFiles: remoteFilesCount
-        };
-    }
+    case SET_REQUESTING_SUBTITLES:
+        if (!action.enabled) {
+            return {
+                ...state,
+                showTranscriptionConsent: false,
+                transcriptionModeratorName: null,
+                transcriptionStarterId: null,
+                transcriptionStartedByCurrentUser: false
+            };
+        }
+        return state;
     }
 
     return state;

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+
+    <TextView
+        android:id="@+id/firstTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="First Text"
+        android:textColor="#ee4136"
+        android:gravity="center_horizontal"
+        android:textSize="30dp"/>
+    <TextView
+        android:layout_marginTop="50dp"
+        android:id="@+id/secondTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Second Text"
+        android:textColor="#ee4136"
+        android:gravity="center_horizontal"
+        android:textSize="30dp"/>
+
+
+    <TextView
+        android:layout_marginTop="50dp"
+        android:id="@+id/callTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Call"
+        android:textColor="#ee4136"
+        android:gravity="center_horizontal"
+        android:textSize="30dp"/>
+
+</LinearLayout>

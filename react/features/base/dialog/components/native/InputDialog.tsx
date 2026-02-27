@@ -101,38 +101,46 @@ class InputDialog extends AbstractDialog<IProps, IState> {
 
         return (
             <Dialog.Container
-                coverScreen = { false }
-                visible = { true }>
-                <Dialog.Title>
-                    { t(titleKey ?? '') }
-                </Dialog.Title>
+                coverScreen={false}
+                visible={true}
+                >
+                {titleKey ? (
+                    <Dialog.Title>
+                        {t(titleKey)}
+                    </Dialog.Title>
+                ) : null}
                 {
                     descriptionKey && (
-                        <Dialog.Description>
-                            { t(descriptionKey) }
+                        <Dialog.Description 
+                        style={styles.formMessage2 as TextStyle}
+                        >
+                            {t(descriptionKey)}
                         </Dialog.Description>
                     )
                 }
                 <Dialog.Input
-                    autoFocus = { true }
-                    onChangeText = { this._onChangeText }
-                    value = { this.state.fieldValue }
-                    { ...this.props.textInputProps } />
+                    autoFocus={true}
+                    onChangeText={this._onChangeText}
+                    value={this.state.fieldValue}
+                    style={styles.minusmargin2}
+                    {...this.props.textInputProps} />
                 {
                     messageKey && (
                         <Dialog.Description
-                            style = { styles.formMessage as TextStyle }>
-                            { t(messageKey) }
+                            style={styles.formMessage as TextStyle}>
+                            {t(messageKey)}
                         </Dialog.Description>
                     )
                 }
                 {!this.props.disableCancel && <Dialog.Button
-                    label = { t('dialog.Cancel') }
-                    onPress = { this._onCancel } />}
+                    label={t('dialog.Cancel')}
+                    style={styles.minusmargin2}
+                    onPress={this._onCancel} />}
                 <Dialog.Button
-                    disabled = { !this.state.isValid }
-                    label = { t('dialog.Ok') }
-                    onPress = { this._onSubmitValue } />
+                    disabled={!this.state.isValid}
+                    label={t('dialog.Ok')}
+                    style={styles.minusmargin2}
+                    onPress={this._onSubmitValue} />
             </Dialog.Container>
         );
     }
