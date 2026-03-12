@@ -98,7 +98,7 @@ class Video extends Component<IProps> {
             const rtcView
                 = (
                     <RTCView
-                        mirror = { this.props.mirror }
+                        mirror = { !this.props.mirror }
                         objectFit = { display }
                         streamURL = { stream.toURL() }
                         style = { style }

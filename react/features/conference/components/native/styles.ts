@@ -251,7 +251,7 @@ export default {
     },
 
     sideToolbarButtonWrapper: {
-        marginBottom: BaseTheme.spacing[3]
+        marginBottom: BaseTheme.spacing[2]
     },
 
     sideToolbarButton: {
