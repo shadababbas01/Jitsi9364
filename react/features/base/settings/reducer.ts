@@ -48,7 +48,8 @@ const DEFAULT_STATE: ISettingsState = {
     userSelectedNotifications: {
         'notify.chatMessages': true
     },
-    userSelectedMicDeviceLabel: undefined
+    userSelectedMicDeviceLabel: undefined,
+    zoomtype: 'cover'
 };
 
 export interface IAudioSettings {
@@ -92,6 +93,7 @@ export interface ISettingsState {
     userSelectedCameraDeviceLabel?: string;
     userSelectedMicDeviceId?: string;
     userSelectedMicDeviceLabel?: string;
+    zoomtype?: 'cover' | 'contain';
     userSelectedNotifications?: {
         [key: string]: boolean;
     };

@@ -164,11 +164,12 @@ function _setJWT(store: IStore, next: Function, action: AnyAction) {
             }
 
             if (jwtPayload) {
-                const { context, iss, sub } = jwtPayload;
+                const { context, iss, sub, roomName } = jwtPayload;
                 const { tokenGetUserInfoOutOfContext, tokenRespectTenant } = state['features/base/config'];
 
                 action.jwt = jwt;
                 action.issuer = iss;
+                action.roomName = roomName;
                 if (context) {
                     const user = _user2participant(context.user || {});
 

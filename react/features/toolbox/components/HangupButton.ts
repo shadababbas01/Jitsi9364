@@ -1,4 +1,5 @@
 import { once } from 'lodash-es';
+import { NativeModules } from 'react-native';
 import { connect } from 'react-redux';
 
 import { createToolbarEvent } from '../../analytics/AnalyticsEvents';
@@ -43,6 +44,7 @@ class HangupButton extends AbstractHangupButton<AbstractButtonProps> {
      * @returns {void}
      */
     override _doHangup() {
+        NativeModules?.NativeCallsNew?.hangup?.();
         this._hangup();
     }
 }

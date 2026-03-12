@@ -68,6 +68,8 @@ class ReactInstanceManagerHolder {
                 new LogBridgeModule(reactContext),
                 new PictureInPictureModule(reactContext),
                 new ProximityModule(reactContext),
+                new OpenMelpModule(reactContext),
+                new OpenMelpChatModule(reactContext),
                 new org.jitsi.meet.sdk.net.NAT64AddrInfoModule(reactContext)));
 
         if (AudioModeModule.useConnectionService()) {

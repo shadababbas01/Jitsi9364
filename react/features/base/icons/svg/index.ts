@@ -1,4 +1,6 @@
 import withBranding from '../components/withBranding';
+import ZoomIn from './ZoomIn.svg';
+import ZoomOut from './Zoomout.svg';
 
 import { DEFAULT_ICON } from './constants';
 
@@ -229,5 +231,7 @@ export {
     IconWifi1Bar,
     IconWifi2Bars,
     IconWifi3Bars,
-    IconYahoo
+    IconYahoo,
+    ZoomIn,
+    ZoomOut
 };

@@ -7,14 +7,14 @@ const contentColumn = {
 };
 
 const notification = {
-    backgroundColor: BaseTheme.palette.ui10,
-    borderRadius: BaseTheme.shape.borderRadius,
-    borderLeftColor: BaseTheme.palette.link01Active,
-    borderLeftWidth: BaseTheme.spacing[1],
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 22,
     display: 'flex',
     flexDirection: 'row',
     marginVertical: BaseTheme.spacing[1],
-    maxWidth: 416,
+    maxWidth: 360,
+    paddingHorizontal: BaseTheme.spacing[3],
+    paddingVertical: BaseTheme.spacing[1],
     width: '100%'
 };
 
@@ -44,26 +44,26 @@ export default {
     },
 
     contentText: {
-        color: BaseTheme.palette.text04,
+        color: BaseTheme.palette.text01,
         paddingLeft: BaseTheme.spacing[4],
         paddingTop: BaseTheme.spacing[1]
     },
 
     contentTextDescription: {
-        color: BaseTheme.palette.text04,
+        color: BaseTheme.palette.text01,
         paddingLeft: BaseTheme.spacing[4],
         paddingTop: BaseTheme.spacing[2]
     },
 
     contentTextTitleDescription: {
-        color: BaseTheme.palette.text04,
+        color: BaseTheme.palette.text01,
         fontWeight: 'bold',
         paddingLeft: BaseTheme.spacing[4],
         paddingTop: BaseTheme.spacing[2]
     },
 
     contentTextTitle: {
-        color: BaseTheme.palette.text04,
+        color: BaseTheme.palette.text01,
         fontWeight: 'bold',
         paddingLeft: BaseTheme.spacing[4],
         paddingTop: BaseTheme.spacing[3]
@@ -95,7 +95,7 @@ export default {
     },
 
     participantName: {
-        color: BaseTheme.palette.text04,
+        color: BaseTheme.palette.text01,
         overflow: 'hidden'
     },
 
@@ -117,25 +117,34 @@ export default {
     },
 
     withToolbox: {
-        bottom: 56,
+        alignItems: 'center',
+        paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
+        top: BaseTheme.spacing[12],
         width: '100%'
     },
 
     withToolboxTileView: {
-        bottom: 56,
+        alignItems: 'center',
+        paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
+        top: BaseTheme.spacing[12],
         width: '100%'
     },
 
     withoutToolbox: {
+        alignItems: 'center',
+        paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
+        top: BaseTheme.spacing[6],
         width: '100%'
     },
 
     withoutToolboxTileView: {
-        bottom: 0,
+        alignItems: 'center',
+        paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
+        top: BaseTheme.spacing[6],
         width: '100%'
     }
 };

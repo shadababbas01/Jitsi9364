@@ -33,6 +33,7 @@ import { ICalendarSyncState } from '../calendar-sync/reducer';
 import { IChatState } from '../chat/reducer';
 import { IDeepLinkingState } from '../deep-linking/reducer';
 import { IDropboxState } from '../dropbox/reducer';
+import { IDebugEventLogState } from '../debug-event-log/reducer';
 import { IDynamicBrandingState } from '../dynamic-branding/reducer';
 import { IE2EEState } from '../e2ee/reducer';
 import { IEtherpadState } from '../etherpad/reducer';
@@ -122,6 +123,7 @@ export interface IReduxState {
     'features/call-integration': ICallIntegrationState;
     'features/chat': IChatState;
     'features/deep-linking': IDeepLinkingState;
+    'features/debug-event-log': IDebugEventLogState;
     'features/dropbox': IDropboxState;
     'features/dynamic-branding': IDynamicBrandingState;
     'features/e2ee': IE2EEState;

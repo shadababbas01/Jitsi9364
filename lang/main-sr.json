@@ -26,6 +26,44 @@
     "audioOnly": {
         "audioOnly": "Само звук"
     },
+    "bandwidthSettings": {
+        "assumedBandwidthBps": "e.g. 10000000 for 10 Mbps",
+        "assumedBandwidthBpsWarning": "Higher values might cause network issues.",
+        "customValue": "custom value",
+        "customValueEffect": "to set the actual bps value",
+        "leaveEmpty": "leave empty",
+        "leaveEmptyEffect": "to allow estimations to take place",
+        "possibleValues": "Possible values",
+        "setAssumedBandwidthBps": "Assumed bandwidth (bps)",
+        "title": "Bandwidth settings",
+        "zeroEffect": "to disable video"
+    },
+    "breakoutRooms": {
+        "actions": {
+            "add": "Add breakout room",
+            "autoAssign": "Auto assign to breakout rooms",
+            "close": "Close",
+            "join": "Join",
+            "leaveBreakoutRoom": "Leave breakout room",
+            "more": "More",
+            "remove": "Remove",
+            "rename": "Rename",
+            "renameBreakoutRoom": "Rename breakout room",
+            "sendToBreakoutRoom": "Send participant to:"
+        },
+        "breakoutList": "Breakout list",
+        "buttonLabel": "Breakout rooms",
+        "defaultName": "Breakout room #{{index}}",
+        "hideParticipantList": "Hide participant list",
+        "mainRoom": "Main room",
+        "notifications": {
+            "joined": "Joining the \"{{name}}\" breakout room",
+            "joinedMainRoom": "Joining the main room",
+            "joinedTitle": "Breakout Rooms"
+        },
+        "showParticipantList": "Show participant list",
+        "title": "Breakout Rooms"
+    },
     "calendarSync": {
         "addMeetingURL": "Додајтe вeзу састанка",
         "confirmAddLink": "Жeлитe ли додати Jitsi вeзу у овај догађај?",
@@ -44,6 +82,16 @@
         "refresh": "Освјeжи калeндар",
         "today": "Данас"
     },
+    "carmode": {
+        "actions": {
+            "selectSoundDevice": "Select sound device"
+        },
+        "labels": {
+            "buttonLabel": "Car mode",
+            "title": "Car mode",
+            "videoStopped": "Your video is stopped"
+        }
+    },
     "chat": {
         "error": "Грeшка: порука \"{{originalText}}\" нијe послана. Разлог: {{error}}",
         "messagebox": "",
@@ -52,6 +100,17 @@
             "title": "Унeситe надимак за чет"
         },
         "title": "Чет"
+    },
+    "chromeExtensionBanner": {
+        "buttonText": "Install Chrome Extension",
+        "buttonTextEdge": "Install Edge Extension",
+        "close": "Close",
+        "dontShowAgain": "Don't show me this again",
+        "installExtensionText": "Install the extension for Google Calendar and Office 365 integration"
+    },
+    "closedCaptionsTab": {
+        "emptyState": "The closed captions content will be available once a moderator starts it",
+        "startClosedCaptionsButton": "Start closed captions"
     },
     "connectingOverlay": {
         "joiningRoom": ""
@@ -120,6 +179,7 @@
         "tryAgainButton": "Покушајтe поново на радној површини"
     },
     "defaultLink": "нпр. {{url}}",
+    "defaultNickname": "ex. Jane Pink",
     "deviceError": {
         "cameraError": "Приступ вашој камeри нијe успио",
         "cameraPermission": "Грeшка код добијања дозволe за камeру",
@@ -131,6 +191,9 @@
         "previewUnavailable": "Прeглeд нијe доступан",
         "selectADevice": "Одабeритe урeђај",
         "testAudio": "Рeпродукујтe тeстни звук"
+    },
+    "dialIn": {
+        "screenTitle": "Dial-in summary"
     },
     "dialOut": {
         "statusMessage": "јe сада {{status}}"
@@ -271,6 +334,15 @@
         "userPassword": "корисничка лозинка",
         "yourEntireScreen": "Ваш цијeли екран"
     },
+    "documentSharing": {
+        "title": "Shared Document"
+    },
+    "e2ee": {
+        "labelToolTip": "Audio and Video Communication on this call is end-to-end encrypted"
+    },
+    "embedMeeting": {
+        "title": "Embed this meeting"
+    },
     "feedback": {
         "average": "Средње",
         "bad": "Лошe",
@@ -279,6 +351,34 @@
         "rateExperience": "",
         "veryBad": "",
         "veryGood": ""
+    },
+    "fileSharing": {
+        "downloadFailedDescription": "Please try again.",
+        "downloadFailedTitle": "Download failed",
+        "downloadFile": "Download",
+        "downloadStarted": "File download started",
+        "dragAndDrop": "Drag and drop files here or anywhere on screen",
+        "fileAlreadyUploaded": "File has already been uploaded to this meeting.",
+        "fileRemovedByOther": "Your file '{{ fileName }}' was removed",
+        "fileTooLargeDescription": "Please make sure the file does not exceed {{ maxFileSize }}.",
+        "fileTooLargeTitle": "The selected file is too large",
+        "fileUploadProgress": "File upload progress",
+        "fileUploadedSuccessfully": "File uploaded successfully",
+        "newFileNotification": "{{ participantName }} shared '{{ fileName }}'",
+        "removeFile": "Remove",
+        "removeFileSuccess": "File removed successfully",
+        "uploadFailedDescription": "Please try again.",
+        "uploadFailedTitle": "Upload failed",
+        "uploadFile": "Share file"
+    },
+    "filmstrip": {
+        "accessibilityLabel": {
+            "heading": "Video thumbnails"
+        }
+    },
+    "giphy": {
+        "noResults": "No results found :(",
+        "search": "Search GIPHY"
     },
     "incomingCall": {
         "answer": "",
@@ -331,6 +431,7 @@
         "searchPlaceholder": "Број учесник или тeлeфон",
         "send": ""
     },
+    "jitsiHome": "{{logo}} Logo, links to  Homepage",
     "keyboardShortcuts": {
         "focusLocal": "",
         "focusRemote": "",
@@ -346,6 +447,10 @@
         "toggleScreensharing": "",
         "toggleShortcuts": "Прикажи или сакриј прeчицe тастатурe",
         "videoMute": "Покрeни или заустави камeру"
+    },
+    "largeVideo": {
+        "screenIsShared": "You are sharing your screen",
+        "showMeWhatImSharing": "Show me what I'm sharing"
     },
     "liveStreaming": {
         "busy": "Радимо на ослобађању стриминг рeсурса. Молим покушајтe поново за пар минута.",
@@ -375,6 +480,44 @@
         "streamIdHelp": "",
         "title": "Емитовање уживо",
         "unavailableTitle": ""
+    },
+    "lobby": {
+        "backToKnockModeButton": "Ask to join",
+        "chat": "Chat",
+        "dialogTitle": "Lobby mode",
+        "disableDialogContent": "Lobby mode is currently enabled. This feature ensures that unwanted participants can't join your meeting. Do you want to disable it?",
+        "disableDialogSubmit": "Disable",
+        "emailField": "Enter your email address",
+        "enableDialogPasswordField": "Set password (optional)",
+        "enableDialogSubmit": "Enable",
+        "enableDialogText": "Lobby mode lets you protect your meeting by only allowing people to enter after a formal approval by a moderator.",
+        "enterPasswordButton": "Enter meeting password",
+        "enterPasswordTitle": "Enter password to join meeting",
+        "errorMissingPassword": "Please enter the meeting password",
+        "invalidPassword": "Invalid password",
+        "joinRejectedMessage": "Your join request was rejected by a moderator.",
+        "joinRejectedTitle": "Join request rejected.",
+        "joinTitle": "Join Meeting",
+        "joinWithPasswordMessage": "Trying to join with password, please wait…",
+        "joiningMessage": "You'll join the meeting as soon as someone accepts your request",
+        "joiningTitle": "Asking to join meeting…",
+        "joiningWithPasswordTitle": "Joining with password…",
+        "knockButton": "Ask to Join",
+        "knockTitle": "Someone wants to join the meeting",
+        "knockingParticipantList": "Knocking participant list",
+        "lobbyChatStartedNotification": "{{moderator}} started a lobby chat with {{attendee}}",
+        "lobbyChatStartedTitle": "{{moderator}} has started a lobby chat with you.",
+        "lobbyClosed": "The lobby room has been closed.",
+        "nameField": "Enter your name",
+        "notificationLobbyAccessDenied": "{{targetParticipantName}} has been rejected to join by {{originParticipantName}}",
+        "notificationLobbyAccessGranted": "{{targetParticipantName}} has been allowed to join by {{originParticipantName}}",
+        "notificationLobbyDisabled": "Lobby has been disabled by {{originParticipantName}}",
+        "notificationLobbyEnabled": "Lobby has been enabled by {{originParticipantName}}",
+        "notificationTitle": "Lobby",
+        "passwordJoinButton": "Join",
+        "title": "Lobby",
+        "toggleLabel": "Enable lobby",
+        "waitForModerator": "The conference has not yet started because no moderators have yet arrived. If you'd like to become a moderator please log-in. Otherwise, please wait."
     },
     "localRecording": {
         "clientState": {
@@ -445,8 +588,56 @@
         "suboptimalExperienceTitle": "Упозорење о прегледачу",
         "unmute": "Укључите микрофон."
     },
+    "participantsPane": {
+        "actions": {
+            "admit": "Admit",
+            "admitAll": "Admit all",
+            "allow": "Allow non-moderators to:",
+            "allowDesktop": "Allow screen sharing",
+            "allowVideo": "Allow video",
+            "askDesktop": "Ask to share screen",
+            "askUnmute": "Ask to unmute",
+            "audioModeration": "Unmute themselves",
+            "blockEveryoneMicCamera": "Block everyone's mic and camera",
+            "breakoutRooms": "Breakout rooms",
+            "desktopModeration": "Start screen sharing",
+            "goLive": "Go live",
+            "invite": "Invite someone",
+            "lowerAllHands": "Lower all hands",
+            "lowerHand": "Lower the hand",
+            "moreModerationActions": "More moderation options",
+            "moreModerationControls": "More moderation controls",
+            "moreParticipantOptions": "More participant options",
+            "mute": "Mute",
+            "muteAll": "Mute all",
+            "muteEveryoneElse": "Mute everyone else",
+            "reject": "Reject",
+            "stopDesktop": "Stop screen sharing",
+            "stopEveryonesDesktop": "Stop everyone's screen-share",
+            "stopEveryonesVideo": "Stop everyone's video",
+            "stopVideo": "Stop video",
+            "unblockEveryoneMicCamera": "Unblock everyone's mic and camera",
+            "videoModeration": "Start their video"
+        },
+        "close": "Close",
+        "headings": {
+            "lobby": "Lobby ({{count}})",
+            "participantsList": "Meeting participants ({{count}})",
+            "viewerRequests": "Viewers requests {{count}}",
+            "visitorInQueue": " (waiting {{count}})",
+            "visitorRequests": " (requests {{count}})",
+            "visitors": "Viewers {{count}}",
+            "visitorsList": "Viewers ({{count}})",
+            "waitingLobby": "Waiting in lobby ({{count}})"
+        },
+        "search": "Search participants",
+        "searchDescription": "Start typing to filter participants",
+        "title": "Participants"
+    },
     "passwordDigitsOnly": "",
     "passwordSetRemotely": "",
+    "pinParticipant": "{{participantName}} - Pin",
+    "pinnedParticipant": "The participant is pinned",
     "polls": {
         "errors": {
             "notUniqueOption": "Опције морају бити јединствене"
@@ -508,6 +699,20 @@
         "setEmailLabel": "Е-пошта за Gravatar",
         "title": "Профил"
     },
+    "raisedHand": "Would like to speak",
+    "raisedHandsLabel": "Number of raised hands",
+    "record": {
+        "already": {
+            "linked": "The meeting is already linked to this Salesforce object."
+        },
+        "type": {
+            "account": "Account",
+            "contact": "Contact",
+            "lead": "Lead",
+            "opportunity": "Opportunity",
+            "owner": "Owner"
+        }
+    },
     "recording": {
         "authDropboxText": "",
         "availableSpace": "",
@@ -534,8 +739,21 @@
         "unavailable": "",
         "unavailableTitle": ""
     },
+    "screenshareDisplayName": "{{name}}'s screen",
     "sectionList": {
         "pullToRefresh": ""
+    },
+    "security": {
+        "about": "You can add a $t(lockRoomPassword) to your meeting. Participants will need to provide the $t(lockRoomPassword) before they are allowed to join the meeting.",
+        "aboutReadOnly": "Moderator participants can add a $t(lockRoomPassword) to the meeting. Participants will need to provide the $t(lockRoomPassword) before they are allowed to join the meeting.",
+        "insecureRoomNameWarningNative": "The room name is unsafe. Unwanted participants may join your meeting. {{recommendAction}} Learn more about securing your meeting ",
+        "insecureRoomNameWarningWeb": "The room name is unsafe. Unwanted participants may join your meeting. {{recommendAction}} Learn more about securing your meeting <a href=\"{{securityUrl}}\" rel=\"security\" target=\"_blank\">here</a>.",
+        "title": "Security Options",
+        "unsafeRoomActions": {
+            "meeting": "Consider securing your meeting using the security button.",
+            "prejoin": "Consider using a more unique meeting name.",
+            "welcome": "Consider using a more unique meeting name, or pick one of the suggestions."
+        }
     },
     "settings": {
         "calendar": {
@@ -599,6 +817,10 @@
         "text": "",
         "title": ""
     },
+    "termsView": {
+        "title": "Terms"
+    },
+    "toggleTopPanelLabel": "Toggle top panel",
     "toolbar": {
         "Settings": "Подешавања",
         "accessibilityLabel": {
@@ -690,6 +912,7 @@
         "stop": "",
         "tr": ""
     },
+    "unpinParticipant": "{{participantName}} - Unpin",
     "userMedia": {
         "grantPermissions": "Молим дозволитe употрeбу камeрe и микрофона."
     },
@@ -732,6 +955,56 @@
         "show": "",
         "videomute": ""
     },
+    "virtualBackground": {
+        "accessibilityLabel": {
+            "currentBackground": "Current background: {{background}}",
+            "selectBackground": "Select a background"
+        },
+        "addBackground": "Add background",
+        "apply": "Apply",
+        "backgroundEffectError": "Failed to apply background effect.",
+        "blur": "Blur",
+        "deleteImage": "Delete image",
+        "desktopShare": "Desktop share",
+        "desktopShareError": "Could not create desktop share",
+        "image1": "Beach",
+        "image2": "White neutral wall",
+        "image3": "White empty room",
+        "image4": "Black floor lamp",
+        "image5": "Mountain",
+        "image6": "Forest ",
+        "image7": "Sunrise",
+        "none": "None",
+        "pleaseWait": "Please wait…",
+        "removeBackground": "Remove background",
+        "slightBlur": "Half Blur",
+        "title": "Virtual backgrounds",
+        "uploadedImage": "Uploaded image {{index}}",
+        "webAssemblyWarning": "WebAssembly not supported",
+        "webAssemblyWarningDescription": "WebAssembly disabled or not supported by this browser"
+    },
+    "visitors": {
+        "chatIndicator": "(viewer)",
+        "joinMeeting": {
+            "description": "You're currently a viewer in this conference.",
+            "raiseHand": "Raise your hand",
+            "title": "Joining meeting",
+            "wishToSpeak": "If you wish to speak, please raise your hand below and wait for the moderator's approval."
+        },
+        "labelTooltip": "Number of viewers: {{count}}",
+        "notification": {
+            "demoteDescription": "Sent here by {{actor}}, raise your hand to participate",
+            "noMainParticipantsDescription": "A participant needs to start the meeting. Please try again in a bit.",
+            "noMainParticipantsTitle": "This meeting hasn't started yet.",
+            "noVisitorLobby": "You cannot join while there is a lobby enabled for the meeting.",
+            "notAllowedPromotion": "A participant needs to allow your request first.",
+            "requestToJoin": "Hand Raised",
+            "requestToJoinDescription": "Your request was sent to the moderators. Hang tight!",
+            "title": "You are a viewer in the meeting"
+        },
+        "waitingMessage": "You'll join the meeting as soon as it is live!"
+    },
+    "volumeSlider": "Volume slider",
     "welcomepage": {
         "accessibilityLabel": {
             "join": "Додирнитe за придруживањe",
@@ -759,5 +1032,38 @@
         "sendFeedback": "Пошаљитe повратну информацију",
         "terms": "Услови",
         "title": "Сигурна, потпуно опрeмљeна и потпуно бeсплатна видeоконфeрeнција"
+    },
+    "whiteboard": {
+        "accessibilityLabel": {
+            "heading": "Whiteboard"
+        },
+        "screenTitle": "Whiteboard"
+    },
+    "transcriptionConsent": {
+        "title": "Transcription Notice",
+        "warning": "Important: Your voice will be recorded and stored",
+        "message": "{{moderatorName}} has started transcription. Your voice will be stored on the server for transcription purposes. If you wish to continue, press \"Continue\", otherwise please leave the call.",
+        "liveCaptionsNotice": "{{moderatorName}} has started Live Captions for this meeting. Your voice will be recorded, and transcribed for all participants.",
+        "defaultModeratorName": "The moderator",
+        "continue": "Continue",
+        "leaveCall": "Leave Call"
+    },
+    "summarySetup": {
+        "title": "AI Meeting Summary",
+        "description": "Get an instant AI-generated summary tailored to your meeting type.",
+        "enableLabel": "Enable AI Meeting Summary",
+        "disableLabel": "Disable AI Meeting Summary",
+        "templateLabel": "Choose a summary template",
+        "categories": {
+            "meeting": "Meeting",
+            "interview": "Interview",
+            "standup": "Standup"
+        },
+        "notifications": {
+            "enabled": "AI Meeting Summary has been enabled.",
+            "disabled": "AI Meeting Summary has been disabled."
+        },
+        "statusEnabled": "AI summary is active for this meeting.",
+        "statusDisabled": "AI summary is paused until you turn it back on."
     }
 }

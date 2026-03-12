@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { NativeModules, TouchableOpacity, ViewStyle } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -45,30 +45,38 @@ const BreakoutRoomContextMenu = ({ room, actions = ALL_ACTIONS }: IProps) => {
     const { hideJoinRoomButton } = useSelector(getBreakoutRoomsConfig);
     const _isBreakoutRoomRenameAllowed = useSelector(isBreakoutRoomRenameAllowed);
     const { t } = useTranslation();
+    const notifySwitchingRoom = useCallback(() => {
+        NativeModules?.NativeCallsNew?.switchingRoom?.(true);
+        NativeModules?.OpenMelpChat?.switchingRoom?.(true);
+    }, []);
 
     const onJoinRoom = useCallback(() => {
+        notifySwitchingRoom();
         sendAnalytics(createBreakoutRoomsEvent('join'));
         dispatch(moveToRoom(room.jid));
         dispatch(hideSheet());
-    }, [ dispatch, room ]);
+    }, [ dispatch, room, notifySwitchingRoom ]);
 
     const onRemoveBreakoutRoom = useCallback(() => {
+        notifySwitchingRoom();
         dispatch(removeBreakoutRoom(room.jid));
         dispatch(hideSheet());
-    }, [ dispatch, room ]);
+    }, [ dispatch, room, notifySwitchingRoom ]);
 
     const onRenameBreakoutRoom = useCallback(() => {
+        notifySwitchingRoom();
         dispatch(openDialog('BreakoutRoomNamePrompt', BreakoutRoomNamePrompt, {
             breakoutRoomJid: room.jid,
             initialRoomName: room.name
         }));
         dispatch(hideSheet());
-    }, [ dispatch, room ]);
+    }, [ dispatch, room, notifySwitchingRoom ]);
 
     const onCloseBreakoutRoom = useCallback(() => {
+        notifySwitchingRoom();
         dispatch(closeBreakoutRoom(room.id));
         dispatch(hideSheet());
-    }, [ dispatch, room ]);
+    }, [ dispatch, room, notifySwitchingRoom ]);
 
     return (
         <BottomSheet

@@ -27,6 +27,18 @@
     "audioOnly": {
         "audioOnly": "Alacsony sávszélesség"
     },
+    "bandwidthSettings": {
+        "assumedBandwidthBps": "e.g. 10000000 for 10 Mbps",
+        "assumedBandwidthBpsWarning": "Higher values might cause network issues.",
+        "customValue": "custom value",
+        "customValueEffect": "to set the actual bps value",
+        "leaveEmpty": "leave empty",
+        "leaveEmptyEffect": "to allow estimations to take place",
+        "possibleValues": "Possible values",
+        "setAssumedBandwidthBps": "Assumed bandwidth (bps)",
+        "title": "Bandwidth settings",
+        "zeroEffect": "to disable video"
+    },
     "breakoutRooms": {
         "actions": {
             "add": "Pihenőszoba hozzáadása",
@@ -64,6 +76,16 @@
         "refresh": "Naptár frissítése",
         "today": "Ma"
     },
+    "carmode": {
+        "actions": {
+            "selectSoundDevice": "Select sound device"
+        },
+        "labels": {
+            "buttonLabel": "Car mode",
+            "title": "Car mode",
+            "videoStopped": "Your video is stopped"
+        }
+    },
     "chat": {
         "enter": "Belépés a szobába",
         "error": "Hiba: az üzenetet nem sikerült elküldeni. Hiba oka: {{error}}",
@@ -93,6 +115,10 @@
         "raiseHandAction": "Kéz felemelése",
         "reactionSounds": "Hangok kikapcsolása",
         "reactionSoundsForAll": "Hangok kikapcsolása mindenkinek"
+    },
+    "closedCaptionsTab": {
+        "emptyState": "The closed captions content will be available once a moderator starts it",
+        "startClosedCaptionsButton": "Start closed captions"
     },
     "connectingOverlay": {
         "joiningRoom": "Kapcsolódás az értekezlethez…"
@@ -171,6 +197,9 @@
         "previewUnavailable": "Nincs előnézet",
         "selectADevice": "Eszköz kijelölése",
         "testAudio": "Teszthang lejátszása"
+    },
+    "dialIn": {
+        "screenTitle": "Dial-in summary"
     },
     "dialOut": {
         "statusMessage": "jelenleg {{status}}"
@@ -344,6 +373,12 @@
     "documentSharing": {
         "title": "Megosztott dokumentum"
     },
+    "e2ee": {
+        "labelToolTip": "Audio and Video Communication on this call is end-to-end encrypted"
+    },
+    "embedMeeting": {
+        "title": "Embed this meeting"
+    },
     "feedback": {
         "average": "Átlag",
         "bad": "Rossz",
@@ -353,8 +388,33 @@
         "veryBad": "Nagyon rossz",
         "veryGood": "Nagyon jó"
     },
-    "helpView": {
-        "title": "Súgó"
+    "fileSharing": {
+        "downloadFailedDescription": "Please try again.",
+        "downloadFailedTitle": "Download failed",
+        "downloadFile": "Download",
+        "downloadStarted": "File download started",
+        "dragAndDrop": "Drag and drop files here or anywhere on screen",
+        "fileAlreadyUploaded": "File has already been uploaded to this meeting.",
+        "fileRemovedByOther": "Your file '{{ fileName }}' was removed",
+        "fileTooLargeDescription": "Please make sure the file does not exceed {{ maxFileSize }}.",
+        "fileTooLargeTitle": "The selected file is too large",
+        "fileUploadProgress": "File upload progress",
+        "fileUploadedSuccessfully": "File uploaded successfully",
+        "newFileNotification": "{{ participantName }} shared '{{ fileName }}'",
+        "removeFile": "Remove",
+        "removeFileSuccess": "File removed successfully",
+        "uploadFailedDescription": "Please try again.",
+        "uploadFailedTitle": "Upload failed",
+        "uploadFile": "Share file"
+    },
+    "filmstrip": {
+        "accessibilityLabel": {
+            "heading": "Video thumbnails"
+        }
+    },
+    "giphy": {
+        "noResults": "No results found :(",
+        "search": "Search GIPHY"
     },
     "incomingCall": {
         "answer": "Válasz",
@@ -407,6 +467,7 @@
         "searchPlaceholder": "Résztvevő vagy telefonszám",
         "send": "Küldés"
     },
+    "jitsiHome": "{{logo}} Logo, links to  Homepage",
     "keyboardShortcuts": {
         "focusLocal": "Fókusz a saját videómra",
         "focusRemote": "Fókusz egy másik személy videójára",
@@ -607,6 +668,8 @@
     },
     "passwordDigitsOnly": "Legfeljebb {{number}} szám",
     "passwordSetRemotely": "egy másik résztvevő által beállítva",
+    "pinParticipant": "{{participantName}} - Pin",
+    "pinnedParticipant": "The participant is pinned",
     "polls": {
         "answer": {
             "skip": "Kihagyás",
@@ -709,6 +772,19 @@
         "title": "Profil"
     },
     "raisedHand": "Beszélni szeretnék",
+    "raisedHandsLabel": "Number of raised hands",
+    "record": {
+        "already": {
+            "linked": "The meeting is already linked to this Salesforce object."
+        },
+        "type": {
+            "account": "Account",
+            "contact": "Contact",
+            "lead": "Lead",
+            "opportunity": "Opportunity",
+            "owner": "Owner"
+        }
+    },
     "recording": {
         "authDropboxText": "Feltöltés Dropboxra",
         "availableSpace": "Elérhető hely: {{spaceLeft}} MB (körülbelül {{duration}} perc felvétel)",
@@ -743,6 +819,7 @@
         "unavailable": "Hoppá! A {{serviceName}} szolgáltatás jelenleg nem elérhető. Dolgozunk a hiba elhárításán. Próbálja meg később.",
         "unavailableTitle": "Felvétel nem elérhető"
     },
+    "screenshareDisplayName": "{{name}}'s screen",
     "sectionList": {
         "pullToRefresh": "Húzás a frissítéshez"
     },
@@ -843,6 +920,10 @@
         "text": "Az <i>újracsatlakozás</i> gombbal lehet ismételten csatlakozni.",
         "title": "A videohívás megszakadt, mivel ez a számítógép aló állapotba helyezte magát."
     },
+    "termsView": {
+        "title": "Terms"
+    },
+    "toggleTopPanelLabel": "Toggle top panel",
     "toolbar": {
         "Settings": "Beállítások",
         "accessibilityLabel": {
@@ -988,6 +1069,7 @@
         "stop": "Felirat megjelenítésének befejezése",
         "tr": "Átirat"
     },
+    "unpinParticipant": "{{participantName}} - Unpin",
     "userMedia": {
         "grantPermissions": "A kamera és a mikrofon használatát engedélyezni kell."
     },
@@ -1060,6 +1142,27 @@
         "title": "Virtuális háttérképek",
         "uploadedImage": "Feltöltött kép {{index}}"
     },
+    "visitors": {
+        "chatIndicator": "(viewer)",
+        "joinMeeting": {
+            "description": "You're currently a viewer in this conference.",
+            "raiseHand": "Raise your hand",
+            "title": "Joining meeting",
+            "wishToSpeak": "If you wish to speak, please raise your hand below and wait for the moderator's approval."
+        },
+        "labelTooltip": "Number of viewers: {{count}}",
+        "notification": {
+            "demoteDescription": "Sent here by {{actor}}, raise your hand to participate",
+            "noMainParticipantsDescription": "A participant needs to start the meeting. Please try again in a bit.",
+            "noMainParticipantsTitle": "This meeting hasn't started yet.",
+            "noVisitorLobby": "You cannot join while there is a lobby enabled for the meeting.",
+            "notAllowedPromotion": "A participant needs to allow your request first.",
+            "requestToJoin": "Hand Raised",
+            "requestToJoinDescription": "Your request was sent to the moderators. Hang tight!",
+            "title": "You are a viewer in the meeting"
+        },
+        "waitingMessage": "You'll join the meeting as soon as it is live!"
+    },
     "volumeSlider": "Hangerő szabályzó",
     "welcomepage": {
         "accessibilityLabel": {
@@ -1094,5 +1197,38 @@
         "startMeeting": "Csatlakozás",
         "terms": "Feltételek",
         "title": "Biztonságos, maradéktalanul felszerelt és teljesen ingyenes videokonferencia"
+    },
+    "whiteboard": {
+        "accessibilityLabel": {
+            "heading": "Whiteboard"
+        },
+        "screenTitle": "Whiteboard"
+    },
+    "transcriptionConsent": {
+        "title": "Transcription Notice",
+        "warning": "Important: Your voice will be recorded and stored",
+        "message": "{{moderatorName}} has started transcription. Your voice will be stored on the server for transcription purposes. If you wish to continue, press \"Continue\", otherwise please leave the call.",
+        "liveCaptionsNotice": "{{moderatorName}} has started Live Captions for this meeting. Your voice will be recorded, and transcribed for all participants.",
+        "defaultModeratorName": "The moderator",
+        "continue": "Continue",
+        "leaveCall": "Leave Call"
+    },
+    "summarySetup": {
+        "title": "AI Meeting Summary",
+        "description": "Get an instant AI-generated summary tailored to your meeting type.",
+        "enableLabel": "Enable AI Meeting Summary",
+        "disableLabel": "Disable AI Meeting Summary",
+        "templateLabel": "Choose a summary template",
+        "categories": {
+            "meeting": "Meeting",
+            "interview": "Interview",
+            "standup": "Standup"
+        },
+        "notifications": {
+            "enabled": "AI Meeting Summary has been enabled.",
+            "disabled": "AI Meeting Summary has been disabled."
+        },
+        "statusEnabled": "AI summary is active for this meeting.",
+        "statusDisabled": "AI summary is paused until you turn it back on."
     }
 }

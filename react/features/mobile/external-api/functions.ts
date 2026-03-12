@@ -2,6 +2,7 @@ import { debounce } from 'lodash-es';
 import { NativeModules } from 'react-native';
 
 import { IParticipant } from '../../base/participants/types';
+import { logEvent } from '../../debug-event-log/actions';
 
 import { readyToClose } from './actions';
 
@@ -19,6 +20,19 @@ import { readyToClose } from './actions';
  */
 export function sendEvent(store: Object, name: string, data: Object) {
     NativeModules.ExternalAPI.sendEvent(name, data);
+
+    // Debug-only event logging for native outbound events.
+    // @ts-ignore
+    if (typeof __DEV__ !== 'undefined' && __DEV__ && store?.dispatch) {
+        // @ts-ignore
+        store.dispatch(logEvent({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            name,
+            payload: data,
+            source: 'js->native',
+            timestamp: Date.now()
+        }));
+    }
 }
 
 /**

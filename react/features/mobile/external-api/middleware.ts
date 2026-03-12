@@ -66,8 +66,12 @@ import { muteLocal } from '../../video-menu/actions.native';
 import { ENTER_PICTURE_IN_PICTURE } from '../picture-in-picture/actionTypes';
 // @ts-ignore
 import { isExternalAPIAvailable } from '../react-native-sdk/functions';
+import { logEvent } from '../../debug-event-log/actions';
 
-import { READY_TO_CLOSE } from './actionTypes';
+import {
+    CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED,
+    READY_TO_CLOSE
+} from './actionTypes';
 import { setParticipantsWithScreenShare } from './actions';
 import { participantToParticipantInfo, sendEvent } from './functions';
 import logger from './logger';
@@ -88,6 +92,11 @@ const CHAT_TOGGLED = 'CHAT_TOGGLED';
  * has ended either by user request or because an error was produced.
  */
 const CONFERENCE_TERMINATED = 'CONFERENCE_TERMINATED';
+
+/**
+ * Event which will be emitted on the native side to indicate that the custom overflow menu button was pressed.
+ */
+const CUSTOM_MENU_BUTTON_PRESSED = 'CUSTOM_MENU_BUTTON_PRESSED';
 
 /**
  * Event which will be emitted on the native side to indicate a message was received
@@ -222,7 +231,41 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
                 id,
                 text
             });
+        sendEvent(
+            store,
+            CUSTOM_MENU_BUTTON_PRESSED,
+            /* data */ {
+                id,
+                text
+            });
+        sendEvent(
+            store,
+            CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED,
+            /* data */ {
+                id,
+                text
+            });
 
+        break;
+    }
+
+    case CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED: {
+        const { id, text } = action;
+
+        sendEvent(
+            store,
+            CUSTOM_MENU_BUTTON_PRESSED,
+            {
+                id,
+                text
+            });
+        sendEvent(
+            store,
+            CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED,
+            {
+                id,
+                text
+            });
         break;
     }
 
@@ -396,20 +439,36 @@ externalAPIEnabled && StateListenerRegistry.register(
  */
 function _registerForNativeEvents(store: IStore) {
     const { getState, dispatch } = store;
+    const logNativeEvent = (name: string, payload: any) => {
+        // @ts-ignore
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+            dispatch(logEvent({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                name,
+                payload,
+                source: 'native->js',
+                timestamp: Date.now()
+            }));
+        }
+    };
 
     eventEmitter.addListener(ExternalAPI.HANG_UP, () => {
+        logNativeEvent(ExternalAPI.HANG_UP, {});
         dispatch(appNavigate(undefined));
     });
 
     eventEmitter.addListener(ExternalAPI.SET_AUDIO_MUTED, ({ muted }: any) => {
+        logNativeEvent(ExternalAPI.SET_AUDIO_MUTED, { muted });
         dispatch(muteLocal(muted, MEDIA_TYPE.AUDIO));
     });
 
     eventEmitter.addListener(ExternalAPI.SET_VIDEO_MUTED, ({ muted }: any) => {
+        logNativeEvent(ExternalAPI.SET_VIDEO_MUTED, { muted });
         dispatch(muteLocal(muted, MEDIA_TYPE.VIDEO));
     });
 
     eventEmitter.addListener(ExternalAPI.SEND_ENDPOINT_TEXT_MESSAGE, ({ to, message }: any) => {
+        logNativeEvent(ExternalAPI.SEND_ENDPOINT_TEXT_MESSAGE, { to, message });
         const conference = getCurrentConference(getState());
 
         try {
@@ -423,10 +482,12 @@ function _registerForNativeEvents(store: IStore) {
     });
 
     eventEmitter.addListener(ExternalAPI.TOGGLE_SCREEN_SHARE, ({ enabled }: any) => {
+        logNativeEvent(ExternalAPI.TOGGLE_SCREEN_SHARE, { enabled });
         dispatch(toggleScreensharing(enabled));
     });
 
     eventEmitter.addListener(ExternalAPI.RETRIEVE_PARTICIPANTS_INFO, ({ requestId }: any) => {
+        logNativeEvent(ExternalAPI.RETRIEVE_PARTICIPANTS_INFO, { requestId });
 
         const participantsInfo = [];
         const remoteParticipants = getRemoteParticipants(store);
@@ -449,16 +510,19 @@ function _registerForNativeEvents(store: IStore) {
     });
 
     eventEmitter.addListener(ExternalAPI.OPEN_CHAT, ({ to }: any) => {
+        logNativeEvent(ExternalAPI.OPEN_CHAT, { to });
         const participant = getParticipantById(store, to);
 
         dispatch(openChat(participant));
     });
 
     eventEmitter.addListener(ExternalAPI.CLOSE_CHAT, () => {
+        logNativeEvent(ExternalAPI.CLOSE_CHAT, {});
         dispatch(closeChat());
     });
 
     eventEmitter.addListener(ExternalAPI.SEND_CHAT_MESSAGE, ({ message, to }: any) => {
+        logNativeEvent(ExternalAPI.SEND_CHAT_MESSAGE, { message, to });
         const participant = getParticipantById(store, to);
 
         if (participant) {
@@ -470,15 +534,18 @@ function _registerForNativeEvents(store: IStore) {
 
     eventEmitter.addListener(ExternalAPI.SET_CLOSED_CAPTIONS_ENABLED,
         ({ enabled, displaySubtitles, language }: any) => {
+            logNativeEvent(ExternalAPI.SET_CLOSED_CAPTIONS_ENABLED, { enabled, displaySubtitles, language });
             dispatch(setRequestingSubtitles(enabled, displaySubtitles, language));
         });
 
     eventEmitter.addListener(ExternalAPI.TOGGLE_CAMERA, () => {
+        logNativeEvent(ExternalAPI.TOGGLE_CAMERA, {});
         dispatch(toggleCameraFacingMode());
     });
 
     eventEmitter.addListener(ExternalAPI.SHOW_NOTIFICATION,
         ({ appearance, description, timeout, title, uid }: any) => {
+            logNativeEvent(ExternalAPI.SHOW_NOTIFICATION, { appearance, description, timeout, title, uid });
             const validTypes = Object.values(NOTIFICATION_TYPE);
             const validTimeouts = Object.values(NOTIFICATION_TIMEOUT_TYPE);
 
@@ -503,6 +570,7 @@ function _registerForNativeEvents(store: IStore) {
         });
 
     eventEmitter.addListener(ExternalAPI.HIDE_NOTIFICATION, ({ uid }: any) => {
+        logNativeEvent(ExternalAPI.HIDE_NOTIFICATION, { uid });
         dispatch(hideNotification(uid));
     });
 
@@ -518,6 +586,17 @@ function _registerForNativeEvents(store: IStore) {
                 extraMetadata = {},
                 transcription
             }: any) => {
+        logNativeEvent(ExternalAPI.START_RECORDING, {
+            mode,
+            dropboxToken,
+            shouldShare,
+            rtmpStreamKey,
+            rtmpBroadcastID,
+            youtubeStreamKey,
+            youtubeBroadcastID,
+            extraMetadata,
+            transcription
+        });
         const state = store.getState();
         const conference = getCurrentConference(state);
 
@@ -593,6 +672,7 @@ function _registerForNativeEvents(store: IStore) {
     });
 
     eventEmitter.addListener(ExternalAPI.STOP_RECORDING, ({ mode, transcription }: any) => {
+        logNativeEvent(ExternalAPI.STOP_RECORDING, { mode, transcription });
         const state = store.getState();
         const conference = getCurrentConference(state);
 
@@ -624,6 +704,7 @@ function _registerForNativeEvents(store: IStore) {
     });
 
     eventEmitter.addListener(ExternalAPI.OVERWRITE_CONFIG, ({ config }: any) => {
+        logNativeEvent(ExternalAPI.OVERWRITE_CONFIG, { config });
         const whitelistedConfig = getWhitelistedJSON('config', config);
 
         logger.info(`Overwriting config with: ${JSON.stringify(whitelistedConfig)}`);
@@ -632,6 +713,7 @@ function _registerForNativeEvents(store: IStore) {
     });
 
     eventEmitter.addListener(ExternalAPI.SEND_CAMERA_FACING_MODE_MESSAGE, ({ to, facingMode }: any) => {
+        logNativeEvent(ExternalAPI.SEND_CAMERA_FACING_MODE_MESSAGE, { to, facingMode });
         const conference = getCurrentConference(getState());
 
         if (!to) {

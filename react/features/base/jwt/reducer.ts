@@ -13,6 +13,7 @@ export interface IJwtState {
     group?: string;
     jwt?: string;
     knownAvatarUrl?: string;
+    roomName?: string;
     server?: string;
     tenant?: string;
     user?: {

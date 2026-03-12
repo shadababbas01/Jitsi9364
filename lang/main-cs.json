@@ -144,6 +144,10 @@
         "dontShowAgain": "Toto už znovu neukazovat",
         "installExtensionText": "Nainstalovat rozšíření pro integraci Kalendáře Google a Office 365"
     },
+    "closedCaptionsTab": {
+        "emptyState": "The closed captions content will be available once a moderator starts it",
+        "startClosedCaptionsButton": "Start closed captions"
+    },
     "connectingOverlay": {
         "joiningRoom": "Připojujete se k setkání…"
     },
@@ -521,6 +525,25 @@
         "star": "Hvězdička",
         "veryBad": "Velmi špatná",
         "veryGood": "Velmi dobrá"
+    },
+    "fileSharing": {
+        "downloadFailedDescription": "Please try again.",
+        "downloadFailedTitle": "Download failed",
+        "downloadFile": "Download",
+        "downloadStarted": "File download started",
+        "dragAndDrop": "Drag and drop files here or anywhere on screen",
+        "fileAlreadyUploaded": "File has already been uploaded to this meeting.",
+        "fileRemovedByOther": "Your file '{{ fileName }}' was removed",
+        "fileTooLargeDescription": "Please make sure the file does not exceed {{ maxFileSize }}.",
+        "fileTooLargeTitle": "The selected file is too large",
+        "fileUploadProgress": "File upload progress",
+        "fileUploadedSuccessfully": "File uploaded successfully",
+        "newFileNotification": "{{ participantName }} shared '{{ fileName }}'",
+        "removeFile": "Remove",
+        "removeFileSuccess": "File removed successfully",
+        "uploadFailedDescription": "Please try again.",
+        "uploadFailedTitle": "Upload failed",
+        "uploadFile": "Share file"
     },
     "filmstrip": {
         "accessibilityLabel": {
@@ -1578,5 +1601,32 @@
             "heading": "Tabule"
         },
         "screenTitle": "Tabule"
+    },
+    "transcriptionConsent": {
+        "title": "Transcription Notice",
+        "warning": "Important: Your voice will be recorded and stored",
+        "message": "{{moderatorName}} has started transcription. Your voice will be stored on the server for transcription purposes. If you wish to continue, press \"Continue\", otherwise please leave the call.",
+        "liveCaptionsNotice": "{{moderatorName}} has started Live Captions for this meeting. Your voice will be recorded, and transcribed for all participants.",
+        "defaultModeratorName": "The moderator",
+        "continue": "Continue",
+        "leaveCall": "Leave Call"
+    },
+    "summarySetup": {
+        "title": "AI Meeting Summary",
+        "description": "Get an instant AI-generated summary tailored to your meeting type.",
+        "enableLabel": "Enable AI Meeting Summary",
+        "disableLabel": "Disable AI Meeting Summary",
+        "templateLabel": "Choose a summary template",
+        "categories": {
+            "meeting": "Meeting",
+            "interview": "Interview",
+            "standup": "Standup"
+        },
+        "notifications": {
+            "enabled": "AI Meeting Summary has been enabled.",
+            "disabled": "AI Meeting Summary has been disabled."
+        },
+        "statusEnabled": "AI summary is active for this meeting.",
+        "statusDisabled": "AI summary is paused until you turn it back on."
     }
 }

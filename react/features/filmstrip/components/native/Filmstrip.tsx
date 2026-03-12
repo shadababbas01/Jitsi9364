@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { FlatList, ViewStyle, ViewToken } from 'react-native';
-import { Edge, SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
@@ -223,9 +223,9 @@ class Filmstrip extends PureComponent<IProps> {
     _renderThumbnail({ item }: { item: string; }) {
         return (
             <Thumbnail
-                key = { item }
-                participantID = { item } />)
-        ;
+                key={item}
+                participantID={item} />)
+            ;
     }
 
     /**
@@ -234,7 +234,7 @@ class Filmstrip extends PureComponent<IProps> {
      * @inheritdoc
      * @returns {ReactElement}
      */
-    override render() {
+    render() {
         const {
             _aspectRatio,
             _disableSelfView,
@@ -253,56 +253,52 @@ class Filmstrip extends PureComponent<IProps> {
         const filmstripStyle = isNarrowAspectRatio ? styles.filmstripNarrow : styles.filmstripWide;
         const { height, width } = this._getDimensions();
         const { height: thumbnailHeight, width: thumbnailWidth, margin } = styles.thumbnail;
-        const initialNumToRender = Math.max(
-            0,
-            Math.ceil(
-                isNarrowAspectRatio
-                    ? width / (thumbnailWidth + (2 * margin))
-                    : height / (thumbnailHeight + (2 * margin))
-            )
+        const initialNumToRender = Math.ceil(isNarrowAspectRatio
+            ? width / (thumbnailWidth + (2 * margin))
+            : height / (thumbnailHeight + (2 * margin))
         );
         let participants;
 
         if (this._separateLocalThumbnail || _disableSelfView) {
             participants = _participants;
         } else if (isNarrowAspectRatio) {
-            participants = [ ..._participants, _localParticipantId ];
+            participants = [..._participants, _localParticipantId];
         } else {
-            participants = [ _localParticipantId, ..._participants ];
+            participants = [_localParticipantId, ..._participants];
         }
 
         return (
             <SafeAreaView
-                edges = { [ bottomEdge && 'bottom', 'left', 'right' ].filter(Boolean) as Edge[] }
-                style = { filmstripStyle as ViewStyle }>
+                edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
+                style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
                 {
                     this._separateLocalThumbnail
-                        && !isNarrowAspectRatio
-                        && !_disableSelfView
-                        && <LocalThumbnail />
+                    && !isNarrowAspectRatio
+                    && !_disableSelfView
+                    && <LocalThumbnail />
                 }
                 <FlatList
-                    bounces = { false }
-                    data = { participants }
+                    bounces={false}
+                    data={participants}
 
                     /* @ts-ignore */
-                    getItemLayout = { this._getItemLayout }
-                    horizontal = { isNarrowAspectRatio }
-                    initialNumToRender = { initialNumToRender }
-                    key = { isNarrowAspectRatio ? 'narrow' : 'wide' }
-                    keyExtractor = { this._keyExtractor }
-                    onViewableItemsChanged = { this._onViewableItemsChanged }
-                    renderItem = { this._renderThumbnail }
-                    showsHorizontalScrollIndicator = { false }
-                    showsVerticalScrollIndicator = { false }
-                    style = { styles.flatListStageView }
-                    viewabilityConfig = { this._viewabilityConfig }
-                    windowSize = { 2 } />
+                    getItemLayout={this._getItemLayout}
+                    horizontal={isNarrowAspectRatio}
+                    initialNumToRender={initialNumToRender}
+                    key={isNarrowAspectRatio ? 'narrow' : 'wide'}
+                    keyExtractor={this._keyExtractor}
+                    onViewableItemsChanged={this._onViewableItemsChanged}
+                    renderItem={this._renderThumbnail}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.flatListStageView}
+                    viewabilityConfig={this._viewabilityConfig}
+                    windowSize={2} />
                 {
                     this._separateLocalThumbnail
-                        && isNarrowAspectRatio
-                        && !_disableSelfView
-                        && <LocalThumbnail />
+                    && isNarrowAspectRatio
+                    && !_disableSelfView
+                    && <LocalThumbnail />
                 }
             </SafeAreaView>
         );

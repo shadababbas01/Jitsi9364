@@ -1,4 +1,5 @@
 import { connect } from 'react-redux';
+import { NativeModules } from 'react-native';
 
 import { IReduxState } from '../../../app/types';
 import { CHAT_ENABLED } from '../../../base/flags/constants';
@@ -41,6 +42,11 @@ class ChatButton extends AbstractButton<IProps> {
      * @returns {void}
      */
     override _handleClick() {
+        if (NativeModules?.NativeCallsNew?.OpenChat) {
+            NativeModules.NativeCallsNew.OpenChat();
+            return;
+        }
+
         this.props._isPollsDisabled
             ? navigate(screen.conference.chat)
             : navigate(screen.conference.chatTabs.main);

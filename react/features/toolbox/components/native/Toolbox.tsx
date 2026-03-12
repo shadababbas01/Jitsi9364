@@ -6,6 +6,7 @@ import { connect, useSelector } from 'react-redux';
 import { IReduxState, IStore } from '../../../app/types';
 import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry';
 import Platform from '../../../base/react/Platform.native';
+import AudioDeviceToggleButton from '../../../mobile/audio-mode/components/AudioDeviceToggleButton';
 import { iAmVisitor } from '../../../visitors/functions';
 import { customButtonPressed } from '../../actions.native';
 import { getVisibleNativeButtons, isToolboxVisible } from '../../functions.native';
@@ -23,6 +24,11 @@ interface IProps {
      * Whether we are in visitors mode.
      */
     _iAmVisitor: boolean;
+
+    /**
+     * Currently selected audio route type.
+     */
+    _selectedAudioRouteType?: string;
 
     /**
      * The color-schemed stylesheet of the feature.
@@ -49,6 +55,7 @@ interface IProps {
 function Toolbox(props: IProps) {
     const {
         _iAmVisitor,
+        _selectedAudioRouteType,
         _styles,
         _visible,
         dispatch
@@ -68,7 +75,7 @@ function Toolbox(props: IProps) {
 
     const allButtons = useNativeToolboxButtons(customToolbarButtons);
 
-    const { mainMenuButtons } = getVisibleNativeButtons({
+    const { mainMenuButtons, overflowMenuButtons } = getVisibleNativeButtons({
         allButtons,
         clientWidth,
         iAmVisitor: _iAmVisitor,
@@ -90,22 +97,66 @@ function Toolbox(props: IProps) {
         style.justifyContent = 'center';
     }
 
+    const allVisibleButtons = [ ...(mainMenuButtons || []), ...(overflowMenuButtons || []) ];
+    const pick = (key: string) => allVisibleButtons.find(button => button.key === key);
+    const orderedButtons = [
+        pick('overflowmenu'),
+        pick('camera'),
+        {
+            key: 'audioroute',
+            Content: AudioDeviceToggleButton
+        } as IToolboxNativeButton,
+        pick('microphone'),
+        pick('hangup')
+    ].filter(Boolean) as IToolboxNativeButton[];
+
+    const darkCircleStyles = {
+        ...buttonStylesBorderless,
+        style: {
+            ...buttonStylesBorderless.style,
+            backgroundColor: 'rgba(72, 72, 74, 0.85)',
+            borderRadius: 24 
+        }
+    };
+    const whiteCircleStyles = {
+        ...buttonStylesBorderless,
+        iconStyle: {
+            ...buttonStylesBorderless.iconStyle,
+            color: '#0B0B0C'
+        },
+        style: {
+            ...buttonStylesBorderless.style,
+            backgroundColor: '#ffff',
+            borderRadius: 24 
+        }
+    };
+    const audiorouteUsesWhiteBg
+        = [ 'SPEAKER', 'BLUETOOTH', 'CAR' ].includes(_selectedAudioRouteType ?? '');
+
     const renderToolboxButtons = () => {
-        if (!mainMenuButtons?.length) {
+        if (!orderedButtons.length) {
             return;
         }
 
         return (
             <>
                 {
-                    mainMenuButtons?.map(({ Content, key, text, ...rest }: IToolboxNativeButton) => (
+                    orderedButtons.map(({ Content, key, text, ...rest }: IToolboxNativeButton) => (
                         <Content
                             { ...rest }
                             /* eslint-disable react/jsx-no-bind */
                             handleClick = { () => dispatch(customButtonPressed(key, text)) }
                             isToolboxButton = { true }
                             key = { key }
-                            styles = { key === 'hangup' ? hangupButtonStyles : buttonStylesBorderless } />
+                            styles = {
+                                key === 'hangup'
+                                    ? hangupButtonStyles
+                                    : key === 'audioroute'
+                                        ? audiorouteUsesWhiteBg ? whiteCircleStyles : darkCircleStyles
+                                        : key === 'camera'
+                                            ? whiteCircleStyles
+                                            : darkCircleStyles
+                            } />
                     ))
                 }
             </>
@@ -119,8 +170,10 @@ function Toolbox(props: IProps) {
                 accessibilityRole = 'toolbar'
                 edges = { [ bottomEdge && 'bottom' ].filter(Boolean) as Edge[] }
                 pointerEvents = 'box-none'
-                style = { style as ViewStyle }>
-                { renderToolboxButtons() }
+                style = { styles.toolboxSafeArea as ViewStyle }>
+                <View style = { style as ViewStyle }>
+                    { renderToolboxButtons() }
+                </View>
             </SafeAreaView>
         </View>
     );
@@ -136,8 +189,11 @@ function Toolbox(props: IProps) {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
+    const selectedDevice = state['features/mobile/audio-mode'].devices.find(device => device.selected);
+
     return {
         _iAmVisitor: iAmVisitor(state),
+        _selectedAudioRouteType: selectedDevice?.type,
         _styles: ColorSchemeRegistry.get(state, 'Toolbox'),
         _visible: isToolboxVisible(state),
     };

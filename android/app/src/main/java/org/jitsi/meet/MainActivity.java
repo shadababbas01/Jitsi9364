@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.os.Handler;
 
 import androidx.annotation.Nullable;
 
@@ -155,11 +156,24 @@ public class MainActivity extends JitsiMeetActivity {
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
+            // .setServerURL(buildURL("https://meetdev.melp.us/"))
             .setServerURL(buildURL(defaultURL))
             .setFeatureFlag("welcomepage.enabled", true)
+            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjpmYWxzZSwiaXNzIjoibWVscF9jb25mXzgiLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiQWhzZGFiIEFiYmFzIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiaHR0cHM6Ly91cy1hcGkubWVscC51cy9kb3dubG9hZC92MC84NnEwcnVmem9sNHcvM2E0ZUAxNzA0NzkxMjI3MTI3LmpwZz9zZXNzaW9uaWQ9eWJJQllCRVRkR0NETG1IRGJ0bzhhaUpDUk0wY0xVOTliU0ozeFBUU1l4YjQmaXN0aHVtYj0xIiwiZW1haWwiOiIxMTY1NjMzNzMwQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczMjk2MDk4LCJyb29tIjoiMmUyYzJlZDY1ZTkyYzI3YjU5YWIxNmI5YmM0ZGJjYjMiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3MzMzOTI5OH0.DJObwXnqkspNxjJ5-dY1gd5KeqiLcDK-FKy-5GGrUXQ")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
+            
             .build();
         JitsiMeet.setDefaultConferenceOptions(defaultOptions);
+         new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                JitsiMeetConferenceOptions defaultOptions1
+                        = new JitsiMeetConferenceOptions.Builder()
+                       .setRoom("2e2c2ed65e92c27b59ab16b9bc4dbcb3")
+                        .build();
+                join(defaultOptions1);
+            }
+        }, 500);
     }
 
     private void resolveRestrictions() {

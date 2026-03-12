@@ -139,7 +139,12 @@ export default {
 
     iconButtonContainerPrimary: {
         ...iconButtonContainer,
-        backgroundColor: BaseTheme.palette.action01
+    backgroundColor: '#FF3B30',
+        borderRadius: 29,
+        height: 54,
+        width: 54,
+        
+
     },
 
     iconButtonContainerSecondary: {

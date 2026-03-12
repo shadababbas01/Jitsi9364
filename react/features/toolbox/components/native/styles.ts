@@ -1,8 +1,5 @@
 import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry';
-import { schemeColor } from '../../../base/color-scheme/functions';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
-
-const BUTTON_SIZE = 48;
 
 // Toolbox, toolbar:
 
@@ -10,15 +7,16 @@ const BUTTON_SIZE = 48;
  * The style of toolbar buttons.
  */
 const toolbarButton = {
-    borderRadius: BaseTheme.shape.borderRadius,
+    alignItems: 'center',
+    borderRadius: 29,
     borderWidth: 0,
     flex: 0,
     flexDirection: 'row',
-    height: BUTTON_SIZE,
+    height: 50,
     justifyContent: 'center',
     marginHorizontal: 6,
-    marginVertical: 6,
-    width: BUTTON_SIZE
+    marginVertical: 0,
+    width: 50
 };
 
 /**
@@ -27,7 +25,7 @@ const toolbarButton = {
 const toolbarButtonIcon = {
     alignSelf: 'center',
     color: BaseTheme.palette.icon04,
-    fontSize: 24
+    fontSize: 27
 };
 
 
@@ -84,24 +82,34 @@ const styles = {
      * The style of the toolbar.
      */
     toolbox: {
+        alignSelf: 'center',
         alignItems: 'center',
-        backgroundColor: BaseTheme.palette.uiBackground,
-        borderTopLeftRadius: 3,
-        borderTopRightRadius: 3,
+        backgroundColor: 'rgba(62, 62, 66, 0.78)',
+        borderColor: 'rgba(255, 255, 255, 0.14)',
+        borderRadius: 40,
+        borderWidth: 1,
+        width: '80%',
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    toolboxSafeArea: {
+        alignSelf: 'center'
     },
 
     /**
      * The style of the root/top-level container of {@link Toolbox}.
      */
     toolboxContainer: {
-        backgroundColor: BaseTheme.palette.uiBackground,
+        alignItems: 'center',
+        backgroundColor: 'blur',
         flexDirection: 'column',
-        maxWidth: 580,
+        maxWidth: 500,
         marginHorizontal: 'auto',
-        marginVertical: BaseTheme.spacing[0],
-        paddingHorizontal: BaseTheme.spacing[2],
+        marginVertical: BaseTheme.spacing[3],
+        paddingHorizontal: 0,
         width: '100%'
     },
 
@@ -156,9 +164,10 @@ ColorSchemeRegistry.register('Toolbox', {
         iconStyle: whiteToolbarButtonIcon,
         style: {
             ...toolbarButton,
-            backgroundColor: schemeColor('hangup')
+            backgroundColor: '#FF3B30',
+            borderRadius: 24
         },
-        underlayColor: BaseTheme.palette.ui04
+        underlayColor: '#FF3B30'
     },
 
     reactionDialog: {
@@ -170,7 +179,7 @@ ColorSchemeRegistry.register('Toolbox', {
 
     overflowReactionMenu: {
         ...reactionMenu,
-        padding: BaseTheme.spacing[3]
+        padding: BaseTheme.spacing[2]
     },
 
     reactionMenu: {

@@ -42,6 +42,44 @@
     "audioOnly": {
         "audioOnly": "കുറഞ്ഞ ബാൻഡ്‌വിഡ്ത്ത്"
     },
+    "bandwidthSettings": {
+        "assumedBandwidthBps": "e.g. 10000000 for 10 Mbps",
+        "assumedBandwidthBpsWarning": "Higher values might cause network issues.",
+        "customValue": "custom value",
+        "customValueEffect": "to set the actual bps value",
+        "leaveEmpty": "leave empty",
+        "leaveEmptyEffect": "to allow estimations to take place",
+        "possibleValues": "Possible values",
+        "setAssumedBandwidthBps": "Assumed bandwidth (bps)",
+        "title": "Bandwidth settings",
+        "zeroEffect": "to disable video"
+    },
+    "breakoutRooms": {
+        "actions": {
+            "add": "Add breakout room",
+            "autoAssign": "Auto assign to breakout rooms",
+            "close": "Close",
+            "join": "Join",
+            "leaveBreakoutRoom": "Leave breakout room",
+            "more": "More",
+            "remove": "Remove",
+            "rename": "Rename",
+            "renameBreakoutRoom": "Rename breakout room",
+            "sendToBreakoutRoom": "Send participant to:"
+        },
+        "breakoutList": "Breakout list",
+        "buttonLabel": "Breakout rooms",
+        "defaultName": "Breakout room #{{index}}",
+        "hideParticipantList": "Hide participant list",
+        "mainRoom": "Main room",
+        "notifications": {
+            "joined": "Joining the \"{{name}}\" breakout room",
+            "joinedMainRoom": "Joining the main room",
+            "joinedTitle": "Breakout Rooms"
+        },
+        "showParticipantList": "Show participant list",
+        "title": "Breakout Rooms"
+    },
     "calendarSync": {
         "addMeetingURL": "ഒരു മീറ്റിംഗ് ലിങ്ക് ചേർക്കുക",
         "confirmAddLink": "ഈ ഇവന്റിലേക്ക് Jitsi ലിങ്ക് ചേർക്കാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുണ്ടോ?",
@@ -59,6 +97,16 @@
         "permissionMessage": "അപ്ലിക്കേഷനിൽ നിങ്ങളുടെ മീറ്റിംഗുകൾ കാണാൻ കലണ്ടർ അനുമതി ആവശ്യമാണ്.",
         "refresh": "കലണ്ടർ പുതുക്കുക",
         "today": "ഇന്ന്"
+    },
+    "carmode": {
+        "actions": {
+            "selectSoundDevice": "Select sound device"
+        },
+        "labels": {
+            "buttonLabel": "Car mode",
+            "title": "Car mode",
+            "videoStopped": "Your video is stopped"
+        }
     },
     "chat": {
         "error": "പിശക്: നിങ്ങളുടെ മെസ്സേജ്  അയച്ചില്ല. കാരണം: {{error}}",
@@ -81,6 +129,10 @@
         "buttonText": "Chrome എക്സ്റ്റൻഷൻ ഇൻസ്റ്റാൾ ചെയ്യുക",
         "dontShowAgain": "ഇത് എന്നെ വീണ്ടും കാണിക്കരുത്",
         "installExtensionText": "Install the extension for Google Calendar and Office 365 integration"
+    },
+    "closedCaptionsTab": {
+        "emptyState": "The closed captions content will be available once a moderator starts it",
+        "startClosedCaptionsButton": "Start closed captions"
     },
     "connectingOverlay": {
         "joiningRoom": "നിങ്ങളുടെ മീറ്റിംഗിലേക്ക് നിങ്ങളെ ബന്ധിപ്പിക്കുന്നു…"
@@ -162,6 +214,9 @@
         "previewUnavailable": "പ്രിവ്യൂ ലഭ്യമല്ല",
         "selectADevice": "ഒരു ഉപകരണം തിരഞെടുക്കുക ",
         "testAudio": "ഒരു ടെസ്റ്റ് ശബ്ദം പ്ലേ ചെയ്യുക"
+    },
+    "dialIn": {
+        "screenTitle": "Dial-in summary"
     },
     "dialOut": {
         "statusMessage": "is now {{status}}"
@@ -328,8 +383,33 @@
         "veryBad": "വളരെ മോശം",
         "veryGood": "വളരെ നല്ലത്"
     },
-    "helpView": {
-        "title": "സഹായകേന്ദ്രം"
+    "fileSharing": {
+        "downloadFailedDescription": "Please try again.",
+        "downloadFailedTitle": "Download failed",
+        "downloadFile": "Download",
+        "downloadStarted": "File download started",
+        "dragAndDrop": "Drag and drop files here or anywhere on screen",
+        "fileAlreadyUploaded": "File has already been uploaded to this meeting.",
+        "fileRemovedByOther": "Your file '{{ fileName }}' was removed",
+        "fileTooLargeDescription": "Please make sure the file does not exceed {{ maxFileSize }}.",
+        "fileTooLargeTitle": "The selected file is too large",
+        "fileUploadProgress": "File upload progress",
+        "fileUploadedSuccessfully": "File uploaded successfully",
+        "newFileNotification": "{{ participantName }} shared '{{ fileName }}'",
+        "removeFile": "Remove",
+        "removeFileSuccess": "File removed successfully",
+        "uploadFailedDescription": "Please try again.",
+        "uploadFailedTitle": "Upload failed",
+        "uploadFile": "Share file"
+    },
+    "filmstrip": {
+        "accessibilityLabel": {
+            "heading": "Video thumbnails"
+        }
+    },
+    "giphy": {
+        "noResults": "No results found :(",
+        "search": "Search GIPHY"
     },
     "incomingCall": {
         "answer": "കോളിന് മറുപടി നൽകുക",
@@ -382,6 +462,7 @@
         "searchPlaceholder": "പങ്കാളി അല്ലെങ്കിൽ ഫോൺ നമ്പർ",
         "send": "അയയ്ക്കുക"
     },
+    "jitsiHome": "{{logo}} Logo, links to  Homepage",
     "keyboardShortcuts": {
         "focusLocal": "നിങ്ങളുടെ വീഡിയോയിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക",
         "focusRemote": "മറ്റൊരു വ്യക്തിയുടെ വീഡിയോയിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക",
@@ -398,6 +479,10 @@
         "toggleShortcuts": "കീബോർഡ് കുറുക്കുവഴികൾ കാണിക്കുക അല്ലെങ്കിൽ മറയ്‌ക്കുക",
         "videoMute": "നിങ്ങളുടെ ക്യാമറ ആരംഭിക്കുക അല്ലെങ്കിൽ നിർത്തുക",
         "videoQuality": "കോൾ നിലവാരം നിയന്ത്രിക്കുക"
+    },
+    "largeVideo": {
+        "screenIsShared": "You are sharing your screen",
+        "showMeWhatImSharing": "Show me what I'm sharing"
     },
     "liveStreaming": {
         "busy": "We're working on freeing streaming resources. Please try again in a few minutes.",
@@ -545,6 +630,8 @@
     },
     "passwordDigitsOnly": "{{number}} അക്കങ്ങൾ വരെ",
     "passwordSetRemotely": "മറ്റൊരു പങ്കാളി സജ്ജമാക്കിയത്",
+    "pinParticipant": "{{participantName}} - Pin",
+    "pinnedParticipant": "The participant is pinned",
     "polls": {
         "errors": {
             "notUniqueOption": "ഓപ്ഷനുകൾ അദ്വിതീയമായിരിക്കണം"
@@ -628,6 +715,19 @@
         "title": "പ്രൊഫൈൽ"
     },
     "raisedHand": "സംസാരിക്കാൻ ആഗ്രഹിക്കുന്നു",
+    "raisedHandsLabel": "Number of raised hands",
+    "record": {
+        "already": {
+            "linked": "The meeting is already linked to this Salesforce object."
+        },
+        "type": {
+            "account": "Account",
+            "contact": "Contact",
+            "lead": "Lead",
+            "opportunity": "Opportunity",
+            "owner": "Owner"
+        }
+    },
     "recording": {
         "authDropboxText": "ഡ്രോപ്പ്ബോക്സിലേക്ക് അപ്‌ലോഡ് ചെയ്യുക",
         "availableSpace": "ലഭ്യമായ സ്ഥലം: {{spaceLeft}} MB (ഏകദേശം  {{duration}} മിനിറ്റ് റെക്കോർഡിംഗ്)",
@@ -658,6 +758,7 @@
         "unavailable": "ക്ഷമിക്കണം {{serviceName}} നിലവിൽ ലഭ്യമല്ല. പ്രശ്നം പരിഹരിക്കുന്നതിനായി ഞങ്ങൾ പ്രവർത്തിക്കുന്നു. പിന്നീട് വീണ്ടും ശ്രമിക്കുക.",
         "unavailableTitle": "റെക്കോർഡിംഗ് ലഭ്യമല്ല"
     },
+    "screenshareDisplayName": "{{name}}'s screen",
     "sectionList": {
         "pullToRefresh": "Pull to refresh"
     },
@@ -738,6 +839,10 @@
         "text": "വീണ്ടും ബന്ധിപ്പിക്കുന്നതിന് <i>വീണ്ടും ചേരുക</i> ബട്ടൺ അമർത്തുക.",
         "title": "ഈ കമ്പ്യൂട്ടർ സ്ലീപ്പിൽ  പോയതിനാൽ നിങ്ങളുടെ വീഡിയോ കോൾ തടസ്സപ്പെട്ടു."
     },
+    "termsView": {
+        "title": "Terms"
+    },
+    "toggleTopPanelLabel": "Toggle top panel",
     "toolbar": {
         "Settings": "സജ്ജീകരണങ്ങള്‍",
         "accessibilityLabel": {
@@ -856,6 +961,7 @@
         "stop": "സബ്‌ടൈറ്റിലുകൾ കാണിക്കുന്നത് നിർത്തുക",
         "tr": "TR"
     },
+    "unpinParticipant": "{{participantName}} - Unpin",
     "userMedia": {
         "grantPermissions": "നിങ്ങളുടെ ക്യാമറയും മൈക്രോഫോണും ഉപയോഗിക്കാൻ അനുമതി നൽകുക."
     },
@@ -900,6 +1006,56 @@
         "show": "സ്റ്റേജിൽ കാണിക്കുക",
         "videomute": "പങ്കെടുക്കുന്നയാൾ ക്യാമറ നിർത്തി"
     },
+    "virtualBackground": {
+        "accessibilityLabel": {
+            "currentBackground": "Current background: {{background}}",
+            "selectBackground": "Select a background"
+        },
+        "addBackground": "Add background",
+        "apply": "Apply",
+        "backgroundEffectError": "Failed to apply background effect.",
+        "blur": "Blur",
+        "deleteImage": "Delete image",
+        "desktopShare": "Desktop share",
+        "desktopShareError": "Could not create desktop share",
+        "image1": "Beach",
+        "image2": "White neutral wall",
+        "image3": "White empty room",
+        "image4": "Black floor lamp",
+        "image5": "Mountain",
+        "image6": "Forest ",
+        "image7": "Sunrise",
+        "none": "None",
+        "pleaseWait": "Please wait…",
+        "removeBackground": "Remove background",
+        "slightBlur": "Half Blur",
+        "title": "Virtual backgrounds",
+        "uploadedImage": "Uploaded image {{index}}",
+        "webAssemblyWarning": "WebAssembly not supported",
+        "webAssemblyWarningDescription": "WebAssembly disabled or not supported by this browser"
+    },
+    "visitors": {
+        "chatIndicator": "(viewer)",
+        "joinMeeting": {
+            "description": "You're currently a viewer in this conference.",
+            "raiseHand": "Raise your hand",
+            "title": "Joining meeting",
+            "wishToSpeak": "If you wish to speak, please raise your hand below and wait for the moderator's approval."
+        },
+        "labelTooltip": "Number of viewers: {{count}}",
+        "notification": {
+            "demoteDescription": "Sent here by {{actor}}, raise your hand to participate",
+            "noMainParticipantsDescription": "A participant needs to start the meeting. Please try again in a bit.",
+            "noMainParticipantsTitle": "This meeting hasn't started yet.",
+            "noVisitorLobby": "You cannot join while there is a lobby enabled for the meeting.",
+            "notAllowedPromotion": "A participant needs to allow your request first.",
+            "requestToJoin": "Hand Raised",
+            "requestToJoinDescription": "Your request was sent to the moderators. Hang tight!",
+            "title": "You are a viewer in the meeting"
+        },
+        "waitingMessage": "You'll join the meeting as soon as it is live!"
+    },
+    "volumeSlider": "Volume slider",
     "welcomepage": {
         "accessibilityLabel": {
             "join": "ചേരാൻ ടാപ്പുചെയ്യുക",
@@ -931,5 +1087,38 @@
         "sendFeedback": "ഫീഡ്‌ബാക്ക് അയയ്‌ക്കുക",
         "terms": "നിബന്ധനകൾ",
         "title": "സുരക്ഷിതവും പൂർണ്ണമായും സൗജന്യ വീഡിയോ കോൺഫറൻസിംഗും"
+    },
+    "whiteboard": {
+        "accessibilityLabel": {
+            "heading": "Whiteboard"
+        },
+        "screenTitle": "Whiteboard"
+    },
+    "transcriptionConsent": {
+        "title": "Transcription Notice",
+        "warning": "Important: Your voice will be recorded and stored",
+        "message": "{{moderatorName}} has started transcription. Your voice will be stored on the server for transcription purposes. If you wish to continue, press \"Continue\", otherwise please leave the call.",
+        "liveCaptionsNotice": "{{moderatorName}} has started Live Captions for this meeting. Your voice will be recorded, and transcribed for all participants.",
+        "defaultModeratorName": "The moderator",
+        "continue": "Continue",
+        "leaveCall": "Leave Call"
+    },
+    "summarySetup": {
+        "title": "AI Meeting Summary",
+        "description": "Get an instant AI-generated summary tailored to your meeting type.",
+        "enableLabel": "Enable AI Meeting Summary",
+        "disableLabel": "Disable AI Meeting Summary",
+        "templateLabel": "Choose a summary template",
+        "categories": {
+            "meeting": "Meeting",
+            "interview": "Interview",
+            "standup": "Standup"
+        },
+        "notifications": {
+            "enabled": "AI Meeting Summary has been enabled.",
+            "disabled": "AI Meeting Summary has been disabled."
+        },
+        "statusEnabled": "AI summary is active for this meeting.",
+        "statusDisabled": "AI summary is paused until you turn it back on."
     }
 }

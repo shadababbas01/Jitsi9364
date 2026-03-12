@@ -3,6 +3,7 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 export const INSECURE_ROOM_NAME_LABEL_COLOR = BaseTheme.palette.actionDanger;
 
 const TITLE_BAR_BUTTON_SIZE = 24;
+const ROUND_BUTTON_SIZE = 48;
 
 
 /**
@@ -106,7 +107,6 @@ export default {
 
     titleBarSafeViewColor: {
         ...titleBarSafeView,
-        backgroundColor: BaseTheme.palette.uiBackground
     },
 
     titleBarSafeViewTransparent: {
@@ -114,11 +114,59 @@ export default {
     },
 
     titleBarWrapper: {
+        alignItems: 'flex-start',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[2]
+    },
+
+    titleBarLeft: {
+        alignItems: 'flex-start',
+        width: ROUND_BUTTON_SIZE
+    },
+
+    titleBarCenter: {
         alignItems: 'center',
         flex: 1,
-        flexDirection: 'row',
-        height: BaseTheme.spacing[8],
-        justifyContent: 'center'
+        paddingHorizontal: BaseTheme.spacing[2]
+    },
+
+    titleBarRightSpacer: {
+        width: ROUND_BUTTON_SIZE
+    },
+
+    titleBarLabels: {
+        marginTop: BaseTheme.spacing[2]
+    },
+
+    titleBarRoundButton: {
+        iconStyle: {
+            color: BaseTheme.palette.icon01,
+            fontSize: TITLE_BAR_BUTTON_SIZE
+        },
+        style: {
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            borderRadius: ROUND_BUTTON_SIZE / 2,
+            height: ROUND_BUTTON_SIZE,
+            justifyContent: 'center',
+            width: ROUND_BUTTON_SIZE
+        },
+        underlayColor: 'transparent'
+    },
+
+    meetingName: {
+        ...BaseTheme.typography.heading6,
+        color: BaseTheme.palette.text01,
+        textAlign: 'center'
+    },
+
+    meetingTimer: {
+        ...BaseTheme.typography.bodyShortBold,
+        color: BaseTheme.palette.text01,
+        marginTop: 2,
+        textAlign: 'center'
     },
 
     alwaysOnTitleBar: {
@@ -188,6 +236,38 @@ export default {
         position: 'absolute',
         right: 0,
         top: 0
+    },
+
+
+    sideToolbar: {
+        position: 'absolute',
+        right: BaseTheme.spacing[4],
+        top: BaseTheme.spacing[2],
+        zIndex: 2
+    },
+
+    sideToolbarStack: {
+        alignItems: 'center'
+    },
+
+    sideToolbarButtonWrapper: {
+        marginBottom: BaseTheme.spacing[3]
+    },
+
+    sideToolbarButton: {
+        iconStyle: {
+            color: BaseTheme.palette.icon01,
+            fontSize: TITLE_BAR_BUTTON_SIZE
+        },
+        style: {
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            borderRadius: ROUND_BUTTON_SIZE / 2,
+            height: ROUND_BUTTON_SIZE,
+            justifyContent: 'center',
+            width: ROUND_BUTTON_SIZE
+        },
+        underlayColor: 'transparent'
     },
 
     insecureRoomNameLabel: {

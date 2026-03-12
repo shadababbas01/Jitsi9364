@@ -39,6 +39,7 @@ import Captions from '../../../subtitles/components/native/Captions';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import EventLogPanel from '../../../debug-event-log/components/native/EventLogPanel';
 import {
     AbstractConference,
     type AbstractProps,
@@ -50,6 +51,7 @@ import AlwaysOnLabels from './AlwaysOnLabels';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
+import SideToolbar from './SideToolbar';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
 
@@ -411,6 +413,8 @@ class Conference extends AbstractConference<IProps, State> {
                     style = { styles.toolboxAndFilmstripContainer as ViewStyle }>
 
                     <Captions onPress = { this._onClick } />
+                    <SideToolbar />
+                    { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
 
                     {
                         _shouldDisplayTileView

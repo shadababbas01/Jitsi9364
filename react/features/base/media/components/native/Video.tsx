@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { GestureResponderEvent } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
+import { connect } from 'react-redux';
 
 import Pressable from '../../../react/components/native/Pressable';
+import { IReduxState } from '../../../app/types';
 
 import VideoTransform from './VideoTransform';
 import styles from './styles';
@@ -51,6 +53,11 @@ interface IProps {
      * Indicates whether zooming (pinch to zoom and/or drag) is enabled.
      */
     zoomEnabled: boolean;
+
+    /**
+     * Object fit mode for the video.
+     */
+    objectFit: 'cover' | 'contain';
 }
 
 /**
@@ -58,7 +65,7 @@ interface IProps {
  * {@code HTMLVideoElement} and wraps around react-native-webrtc's
  * {@link RTCView}.
  */
-export default class Video extends Component<IProps> {
+class Video extends Component<IProps> {
     /**
      * React Component method that executes once component is mounted.
      *
@@ -79,20 +86,20 @@ export default class Video extends Component<IProps> {
      * @returns {ReactElement|null}
      */
     override render() {
-        const { onPress, stream, zoomEnabled } = this.props;
+        const { onPress, stream, zoomEnabled, objectFit } = this.props;
 
         if (stream) {
             // RTCView
             const style = styles.video;
-            const objectFit
+            const display
                 = zoomEnabled
                     ? 'contain'
-                    : 'cover';
+                    : objectFit;
             const rtcView
                 = (
                     <RTCView
                         mirror = { this.props.mirror }
-                        objectFit = { objectFit }
+                        objectFit = { display }
                         streamURL = { stream.toURL() }
                         style = { style }
                         zOrder = { this.props.zOrder } />
@@ -132,3 +139,9 @@ export default class Video extends Component<IProps> {
         return null;
     }
 }
+
+const mapStateToProps = (state: IReduxState) => ({
+    objectFit: state['features/base/settings'].zoomtype
+});
+
+export default connect(mapStateToProps)(Video);

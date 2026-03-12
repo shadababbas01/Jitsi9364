@@ -5,3 +5,4 @@ import 'react-native-gesture-handler';
 // sees them.
 import 'react-native-get-random-values';
 import './features/mobile/polyfills';
+import './features/debug-event-log';

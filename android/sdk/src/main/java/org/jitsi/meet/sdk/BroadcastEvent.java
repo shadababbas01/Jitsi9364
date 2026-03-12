@@ -92,6 +92,7 @@ public class BroadcastEvent {
         READY_TO_CLOSE("org.jitsi.meet.READY_TO_CLOSE"),
         TRANSCRIPTION_CHUNK_RECEIVED("org.jitsi.meet.TRANSCRIPTION_CHUNK_RECEIVED"),
         CUSTOM_BUTTON_PRESSED("org.jitsi.meet.CUSTOM_BUTTON_PRESSED"),
+        CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED("org.jitsi.meet.CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED"),
         CONFERENCE_UNIQUE_ID_SET("org.jitsi.meet.CONFERENCE_UNIQUE_ID_SET"),
         RECORDING_STATUS_CHANGED("org.jitsi.meet.RECORDING_STATUS_CHANGED");
 
@@ -112,6 +113,7 @@ public class BroadcastEvent {
         private static final String READY_TO_CLOSE_NAME = "READY_TO_CLOSE";
         private static final String TRANSCRIPTION_CHUNK_RECEIVED_NAME = "TRANSCRIPTION_CHUNK_RECEIVED";
         private static final String CUSTOM_BUTTON_PRESSED_NAME = "CUSTOM_BUTTON_PRESSED";
+        private static final String CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED_NAME = "CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED";
         private static final String CONFERENCE_UNIQUE_ID_SET_NAME = "CONFERENCE_UNIQUE_ID_SET";
         private static final String RECORDING_STATUS_CHANGED_NAME = "RECORDING_STATUS_CHANGED";
 
@@ -170,6 +172,8 @@ public class BroadcastEvent {
                     return TRANSCRIPTION_CHUNK_RECEIVED;
                 case CUSTOM_BUTTON_PRESSED_NAME:
                     return CUSTOM_BUTTON_PRESSED;
+                case CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED_NAME:
+                    return CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED;
                 case CONFERENCE_UNIQUE_ID_SET_NAME:
                     return CONFERENCE_UNIQUE_ID_SET;
                 case RECORDING_STATUS_CHANGED_NAME:

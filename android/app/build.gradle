@@ -87,6 +87,12 @@ android {
         jvmToolchain(rootProject.ext.jvmToolchainVersion)
     }
 
+    packagingOptions {
+        jniLibs {
+            pickFirsts += [ '**/libjsctooling.so' ]
+        }
+    }
+
     namespace 'org.jitsi.meet'
 }
 

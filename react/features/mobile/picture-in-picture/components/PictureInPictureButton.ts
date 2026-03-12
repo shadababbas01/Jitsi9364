@@ -2,7 +2,7 @@ import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { translate } from '../../../base/i18n/functions';
-import { IconArrowDown } from '../../../base/icons/svg';
+import { IconEnlarge } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { enterPictureInPicture } from '../actions';
 import { isPipEnabled } from '../functions';
@@ -20,7 +20,7 @@ interface IProps extends AbstractButtonProps {
  */
 class PictureInPictureButton extends AbstractButton<IProps> {
     override accessibilityLabel = 'toolbar.accessibilityLabel.pip';
-    override icon = IconArrowDown;
+    override icon = IconEnlarge;
     override label = 'toolbar.pip';
 
     /**

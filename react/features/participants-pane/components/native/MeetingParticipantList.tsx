@@ -1,17 +1,20 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Text, TextStyle, View } from 'react-native';
+import { FlatList, NativeModules, Text, TextStyle, View } from 'react-native';
 import { connect, useDispatch } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
 import { IconAddUser } from '../../../base/icons/svg';
+import { getConferenceName } from '../../../base/conference/functions';
 import {
     addPeopleFeatureControl,
     getParticipantById,
+    getLocalParticipant,
     isScreenShareParticipant,
     setShareDialogVisiblity
 } from '../../../base/participants/functions';
+// import { getParticipantCountRemoteOnly } from '../../../base/participants/functions';
 import Button from '../../../base/ui/components/native/Button';
 import Input from '../../../base/ui/components/native/Input';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
@@ -36,6 +39,8 @@ interface IProps {
     isAddPeopleFeatureEnabled?: boolean | undefined;
     isShareDialogVisible: boolean;
     participantsCount?: number;
+    // remoteParticipantsCount?: number;
+    updatedUserName?: string;
     showInviteButton?: boolean;
     sortedParticipantIds?: Array<string>;
     visitorsCount?: number | undefined;
@@ -48,6 +53,8 @@ const MeetingParticipantList = ({
     isAddPeopleFeatureEnabled,
     isShareDialogVisible,
     participantsCount,
+    // remoteParticipantsCount,
+    updatedUserName,
     showInviteButton,
     sortedParticipantIds = [],
     visitorsCount
@@ -60,11 +67,28 @@ const MeetingParticipantList = ({
 
     const keyExtractor = useCallback((e: undefined, i: number) => i.toString(), []);
     const onInvite = useCallback(() => {
+        if (NativeModules?.NativeCallsNew?.addToCall) {
+            NativeModules.NativeCallsNew.addToCall();
+            return;
+        }
+
         setShareDialogVisiblity(isAddPeopleFeatureEnabled, dispatch);
         dispatch(doInvitePeople());
-    }, [ dispatch ]);
+    }, [ dispatch, isAddPeopleFeatureEnabled ]);
     const onSearchStringChange = useCallback((text: string) =>
         setSearchString(text), []);
+
+    // useEffect(() => {
+    //     if (typeof remoteParticipantsCount === 'number') {
+    //         NativeModules?.NativeCallsNew?.totalUsers?.(remoteParticipantsCount);
+    //     }
+    // }, [ remoteParticipantsCount ]);
+
+    useEffect(() => {
+        if (updatedUserName) {
+            NativeModules?.NativeCallsNew?.updatedUserName?.(updatedUserName);
+        }
+    }, [ updatedUserName ]);
 
     const title = currentRoom?.name
         ? `${currentRoom.name} (${participantsCount})`
@@ -138,6 +162,7 @@ function _mapStateToProps(state: IReduxState) {
     let sortedParticipantIds: any = getSortedParticipantIds(state);
 
     const _iAmVisitor = iAmVisitor(state);
+    const localParticipant = getLocalParticipant(state);
 
     sortedParticipantIds = sortedParticipantIds.filter((id: any) => {
         const participant = getParticipantById(state, id);
@@ -155,8 +180,26 @@ function _mapStateToProps(state: IReduxState) {
     const { color, shareDialogVisible } = inviteOthersControl;
     const isAddPeopleFeatureEnabled = addPeopleFeatureControl(state);
     const participantsCount = sortedParticipantIds.length;
+    // const remoteParticipantsCount = getParticipantCountRemoteOnly(state);
     const showInviteButton = shouldRenderInviteButton(state);
     const visitorsCount = state['features/visitors']?.count || 0;
+    let updatedUserName = '';
+
+    for (const id of sortedParticipantIds) {
+        if (id === localParticipant?.id) {
+            continue;
+        }
+        const participant = getParticipantById(state, id);
+
+        if (participant?.name) {
+            updatedUserName = participant.name;
+            break;
+        }
+    }
+
+    if (!updatedUserName) {
+        updatedUserName = getConferenceName(state);
+    }
 
     return {
         currentRoom,
@@ -165,6 +208,8 @@ function _mapStateToProps(state: IReduxState) {
         isAddPeopleFeatureEnabled,
         isShareDialogVisible: shareDialogVisible,
         participantsCount,
+        // remoteParticipantsCount,
+        updatedUserName,
         showInviteButton,
         sortedParticipantIds,
         visitorsCount
