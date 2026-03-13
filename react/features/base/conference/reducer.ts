@@ -26,6 +26,7 @@ import {
     LOCK_STATE_CHANGED,
     P2P_STATUS_CHANGED,
     SET_ASSUMED_BANDWIDTH_BPS,
+    SET_CONNECTION_STATUS,
     SET_OBFUSCATED_ROOM,
     SET_PASSWORD,
     SET_PENDING_SUBJECT_CHANGE,
@@ -38,7 +39,9 @@ import { isRoomValid } from './functions';
 
 const DEFAULT_STATE = {
     assumedBandwidthBps: undefined,
+    connectedTimestamp: undefined,
     conference: undefined,
+    connectionStatus: undefined,
     dataChannelOpen: undefined,
     e2eeSupported: undefined,
     joining: undefined,
@@ -171,7 +174,9 @@ export interface IConferenceState {
     authEnabled?: boolean;
     authLogin?: string;
     authRequired?: IJitsiConference;
+    connectedTimestamp?: number;
     conference?: IJitsiConference;
+    connectionStatus?: string;
     conferenceTimestamp?: number;
     dataChannelOpen?: boolean;
     e2eeSupported?: boolean;
@@ -270,6 +275,9 @@ ReducerRegistry.register<IConferenceState>('features/base/conference',
 
             return set(state, 'assumedBandwidthBps', assumedBandwidthBps);
         }
+
+        case SET_CONNECTION_STATUS:
+            return _setConnectionStatus(state, action);
 
         case SET_START_REACTIONS_MUTED:
             return set(state, 'startReactionsMuted', action.muted);
@@ -524,6 +532,9 @@ function _conferenceLeftOrWillLeave(state: IConferenceState, { conference, type 
         }
     }
 
+    nextState.connectionStatus = undefined;
+    nextState.connectedTimestamp = undefined;
+
     if (type === CONFERENCE_WILL_LEAVE) {
         // A CONFERENCE_WILL_LEAVE is of further consequence only if it is
         // expected i.e. if the specified conference is joining or joined.
@@ -691,3 +702,40 @@ function _setRoom(state: IConferenceState, action: AnyAction) {
     });
 }
 
+/**
+ * Reduces a specific Redux action SET_CONNECTION_STATUS of the feature base/conference.
+ *
+ * @param {Object} state - The Redux state of the feature base/conference.
+ * @param {Action} action - The Redux action SET_CONNECTION_STATUS to reduce.
+ * @private
+ * @returns {Object} The new state of the feature base/conference after the
+ * reduction of the specified action.
+ */
+function _setConnectionStatus(state: IConferenceState, action: AnyAction) {
+    const rawStatus = typeof action.status === 'string' ? action.status.trim() : '';
+    const normalizedStatus = rawStatus.toLowerCase();
+
+    if (!normalizedStatus || normalizedStatus === 'clear') {
+        if (!state.connectionStatus && !state.connectedTimestamp) {
+            return state;
+        }
+
+        return assign(state, {
+            connectionStatus: undefined,
+            connectedTimestamp: undefined
+        });
+    }
+
+    if (normalizedStatus === 'connected' && !state.connectedTimestamp) {
+        return assign(state, {
+            connectionStatus: normalizedStatus,
+            connectedTimestamp: typeof action.timestamp === 'number'
+                ? action.timestamp
+                : Date.now()
+        });
+    }
+
+    return assign(state, {
+        connectionStatus: normalizedStatus
+    });
+}

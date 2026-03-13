@@ -192,6 +192,17 @@ export const DATA_CHANNEL_OPENED = 'DATA_CHANNEL_OPENED';
 export const DATA_CHANNEL_CLOSED = 'DATA_CHANNEL_CLOSED';
 
 /**
+ * The type of (redux) action which signals that the host app connection status
+ * has changed.
+ *
+ * {
+ *     type: SET_CONNECTION_STATUS,
+ *     status: string
+ * }
+ */
+export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
+
+/**
  * The type of (redux) action which indicates that an endpoint message
  * sent by another participant to the data channel is received.
  *

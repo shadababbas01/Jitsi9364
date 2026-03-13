@@ -58,6 +58,7 @@ import {
     P2P_STATUS_CHANGED,
     SEND_TONES,
     SET_ASSUMED_BANDWIDTH_BPS,
+    SET_CONNECTION_STATUS,
     SET_OBFUSCATED_ROOM,
     SET_PASSWORD,
     SET_PASSWORD_FAILED,
@@ -1049,6 +1050,26 @@ export function setAssumedBandwidthBps(assumedBandwidthBps: number) {
 }
 
 /**
+ * Sets the host app connection status.
+ *
+ * @param {string} status - The new connection status.
+ * @returns {{
+ *     type: SET_CONNECTION_STATUS,
+ *     status: string,
+ *     timestamp?: number
+ * }}
+ */
+export function setConnectionStatus(status?: string) {
+    return {
+        type: SET_CONNECTION_STATUS,
+        status,
+        timestamp: status && String(status).trim().toLowerCase() === 'connected'
+            ? Date.now()
+            : undefined
+    };
+}
+
+/**
  * Redirects to a new visitor node.
  *
  * @param {string | undefined} vnode - The vnode to use or undefined if moving back to the main room.
@@ -1115,4 +1136,3 @@ export function redirect(vnode: string, focusJid: string, username: string) {
             });
     };
 }
-

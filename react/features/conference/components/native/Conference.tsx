@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback } from 'react';
 import {
     BackHandler,
+    DeviceEventEmitter,
     NativeModules,
     View,
     ViewStyle
@@ -11,6 +12,7 @@ import { connect, useDispatch } from 'react-redux';
 
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
+import { setConnectionStatus } from '../../../base/conference/actions';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { isDisplayNameVisible } from '../../../base/config/functions.native';
 import Container from '../../../base/react/components/native/Container';
@@ -48,6 +50,7 @@ import {
 import { isConnecting } from '../functions.native';
 
 import AlwaysOnLabels from './AlwaysOnLabels';
+import ConnectionStatusLabel from './ConnectionStatusLabel';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
@@ -119,6 +122,11 @@ interface IProps extends AbstractProps {
     _pictureInPictureEnabled: boolean;
 
     /**
+     * Current connection status coming from host app.
+     */
+    _connectionStatus?: string;
+
+    /**
      * The indicator which determines whether the UI is reduced (to accommodate
      * smaller display areas).
      */
@@ -178,6 +186,11 @@ class Conference extends AbstractConference<IProps, State> {
     _hardwareBackPressSubscription: any;
 
     /**
+     * Subscription to host app connection status updates.
+     */
+    _connectionStatusSubscription: any;
+
+    /**
      * Initializes a new Conference instance.
      *
      * @param {Object} props - The read-only properties with which the new
@@ -195,6 +208,7 @@ class Conference extends AbstractConference<IProps, State> {
         // Bind event handlers so they are only bound once per instance.
         this._onClick = this._onClick.bind(this);
         this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
+        this._onConnectionStatus = this._onConnectionStatus.bind(this);
         this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
     }
@@ -214,6 +228,9 @@ class Conference extends AbstractConference<IProps, State> {
         } = this.props;
 
         this._hardwareBackPressSubscription = BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
+        this._connectionStatusSubscription = DeviceEventEmitter.addListener(
+            'connectionStatus',
+            this._onConnectionStatus);
 
         if (_audioOnlyEnabled && _startCarMode) {
             navigation.navigate(screen.conference.carmode);
@@ -256,6 +273,7 @@ class Conference extends AbstractConference<IProps, State> {
     override componentWillUnmount() {
         // Tear handling any hardware button presses for back navigation down.
         this._hardwareBackPressSubscription?.remove();
+        this._connectionStatusSubscription?.remove();
 
         clearTimeout(this._expandedLabelTimeout.current ?? 0);
     }
@@ -316,6 +334,22 @@ class Conference extends AbstractConference<IProps, State> {
         });
 
         return true;
+    }
+
+    /**
+     * Handles connection status events coming from the host app.
+     *
+     * @param {Object|string} event - The event payload.
+     * @returns {void}
+     */
+    _onConnectionStatus(event: { status?: string } | string) {
+        const status = typeof event === 'string' ? event : event?.status;
+
+        console.log('[connectionStatus] event:', event, 'status:', status);
+
+        if (typeof status === 'string') {
+            this.props.dispatch(setConnectionStatus(status));
+        }
     }
 
     /**
@@ -414,16 +448,19 @@ class Conference extends AbstractConference<IProps, State> {
 
                     <Captions onPress = { this._onClick } />
                     <SideToolbar />
+                    <ConnectionStatusLabel overlay = { true } />
                     { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
 
                     {
-                        _shouldDisplayTileView
-                        || (_isDisplayNameVisible && (
+                        !_shouldDisplayTileView && (_isDisplayNameVisible || _connectionStatus) && (
                             <Container style = { styles.displayNameContainer }>
-                                <DisplayNameLabel
-                                    participantId = { _largeVideoParticipantId } />
+                                { _isDisplayNameVisible && (
+                                    <DisplayNameLabel
+                                        participantId = { _largeVideoParticipantId } />
+                                ) }
+                                <ConnectionStatusLabel />
                             </Container>
-                        ))
+                        )
                     }
 
                     { !_shouldDisplayTileView && <LonelyMeetingExperience /> }
@@ -576,6 +613,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _audioOnlyEnabled: Boolean(audioOnlyEnabled),
         _brandingStyles: brandingStyles,
         _calendarEnabled: isCalendarEnabled(state),
+        _connectionStatus: state['features/base/conference'].connectionStatus,
         _connecting: isConnecting(state),
         _filmstripVisible: isFilmstripVisible(state),
         _isDisplayNameVisible: isDisplayNameVisible(state),
