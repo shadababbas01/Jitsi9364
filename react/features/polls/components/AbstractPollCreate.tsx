@@ -1,16 +1,12 @@
-/* eslint-disable arrow-body-style */
-
-import React, { ComponentType, FormEvent, useCallback, useMemo, useState } from 'react';
+import React, { ComponentType, FormEvent, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { createPollEvent } from '../../analytics/AnalyticsEvents';
 import { sendAnalytics } from '../../analytics/functions';
 import { IReduxState } from '../../app/types';
-import { getLocalParticipant } from '../../base/participants/functions';
-import { savePoll } from '../actions';
+import { COMMAND_NEW_POLL } from '../constants';
 import { hasIdenticalAnswers } from '../functions';
-import { IAnswerData, IPollData } from '../types';
 
 /**
  * The type of the React {@code Component} props of inheriting component.
@@ -25,14 +21,12 @@ type InputProps = {
  **/
 export type AbstractProps = InputProps & {
     addAnswer: (index?: number) => void;
-    answers: Array<IAnswerData>;
-    editingPoll: IPollData | undefined;
-    editingPollId: string | undefined;
+    answers: Array<string>;
     isSubmitDisabled: boolean;
     onSubmit: (event?: FormEvent<HTMLFormElement>) => void;
     question: string;
     removeAnswer: (index: number) => void;
-    setAnswer: (index: number, value: IAnswerData) => void;
+    setAnswer: (index: number, value: string) => void;
     setQuestion: (question: string) => void;
     t: Function;
 };
@@ -50,43 +44,11 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
 
     const { setCreateMode } = props;
 
-    const pollState = useSelector((state: IReduxState) => state['features/polls'].polls);
+    const [ question, setQuestion ] = useState('');
 
-    const editingPoll: [ string, IPollData ] | null = useMemo(() => {
-        if (!pollState) {
-            return null;
-        }
+    const [ answers, setAnswers ] = useState([ '', '' ]);
 
-        for (const key in pollState) {
-            if (pollState.hasOwnProperty(key) && pollState[key].editing) {
-                return [ key, pollState[key] ];
-            }
-        }
-
-        return null;
-    }, [ pollState ]);
-
-    const answerResults = useMemo(() => {
-        return editingPoll
-            ? editingPoll[1].answers
-            : [
-                {
-                    name: ''
-                },
-                {
-                    name: ''
-                } ];
-    }, [ editingPoll ]);
-
-    const questionResult = useMemo(() => {
-        return editingPoll ? editingPoll[1].question : '';
-    }, [ editingPoll ]);
-
-    const [ question, setQuestion ] = useState(questionResult);
-
-    const [ answers, setAnswers ] = useState(answerResults);
-
-    const setAnswer = useCallback((i: number, answer: IAnswerData) => {
+    const setAnswer = useCallback((i, answer) => {
         setAnswers(currentAnswers => {
             const newAnswers = [ ...currentAnswers ];
 
@@ -97,13 +59,10 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
     }, [ answers ]);
 
     const addAnswer = useCallback((i?: number) => {
-        const newAnswers: Array<IAnswerData> = [ ...answers ];
+        const newAnswers = [ ...answers ];
 
         sendAnalytics(createPollEvent('option.added'));
-        newAnswers.splice(typeof i === 'number'
-            ? i : answers.length, 0, {
-            name: ''
-        });
+        newAnswers.splice(typeof i === 'number' ? i : answers.length, 0, '');
         setAnswers(newAnswers);
     }, [ answers ]);
 
@@ -118,37 +77,25 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
         setAnswers(newAnswers);
     }, [ answers ]);
 
-    const { conference } = useSelector((state: IReduxState) => state['features/base/conference']);
-
-    const dispatch = useDispatch();
-
-    const pollId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-
-    const localParticipant = useSelector(getLocalParticipant);
+    const conference = useSelector((state: IReduxState) => state['features/base/conference'].conference);
 
     const onSubmit = useCallback(ev => {
         if (ev) {
             ev.preventDefault();
         }
 
-        const filteredAnswers = answers.filter(answer => answer.name.trim().length > 0);
+        const filteredAnswers = answers.filter(answer => answer.trim().length > 0);
 
         if (filteredAnswers.length < 2) {
             return;
         }
 
-        dispatch(savePoll({
-            changingVote: false,
-            senderId: localParticipant?.id,
-            showResults: false,
-            lastVote: null,
+        conference?.sendMessage({
+            type: COMMAND_NEW_POLL,
+            pollId: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
             question,
-            answers: filteredAnswers,
-            saved: true,
-            editing: false,
-            pollId: editingPoll ? editingPoll[0] : pollId
-        }));
-
+            answers: filteredAnswers
+        });
         sendAnalytics(createPollEvent('created'));
 
         setCreateMode(false);
@@ -158,7 +105,7 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
     // Check if the poll create form can be submitted i.e. if the send button should be disabled.
     const isSubmitDisabled
         = question.trim().length <= 0 // If no question is provided
-        || answers.filter(answer => answer.name.trim().length > 0).length < 2 // If not enough options are provided
+        || answers.filter(answer => answer.trim().length > 0).length < 2 // If not enough options are provided
         || hasIdenticalAnswers(answers); // If duplicate options are provided
 
     const { t } = useTranslation();
@@ -166,8 +113,6 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
     return (<Component
         addAnswer = { addAnswer }
         answers = { answers }
-        editingPoll = { editingPoll?.[1] }
-        editingPollId = { editingPoll?.[0] }
         isSubmitDisabled = { isSubmitDisabled }
         onSubmit = { onSubmit }
         question = { question }

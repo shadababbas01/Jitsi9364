@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
 
 import Button from '../../../base/ui/components/web/Button';
 import Input from '../../../base/ui/components/web/Input';
 import { BUTTON_TYPES } from '../../../base/ui/constants.web';
-import { editPoll } from '../../actions';
 import { ANSWERS_LIMIT, CHAR_LIMIT } from '../../constants';
 import AbstractPollCreate, { AbstractProps } from '../AbstractPollCreate';
 
@@ -65,8 +63,6 @@ const useStyles = makeStyles()(theme => {
 const PollCreate = ({
     addAnswer,
     answers,
-    editingPoll,
-    editingPollId,
     isSubmitDisabled,
     onSubmit,
     question,
@@ -77,7 +73,6 @@ const PollCreate = ({
     t
 }: AbstractProps) => {
     const { classes } = useStyles();
-    const dispatch = useDispatch();
 
     /*
      * This ref stores the Array of answer input fields, allowing us to focus on them.
@@ -205,12 +200,11 @@ const PollCreate = ({
                     value = { question } />
             </div>
             <ol className = { classes.answerList }>
-                {answers.map((answer, i: number) => {
+                {answers.map((answer: any, i: number) => {
 
                     const isIdenticalAnswer = answers.slice(0, i).length === 0 ? false
-                        : answers.slice(0, i).some(prevAnswer =>
-                            prevAnswer.name === answer.name
-                            && prevAnswer.name !== '' && answer.name !== '');
+                        : answers.slice(0, i).some((prevAnswer: string) =>
+                            prevAnswer === answer && prevAnswer !== '' && answer !== '');
 
                     return (<li
                         className = { classes.answer }
@@ -222,19 +216,16 @@ const PollCreate = ({
                             id = { `polls-answer-input-${i}` }
                             label = { t('polls.create.pollOption', { index: i + 1 }) }
                             maxLength = { CHAR_LIMIT }
-                            onChange = { name => setAnswer(i, {
-                                name
-                            }) }
+                            onChange = { val => setAnswer(i, val) }
                             onKeyPress = { ev => onAnswerKeyDown(i, ev) }
                             placeholder = { t('polls.create.answerPlaceholder', { index: i + 1 }) }
                             ref = { r => registerFieldRef(i, r) }
                             textarea = { true }
-                            value = { answer.name } />
+                            value = { answer } />
 
                         { answers.length > 2
                         && <button
                             className = { classes.removeOption }
-                            data-testid = { `remove-polls-answer-input-${i}` }
                             onClick = { () => removeAnswer(i) }
                             type = 'button'>
                             { t('polls.create.removeOption') }
@@ -260,18 +251,13 @@ const PollCreate = ({
                 accessibilityLabel = { t('polls.create.cancel') }
                 className = { classes.buttonMargin }
                 labelKey = { 'polls.create.cancel' }
-                onClick = { () => {
-                    setCreateMode(false);
-                    editingPollId
-                    && editingPoll?.editing
-                    && dispatch(editPoll(editingPollId, false));
-                } }
+                onClick = { () => setCreateMode(false) }
                 type = { BUTTON_TYPES.SECONDARY } />
             <Button
-                accessibilityLabel = { t('polls.create.save') }
+                accessibilityLabel = { t('polls.create.send') }
                 disabled = { isSubmitDisabled }
                 isSubmit = { true }
-                labelKey = { 'polls.create.save' } />
+                labelKey = { 'polls.create.send' } />
         </div>
     </form>);
 };

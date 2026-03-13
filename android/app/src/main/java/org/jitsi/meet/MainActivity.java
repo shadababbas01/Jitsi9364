@@ -159,7 +159,7 @@ public class MainActivity extends JitsiMeetActivity {
             // .setServerURL(buildURL("https://meetdev.melp.us/"))
             .setServerURL(buildURL(defaultURL))
             .setFeatureFlag("welcomepage.enabled", true)
-            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjpmYWxzZSwiaXNzIjoibWVscF9jb25mXzgiLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiQWhzZGFiIEFiYmFzIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiaHR0cHM6Ly91cy1hcGkubWVscC51cy9kb3dubG9hZC92MC84NnEwcnVmem9sNHcvM2E0ZUAxNzA0NzkxMjI3MTI3LmpwZz9zZXNzaW9uaWQ9eWJJQllCRVRkR0NETG1IRGJ0bzhhaUpDUk0wY0xVOTliU0ozeFBUU1l4YjQmaXN0aHVtYj0xIiwiZW1haWwiOiIxMTY1NjMzNzMwQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczMjk2MDk4LCJyb29tIjoiMmUyYzJlZDY1ZTkyYzI3YjU5YWIxNmI5YmM0ZGJjYjMiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3MzMzOTI5OH0.DJObwXnqkspNxjJ5-dY1gd5KeqiLcDK-FKy-5GGrUXQ")
+            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImNvbnRleHQiOnsiY2FsbGVlIjp7Im5hbWUiOiIiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiU2hhZGFiIEFiYmFzIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6Imh0dHBzOi8vdXMtYXBpLm1lbHAudXMvZG93bmxvYWQvdjAvODhwOHZtYW11azh3Lzg5NDZAdXNlci5qcGVnP3Nlc3Npb25pZD15YklCWUJFVGRHQ0RMbUhEYnRvOGFpSkNSTTBjTFU5OWJTSjN4UFRTWXhiNCZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczMzE2ODUxLCJyb29tIjoiYzVhYTc0MDY1NzkyNmY4Y2M2MjgyNmQ5MWEwYmNlMDgiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3MzM2MDA1MX0.ub1tTfogwbLGK1In7sRfPycoyzvkF7GFKuuWP3jgSqQ")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -169,7 +169,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("2e2c2ed65e92c27b59ab16b9bc4dbcb3")
+                       .setRoom("c5aa740657926f8cc62826d91a0bce08")
                         .build();
                 join(defaultOptions1);
             }

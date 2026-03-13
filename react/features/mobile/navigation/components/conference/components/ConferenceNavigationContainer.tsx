@@ -4,19 +4,16 @@ import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import BreakoutRooms
 // @ts-ignore
     from '../../../../../breakout-rooms/components/native/BreakoutRooms';
 // @ts-ignore
-import Chat from '../../../../../chat/components/native/Chat';
 // @ts-ignore
 import Conference from '../../../../../conference/components/native/Conference';
 // @ts-ignore
 import CarMode from '../../../../../conference/components/native/carmode/CarMode';
 // @ts-ignore
-import { arePollsDisabled } from '../../../../../conference/functions';
 // @ts-ignore
 import SharedDocument from '../../../../../etherpad/components/native/SharedDocument';
 // @ts-ignore
@@ -43,7 +40,6 @@ import SpeakerStats
 import LanguageSelectorDialog
 // @ts-ignore
     from '../../../../../subtitles/components/native/LanguageSelectorDialog';
-import { isCCTabEnabled } from '../../../../../subtitles/functions.any';
 import Whiteboard from '../../../../../whiteboard/components/native/Whiteboard';
 // @ts-ignore
 import { screen } from '../../../routes';
@@ -84,33 +80,11 @@ const ConferenceStack = createStackNavigator();
 
 
 const ConferenceNavigationContainer = () => {
-    const isPollsDisabled = useSelector(arePollsDisabled);
-    const _isPollsEnabled = !isPollsDisabled;
-    const _isCCTabEnabled = useSelector(isCCTabEnabled);
     const { t } = useTranslation();
 
-    let ChatScreen;
-    let chatScreenName;
-    let chatTitle;
-
-    if (isPollsDisabled) {
-        ChatScreen = Chat;
-        chatScreenName = screen.conference.chat;
-    } else {
-        ChatScreen = ChatNavigator;
-        chatScreenName = screen.conference.chatTabs.main;
-    }
-
-    if (_isPollsEnabled || _isCCTabEnabled) {
-        const features = [
-            _isPollsEnabled ? t('chat.titleWithPolls') : '',
-            _isCCTabEnabled ? t('chat.titleWithCC') : ''
-        ].filter(Boolean);
-
-        chatTitle = `${t('chat.titleWithFeatures')} ${features.join(' and ')}`;
-    } else {
-        chatTitle = t('chat.title');
-    }
+    const ChatScreen = ChatNavigator;
+    const chatScreenName = screen.conference.chatTabs.main;
+    const chatTitle = t('chat.tabs.polls');
 
     return (
         <NavigationContainer

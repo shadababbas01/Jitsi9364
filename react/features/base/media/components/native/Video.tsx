@@ -4,7 +4,8 @@ import { MediaStream, RTCView } from 'react-native-webrtc';
 import { connect } from 'react-redux';
 
 import Pressable from '../../../react/components/native/Pressable';
-import { IReduxState } from '../../../app/types';
+import { IReduxState } from '../../../../app/types';
+import { CAMERA_FACING_MODE } from '../../../media/constants';
 
 import VideoTransform from './VideoTransform';
 import styles from './styles';
@@ -13,6 +14,7 @@ import styles from './styles';
  * The type of the React {@code Component} props of {@link Video}.
  */
 interface IProps {
+    cameraFacingMode?: string;
     mirror: boolean;
 
     onPlaying: Function;
@@ -57,7 +59,7 @@ interface IProps {
     /**
      * Object fit mode for the video.
      */
-    objectFit: 'cover' | 'contain';
+    objectFit?: 'cover' | 'contain';
 }
 
 /**
@@ -86,19 +88,26 @@ class Video extends Component<IProps> {
      * @returns {ReactElement|null}
      */
     override render() {
-        const { onPress, stream, zoomEnabled, objectFit } = this.props;
+        const { cameraFacingMode, onPress, stream, zoomEnabled, objectFit } = this.props;
 
         if (stream) {
             // RTCView
             const style = styles.video;
+            const videoTrack = stream.getVideoTracks?.()[0];
+            const facingMode
+                = cameraFacingMode
+                    ?? videoTrack?.getSettings?.().facingMode
+                    ?? (videoTrack as any)?._settings?.facingMode
+                    ?? (videoTrack as any)?.facingMode;
+            const isBackCamera = facingMode === CAMERA_FACING_MODE.ENVIRONMENT;
             const display
                 = zoomEnabled
                     ? 'contain'
-                    : objectFit;
+                    : (objectFit ?? 'cover');
             const rtcView
                 = (
                     <RTCView
-                        mirror = { !this.props.mirror }
+                        mirror = { !isBackCamera && this.props.mirror }
                         objectFit = { display }
                         streamURL = { stream.toURL() }
                         style = { style }
@@ -141,6 +150,7 @@ class Video extends Component<IProps> {
 }
 
 const mapStateToProps = (state: IReduxState) => ({
+    cameraFacingMode: state['features/base/media']?.video?.facingMode,
     objectFit: state['features/base/settings'].zoomtype
 });
 

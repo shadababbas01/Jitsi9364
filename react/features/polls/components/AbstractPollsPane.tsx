@@ -1,8 +1,5 @@
 import React, { ComponentType, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-
-import { isCreatePollDisabled } from '../functions';
 
 /*
  * Props that will be passed by the AbstractPollsPane to its
@@ -10,7 +7,6 @@ import { isCreatePollDisabled } from '../functions';
  **/
 export type AbstractProps = {
     createMode: boolean;
-    isCreatePollsDisabled: boolean;
     onCreate: () => void;
     setCreateMode: (mode: boolean) => void;
     t: Function;
@@ -25,7 +21,6 @@ export type AbstractProps = {
  */
 const AbstractPollsPane = (Component: ComponentType<AbstractProps>) => () => {
 
-    const isCreatePollsDisabled = useSelector(isCreatePollDisabled);
     const [ createMode, setCreateMode ] = useState(false);
 
     const onCreate = () => {
@@ -36,7 +31,6 @@ const AbstractPollsPane = (Component: ComponentType<AbstractProps>) => () => {
 
     return (<Component
         createMode = { createMode }
-        isCreatePollsDisabled = { isCreatePollsDisabled }
         /* eslint-disable react/jsx-no-bind */
         onCreate = { onCreate }
         setCreateMode = { setCreateMode }

@@ -38,15 +38,11 @@ const useStyles = makeStyles()(theme => {
     };
 });
 
-interface IPollListProps {
-    setCreateMode: (mode: boolean) => void;
-}
-
-const PollsList = ({ setCreateMode }: IPollListProps) => {
+const PollsList = () => {
     const { t } = useTranslation();
     const { classes, theme } = useStyles();
-    const { polls } = useSelector((state: IReduxState) => state['features/polls']);
 
+    const polls = useSelector((state: IReduxState) => state['features/polls'].polls);
     const pollListEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = useCallback(() => {
@@ -83,8 +79,7 @@ const PollsList = ({ setCreateMode }: IPollListProps) => {
                     <PollItem
                         key = { id }
                         pollId = { id }
-                        ref = { listPolls.length - 1 === index ? pollListEndRef : null }
-                        setCreateMode = { setCreateMode } />
+                        ref = { listPolls.length - 1 === index ? pollListEndRef : null } />
                 ))}
         </>
     );

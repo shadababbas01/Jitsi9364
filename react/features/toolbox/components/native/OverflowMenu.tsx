@@ -369,7 +369,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     {(Boolean(OpenMelpChat?.showAttendees) || Boolean(NativeCallsNew?.showAttendees) || Boolean(NativeCallsNew?.showAttendeeeees))
                         && <><D /><TranslatedOverflowAttendeesButton { ...topRowProps } /></>}
                     {/* {!_isAudioOnly && _isSharedVideoEnabled && <><D /><SharedVideoButton { ...rowProps } /></>} */}
-                    {/* {_showPolls && <><D /><TranslatedOverflowPollsButton { ...topRowProps } /></>} */}
+                    { _showPolls && <><D /><TranslatedOverflowPollsButton { ...topRowProps } /></> }
                     {/* {_showVirtualBackground && (
                         <>
                             <D />
@@ -385,7 +385,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <SharedDocumentButton { ...rowProps } />
                     { this._renderOverflowMenuButtons(topRowProps, [ 'desktop', 'tileview', 'raisehand', 'polls' ]) }
                     <D />
-                    <ChatButton { ...rowProps } />
+                    {/* <ChatButton { ...rowProps } /> */}
                 </View>
             </BottomSheet>
         );

@@ -10,7 +10,6 @@ import { getParticipantById, getParticipantDisplayName } from '../../base/partic
 import { useBoundSelector } from '../../base/util/hooks';
 import { setVoteChanging } from '../actions';
 import { getPoll } from '../functions';
-import { IAnswerData, IPollData, IVoterData } from '../types';
 
 /**
  * The type of the React {@code Component} props of inheriting component.
@@ -23,9 +22,11 @@ type InputProps = {
     pollId: string;
 };
 
-export type AnswerInfo = IAnswerData & {
+export type AnswerInfo = {
+    name: string;
     percentage: number;
     voterCount: number;
+    voters?: Array<{ id: string; name: string; } | undefined>;
 };
 
 /**
@@ -36,7 +37,6 @@ export type AbstractProps = {
     changeVote: (e?: React.MouseEvent<HTMLButtonElement> | GestureResponderEvent) => void;
     creatorName: string;
     haveVoted: boolean;
-    pollId: string;
     question: string;
     showDetails: boolean;
     t: Function;
@@ -53,8 +53,8 @@ export type AbstractProps = {
 const AbstractPollResults = (Component: ComponentType<AbstractProps>) => (props: InputProps) => {
     const { pollId } = props;
 
-    const poll: IPollData = useSelector(getPoll(pollId));
-    const creatorName = useBoundSelector(getParticipantDisplayName, poll.senderId);
+    const pollDetails = useSelector(getPoll(pollId));
+    const participant = useBoundSelector(getParticipantById, pollDetails.senderId);
     const reduxState = useSelector((state: IReduxState) => state);
 
     const [ showDetails, setShowDetails ] = useState(false);
@@ -67,32 +67,38 @@ const AbstractPollResults = (Component: ComponentType<AbstractProps>) => (props:
         const allVoters = new Set();
 
         // Getting every voters ID that participates to the poll
-        for (const answer of poll.answers) {
-            answer.voters?.forEach(k => allVoters.add(k.id));
+        for (const answer of pollDetails.answers) {
+            // checking if the voters is an array for supporting old structure model
+            const voters = answer.voters?.length ? answer.voters : Object.keys(answer.voters);
+
+            voters.forEach(voter => allVoters.add(voter));
         }
 
-        return poll.answers.map(answer => {
-            const nrOfVotersPerAnswer = answer.voters?.length || 0;
+        return pollDetails.answers.map(answer => {
+            const nrOfVotersPerAnswer = answer.voters ? Object.keys(answer.voters).length : 0;
             const percentage = allVoters.size > 0 ? Math.round(nrOfVotersPerAnswer / allVoters.size * 100) : 0;
 
-            const voters = answer.voters?.reduce((acc, v) => {
-                acc.push({
-                    id: v.id,
-                    name: getParticipantById(reduxState, v.id)
-                        ? getParticipantDisplayName(reduxState, v.id) : v.name
-                });
+            let voters;
 
-                return acc;
-            }, [] as Array<IVoterData>);
+            if (showDetails && answer.voters) {
+                const answerVoters = answer.voters?.length ? [ ...answer.voters ] : Object.keys({ ...answer.voters });
+
+                voters = answerVoters.map(id => {
+                    return {
+                        id,
+                        name: getParticipantDisplayName(reduxState, id)
+                    };
+                });
+            }
 
             return {
                 name: answer.name,
                 percentage,
-                voters: voters,
+                voters,
                 voterCount: nrOfVotersPerAnswer
             };
         });
-    }, [ poll.answers, showDetails ]);
+    }, [ pollDetails.answers, showDetails ]);
 
     const dispatch = useDispatch();
     const changeVote = useCallback(() => {
@@ -106,10 +112,9 @@ const AbstractPollResults = (Component: ComponentType<AbstractProps>) => (props:
         <Component
             answers = { answers }
             changeVote = { changeVote }
-            creatorName = { creatorName }
-            haveVoted = { poll.lastVote !== null }
-            pollId = { pollId }
-            question = { poll.question }
+            creatorName = { participant ? participant.name : '' }
+            haveVoted = { pollDetails.lastVote !== null }
+            question = { pollDetails.question }
             showDetails = { showDetails }
             t = { t }
             toggleIsDetailed = { toggleIsDetailed } />

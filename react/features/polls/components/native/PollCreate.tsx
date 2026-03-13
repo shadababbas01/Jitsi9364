@@ -1,23 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, SafeAreaView, TextInput, View, ViewStyle } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FlatList, Platform, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { Divider } from 'react-native-paper';
-import { useDispatch } from 'react-redux';
 
 import Button from '../../../base/ui/components/native/Button';
 import Input from '../../../base/ui/components/native/Input';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
-import { editPoll } from '../../actions';
+import styles
+    from '../../../settings/components/native/styles';
 import { ANSWERS_LIMIT, CHAR_LIMIT } from '../../constants';
 import AbstractPollCreate, { AbstractProps } from '../AbstractPollCreate';
 
-import { dialogStyles, pollsStyles } from './styles';
+
+import { chatStyles, dialogStyles } from './styles';
 
 const PollCreate = (props: AbstractProps) => {
     const {
         addAnswer,
         answers,
-        editingPoll,
-        editingPollId,
         isSubmitDisabled,
         onSubmit,
         question,
@@ -29,7 +29,7 @@ const PollCreate = (props: AbstractProps) => {
     } = props;
 
     const answerListRef = useRef<FlatList>(null);
-    const dispatch = useDispatch();
+    const prevAnswersLength = useRef<number>(answers.length);
 
     /*
      * This ref stores the Array of answer input fields, allowing us to focus on them.
@@ -45,9 +45,7 @@ const PollCreate = (props: AbstractProps) => {
 
     useEffect(() => {
         answerInputs.current = answerInputs.current.slice(0, answers.length);
-        setTimeout(() => {
-            answerListRef.current?.scrollToEnd({ animated: true });
-        }, 1000);
+
     }, [ answers ]);
 
     /*
@@ -55,7 +53,7 @@ const PollCreate = (props: AbstractProps) => {
      * about whether a newly created input field has been rendered yet or not.
      */
     const [ lastFocus, requestFocus ] = useState<number | null>(null);
-    const { PRIMARY, SECONDARY, TERTIARY } = BUTTON_TYPES;
+    const { DESTRUCTIVE, SECONDARY, TERTIARY } = BUTTON_TYPES;
 
     useEffect(() => {
         if (lastFocus === null) {
@@ -70,6 +68,16 @@ const PollCreate = (props: AbstractProps) => {
 
     }, [ answerInputs, lastFocus ]);
 
+    useEffect(() => {
+        if (answers.length > prevAnswersLength.current) {
+            // Scroll newly added option into view.
+            requestAnimationFrame(() => {
+                answerListRef.current?.scrollToEnd({ animated: true });
+            });
+        }
+        prevAnswersLength.current = answers.length;
+    }, [ answers.length ]);
+
 
     const onQuestionKeyDown = useCallback(() => {
         answerInputs.current[0].focus();
@@ -78,7 +86,7 @@ const PollCreate = (props: AbstractProps) => {
     // Called on keypress in answer fields
     const onAnswerKeyDown = useCallback((index: number, ev) => {
         const { key } = ev.nativeEvent;
-        const currentText = answers[index].name;
+        const currentText = answers[index];
 
         if (key === 'Backspace' && currentText === '' && answers.length > 1) {
             removeAnswer(index);
@@ -89,7 +97,6 @@ const PollCreate = (props: AbstractProps) => {
     /* eslint-disable react/no-multi-comp */
     const createRemoveOptionButton = (onPress: () => void) => (
         <Button
-            id = { t('polls.create.removeOption') }
             labelKey = 'polls.create.removeOption'
             labelStyle = { dialogStyles.optionRemoveButtonText }
             onClick = { onPress }
@@ -97,114 +104,101 @@ const PollCreate = (props: AbstractProps) => {
             type = { TERTIARY } />
     );
 
+
     /* eslint-disable react/jsx-no-bind */
-    const renderListItem = ({ index }: { index: number; }) => {
+    const renderListItem = ({ index }: { index: number; }) =>
 
-        const isIdenticalAnswer
-            = answers.slice(0, index).length === 0 ? false : answers.slice(0, index).some(prevAnswer =>
-                prevAnswer.name === answers[index].name
-                && prevAnswer.name !== '' && answers[index].name !== '');
-
-        return (
+        // padding to take into account the two default options
+        (
             <View
-                id = 'option-container'
                 style = { dialogStyles.optionContainer as ViewStyle }>
+                    <Text style = { dialogStyles.fieldOption as TextStyle }>
+    { t('polls.create.pollOption', { index: index + 1 }) }
+</Text>
                 <Input
                     blurOnSubmit = { false }
-                    bottomLabel = { (
-                        isIdenticalAnswer ? t('polls.errors.notUniqueOption', { index: index + 1 }) : '') }
-                    error = { isIdenticalAnswer }
-                    id = { `polls-answer-input-${index}` }
                     label = { t('polls.create.pollOption', { index: index + 1 }) }
                     maxLength = { CHAR_LIMIT }
-                    onChange = { name => setAnswer(index,
-                        {
-                            name
-                        }) }
+                    multiline = { true }
+                    onChange = { text => setAnswer(index, text) }
                     onKeyPress = { ev => onAnswerKeyDown(index, ev) }
                     placeholder = { t('polls.create.answerPlaceholder', { index: index + 1 }) }
 
                     // This is set to help the touch event not be propagated to any subviews.
                     pointerEvents = { 'auto' }
                     ref = { input => registerFieldRef(index, input) }
-                    value = { answers[index].name } />
+                    value = { answers[index] } />
                 {
                     answers.length > 2
                     && createRemoveOptionButton(() => removeAnswer(index))
                 }
             </View>
         );
-    };
-
-    const renderListHeaderComponent = useMemo(() => (
-        <>
-            <Input
-                autoFocus = { true }
-                blurOnSubmit = { false }
-                customStyles = {{ container: dialogStyles.customContainer }}
-                id = { t('polls.create.pollQuestion') }
-                label = { t('polls.create.pollQuestion') }
-                maxLength = { CHAR_LIMIT }
-                onChange = { setQuestion }
-                onSubmitEditing = { onQuestionKeyDown }
-                placeholder = { t('polls.create.questionPlaceholder') }
-
-                // This is set to help the touch event not be propagated to any subviews.
-                pointerEvents = { 'auto' }
-                value = { question } />
-            <Divider style = { pollsStyles.fieldSeparator as ViewStyle } />
-        </>
-    ), [ question ]);
+    const pollCreateButtonsContainerStyles = Platform.OS === 'android'
+        ? chatStyles.pollCreateButtonsContainerAndroid : chatStyles.pollCreateButtonsContainerIos;
 
     return (
-        <SafeAreaView style = { pollsStyles.pollCreateContainer as ViewStyle }>
-            <View style = { pollsStyles.pollCreateSubContainer as ViewStyle }>
+        <View style = { chatStyles.pollCreateContainer as ViewStyle }>
+            <View style = { chatStyles.pollCreateSubContainer as ViewStyle }>
+                <Text style = { dialogStyles.fieldTitle as TextStyle }>
+    { t('polls.create.pollQuestion') }
+</Text>
+                <Input
+                    autoFocus = { true }
+                    blurOnSubmit = { false }
+                    customStyles = {{ container: dialogStyles.customContainer }}
+                    label = { t('polls.create.pollQuestion') }
+                    maxLength = { CHAR_LIMIT }
+                    multiline = { true }
+                    onChange = { setQuestion }
+                    onSubmitEditing = { onQuestionKeyDown }
+                    placeholder = { t('polls.create.questionPlaceholder') }
+
+                    // This is set to help the touch event not be propagated to any subviews.
+                    pointerEvents = { 'auto' }
+                    value = { question } />
+                {/* @ts-ignore */}
+                <Divider style = { styles.fieldSeparator } />
                 <FlatList
-                    ListHeaderComponent = { renderListHeaderComponent }
                     data = { answers }
                     extraData = { answers }
                     keyExtractor = { (item, index) => index.toString() }
                     ref = { answerListRef }
                     renderItem = { renderListItem } />
-                <View style = { pollsStyles.pollCreateButtonsContainer as ViewStyle }>
+                <View style = { pollCreateButtonsContainerStyles as ViewStyle }>
                     <Button
                         accessibilityLabel = 'polls.create.addOption'
                         disabled = { answers.length >= ANSWERS_LIMIT }
-                        id = { t('polls.create.addOption') }
                         labelKey = 'polls.create.addOption'
                         onClick = { () => {
                             // adding and answer
                             addAnswer();
                             requestFocus(answers.length);
+                            requestAnimationFrame(() => {
+                                answerListRef.current?.scrollToEnd({ animated: true });
+                            });
                         } }
-                        style = { pollsStyles.pollCreateAddButton }
+                        style = { chatStyles.pollCreateAddButton }
                         type = { SECONDARY } />
                     <View
-                        style = { pollsStyles.buttonRow as ViewStyle }>
+                        style = { chatStyles.buttonRow as ViewStyle }>
                         <Button
                             accessibilityLabel = 'polls.create.cancel'
-                            id = { t('polls.create.cancel') }
                             labelKey = 'polls.create.cancel'
-                            onClick = { () => {
-                                setCreateMode(false);
-                                editingPollId
-                                && editingPoll?.editing
-                                && dispatch(editPoll(editingPollId, false));
-                            } }
-                            style = { pollsStyles.pollCreateButton }
+                            onClick = { () => setCreateMode(false) }
+                            style = { chatStyles.pollCreateButton }
                             type = { SECONDARY } />
                         <Button
-                            accessibilityLabel = 'polls.create.save'
+                            accessibilityLabel = 'polls.create.send'
                             disabled = { isSubmitDisabled }
-                            id = { t('polls.create.save') }
-                            labelKey = 'polls.create.save'
+                            labelKey = 'polls.create.send'
                             onClick = { onSubmit }
-                            style = { pollsStyles.pollCreateButton }
-                            type = { PRIMARY } />
+                            style = { chatStyles.pollCreateButton }
+                            type = { DESTRUCTIVE } />
                     </View>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

@@ -7,16 +7,15 @@ import { sendAnalytics } from '../../analytics/functions';
 import { IReduxState } from '../../app/types';
 import { getParticipantDisplayName } from '../../base/participants/functions';
 import { useBoundSelector } from '../../base/util/hooks';
-import { registerVote, removePoll, setVoteChanging } from '../actions';
-import { getPoll } from '../functions';
-import { IPollData } from '../types';
+import { registerVote, setVoteChanging } from '../actions';
+import { COMMAND_ANSWER_POLL } from '../constants';
+import { IPoll } from '../types';
 
 /**
  * The type of the React {@code Component} props of inheriting component.
  */
 type InputProps = {
     pollId: string;
-    setCreateMode: (mode: boolean) => void;
 };
 
 /*
@@ -26,10 +25,8 @@ type InputProps = {
 export type AbstractProps = {
     checkBoxStates: boolean[];
     creatorName: string;
-    poll: IPollData;
-    sendPoll: () => void;
+    poll: IPoll;
     setCheckbox: Function;
-    setCreateMode: (mode: boolean) => void;
     skipAnswer: () => void;
     skipChangeVote: () => void;
     submitAnswer: () => void;
@@ -45,23 +42,21 @@ export type AbstractProps = {
  */
 const AbstractPollAnswer = (Component: ComponentType<AbstractProps>) => (props: InputProps) => {
 
-    const { pollId, setCreateMode } = props;
+    const { pollId } = props;
 
-    const { conference } = useSelector((state: IReduxState) => state['features/base/conference']);
+    const conference: any = useSelector((state: IReduxState) => state['features/base/conference'].conference);
 
-    const poll: IPollData = useSelector(getPoll(pollId));
-
-    const { answers, lastVote, question, senderId } = poll;
+    const poll: IPoll = useSelector((state: IReduxState) => state['features/polls'].polls[pollId]);
 
     const [ checkBoxStates, setCheckBoxState ] = useState(() => {
-        if (lastVote !== null) {
-            return [ ...lastVote ];
+        if (poll.lastVote !== null) {
+            return [ ...poll.lastVote ];
         }
 
-        return new Array(answers.length).fill(false);
+        return new Array(poll.answers.length).fill(false);
     });
 
-    const participantName = useBoundSelector(getParticipantDisplayName, senderId);
+    const participantName = useBoundSelector(getParticipantDisplayName, poll.senderId);
 
     const setCheckbox = useCallback((index, state) => {
         const newCheckBoxStates = [ ...checkBoxStates ];
@@ -74,7 +69,11 @@ const AbstractPollAnswer = (Component: ComponentType<AbstractProps>) => (props: 
     const dispatch = useDispatch();
 
     const submitAnswer = useCallback(() => {
-        conference?.getPolls().answerPoll(pollId, checkBoxStates);
+        conference.sendMessage({
+            type: COMMAND_ANSWER_POLL,
+            pollId,
+            answers: checkBoxStates
+        });
 
         sendAnalytics(createPollEvent('vote.sent'));
         dispatch(registerVote(pollId, checkBoxStates));
@@ -82,15 +81,10 @@ const AbstractPollAnswer = (Component: ComponentType<AbstractProps>) => (props: 
         return false;
     }, [ pollId, checkBoxStates, conference ]);
 
-    const sendPoll = useCallback(() => {
-        conference?.getPolls().createPoll(pollId, question, answers);
-
-        dispatch(removePoll(poll));
-    }, [ conference, question, answers ]);
-
     const skipAnswer = useCallback(() => {
         dispatch(registerVote(pollId, null));
         sendAnalytics(createPollEvent('vote.skipped'));
+
     }, [ pollId ]);
 
     const skipChangeVote = useCallback(() => {
@@ -103,9 +97,7 @@ const AbstractPollAnswer = (Component: ComponentType<AbstractProps>) => (props: 
         checkBoxStates = { checkBoxStates }
         creatorName = { participantName }
         poll = { poll }
-        sendPoll = { sendPoll }
         setCheckbox = { setCheckbox }
-        setCreateMode = { setCreateMode }
         skipAnswer = { skipAnswer }
         skipChangeVote = { skipChangeVote }
         submitAnswer = { submitAnswer }

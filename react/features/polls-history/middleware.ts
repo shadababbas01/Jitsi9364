@@ -20,8 +20,12 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
         }
 
         for (const key in pollsHistory) {
-            if (pollsHistory.hasOwnProperty(key) && pollsHistory[key].saved) {
-                dispatch(savePoll(pollsHistory[key]));
+            if (pollsHistory.hasOwnProperty(key)) {
+                const poll = pollsHistory[key];
+
+                if (poll?.saved !== false) {
+                    dispatch(savePoll(poll));
+                }
             }
         }
         break;

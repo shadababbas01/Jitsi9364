@@ -8,29 +8,30 @@ import {
     RECEIVE_POLL,
     REGISTER_VOTE,
     REMOVE_POLL,
+    RESET_NB_UNREAD_POLLS,
     RESET_UNREAD_POLLS_COUNT,
+    RETRACT_VOTE,
     SAVE_POLL
 } from './actionTypes';
-import logger from './logger';
-import { IIncomingAnswerData, IPollData } from './types';
+import { IAnswer, IPoll, IPollData } from './types';
 
 const INITIAL_STATE = {
     polls: {},
 
     // Number of not read message
+    nbUnreadPolls: 0,
     unreadPollsCount: 0
 };
 
 export interface IPollsState {
-    polls: {
-        [pollId: string]: IPollData;
-    };
+    nbUnreadPolls: number;
     unreadPollsCount: number;
+    polls: {
+        [pollId: string]: IPoll;
+    };
 }
 
-const STORE_NAME = 'features/polls';
-
-ReducerRegistry.register<IPollsState>(STORE_NAME, (state = INITIAL_STATE, action): IPollsState => {
+ReducerRegistry.register<IPollsState>('features/polls', (state = INITIAL_STATE, action): IPollsState => {
     switch (action.type) {
 
     case CHANGE_VOTE: {
@@ -56,60 +57,64 @@ ReducerRegistry.register<IPollsState>(STORE_NAME, (state = INITIAL_STATE, action
         };
     }
 
-    // Reducer triggered when a poll is received or saved.
+    // Reducer triggered when a poll is received
     case RECEIVE_POLL: {
-        return {
+        const newState = {
             ...state,
             polls: {
                 ...state.polls,
-                [action.poll.pollId]: action.poll
-            },
-            unreadPollsCount: state.unreadPollsCount + 1
-        };
-    }
 
-    case SAVE_POLL: {
-        return {
-            ...state,
-            polls: {
-                ...state.polls,
-                [action.poll.pollId]: action.poll
-            }
+                // The poll is added to the dictionary of received polls
+                [action.pollId]: action.poll
+            },
+            nbUnreadPolls: state.nbUnreadPolls + 1,
+            unreadPollsCount: state.nbUnreadPolls + 1
         };
+
+        return newState;
     }
 
     // Reducer triggered when an answer is received
     // The answer is added  to an existing poll
     case RECEIVE_ANSWER: {
 
-        const { answer }: { answer: IIncomingAnswerData; } = action;
-        const pollId = answer.pollId;
-        const poll = state.polls[pollId];
+        const { pollId, answer }: { answer: IAnswer; pollId: string; } = action;
 
         // if the poll doesn't exist
         if (!(pollId in state.polls)) {
-            logger.warn('Requested poll does not exist', { pollId });
+            console.warn('requested poll does not exist: pollId ', pollId);
 
             return state;
         }
 
         // if the poll exists, we update it with the incoming answer
-        for (let i = 0; i < poll.answers.length; i++) {
+        const newAnswers = state.polls[pollId].answers
+            .map(_answer => {
+                // checking if the voters is an array for supporting old structure model
+                const answerVoters = _answer.voters
+                    ? _answer.voters.length
+                        ? [ ..._answer.voters ] : Object.keys(_answer.voters) : [];
+
+                return {
+                    name: _answer.name,
+                    voters: answerVoters
+                };
+            });
+
+
+        for (let i = 0; i < newAnswers.length; i++) {
             // if the answer was chosen, we add the senderId to the array of voters of this answer
-            let voters = poll.answers[i].voters || [];
+            const voters = newAnswers[i].voters as any;
 
-            if (voters.find(user => user.id === answer.senderId)) {
-                if (!answer.answers[i]) {
-                    voters = voters.filter(user => user.id !== answer.senderId);
+            const index = voters.indexOf(answer.voterId);
+
+            if (answer.answers[i]) {
+                if (index === -1) {
+                    voters.push(answer.voterId);
                 }
-            } else if (answer.answers[i]) {
-                voters.push({
-                    id: answer.senderId,
-                    name: answer.voterName
-                });
+            } else if (index > -1) {
+                voters.splice(index, 1);
             }
-
-            poll.answers[i].voters = voters?.length ? voters : undefined;
         }
 
         // finally we update the state by returning the updated poll
@@ -118,8 +123,8 @@ ReducerRegistry.register<IPollsState>(STORE_NAME, (state = INITIAL_STATE, action
             polls: {
                 ...state.polls,
                 [pollId]: {
-                    ...poll,
-                    answers: [ ...poll.answers ]
+                    ...state.polls[pollId],
+                    answers: newAnswers
                 }
             }
         };
@@ -142,42 +147,85 @@ ReducerRegistry.register<IPollsState>(STORE_NAME, (state = INITIAL_STATE, action
         };
     }
 
-    case RESET_UNREAD_POLLS_COUNT: {
-        return {
-            ...state,
-            unreadPollsCount: 0
-        };
-    }
+    case RETRACT_VOTE: {
+        const { pollId }: { pollId: string; } = action;
 
-    case EDIT_POLL: {
         return {
             ...state,
             polls: {
                 ...state.polls,
-                [action.pollId]: {
-                    ...state.polls[action.pollId],
-                    editing: action.editing
+                [pollId]: {
+                    ...state.polls[pollId],
+                    showResults: false
                 }
             }
         };
     }
 
-    case REMOVE_POLL: {
-        if (Object.keys(state.polls ?? {})?.length === 1) {
-            return {
-                ...state,
-                ...INITIAL_STATE
-            };
-        }
+    case RESET_NB_UNREAD_POLLS: {
+        return {
+            ...state,
+            nbUnreadPolls: 0,
+            unreadPollsCount: 0
+        };
+    }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [action.poll.pollId]: _removedPoll, ...newState } = state.polls;
+    case RESET_UNREAD_POLLS_COUNT: {
+        return {
+            ...state,
+            nbUnreadPolls: 0,
+            unreadPollsCount: 0
+        };
+    }
+
+    case SAVE_POLL: {
+        const pollId = action.pollId || action.poll?.pollId || action.poll?.id;
+
+        if (!pollId) {
+            return state;
+        }
 
         return {
             ...state,
             polls: {
-                ...newState
+                ...state.polls,
+                [pollId]: action.poll
             }
+        };
+    }
+
+    case EDIT_POLL: {
+        const { pollId, editing } = action;
+
+        if (!pollId || !state.polls[pollId]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            polls: {
+                ...state.polls,
+                [pollId]: {
+                    ...state.polls[pollId],
+                    editing
+                } as IPollData
+            }
+        };
+    }
+
+    case REMOVE_POLL: {
+        const pollId = action.pollId || action.poll?.pollId || action.poll?.id;
+
+        if (!pollId || !(pollId in state.polls)) {
+            return state;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [pollId]: _removed, ...rest } = state.polls;
+
+        return {
+            ...state,
+            polls: rest
         };
     }
 

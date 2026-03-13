@@ -1,9 +1,4 @@
 import { IReduxState } from '../app/types';
-import { MEET_FEATURES } from '../base/jwt/constants';
-import { isJwtFeatureEnabled } from '../base/jwt/functions';
-import { iAmVisitor } from '../visitors/functions';
-
-import { IAnswerData } from './types';
 
 /**
  * Selector creator for determining if poll results should be displayed or not.
@@ -36,9 +31,9 @@ export function getPoll(pollId: string) {
  * @returns {number} The number of unread messages.
  */
 export function getUnreadPollCount(state: IReduxState) {
-    const { unreadPollsCount } = state['features/polls'];
+    const { nbUnreadPolls, unreadPollsCount } = state['features/polls'];
 
-    return unreadPollsCount;
+    return typeof nbUnreadPolls === 'number' ? nbUnreadPolls : (unreadPollsCount ?? 0);
 }
 
 /**
@@ -54,34 +49,14 @@ export function isSubmitAnswerDisabled(checkBoxStates: Array<boolean>) {
 /**
  * Check if the input array has identical answers.
  *
- * @param {Array<IAnswerData>} currentAnswers - The array of current answers to compare.
+ * @param {Array<string>} currentAnswers - The array of current answers to compare.
  * @returns {boolean} - Returns true if the answers are identical.
  */
-export function hasIdenticalAnswers(currentAnswers: Array<IAnswerData>): boolean {
+export function hasIdenticalAnswers(currentAnswers: Array<string>): boolean {
 
-    const nonEmptyCurrentAnswers = currentAnswers.filter((answer): boolean => answer.name !== '');
+    const nonEmptyCurrentAnswers = currentAnswers.filter((answer: string): boolean => answer !== '');
 
-    const currentAnswersSet = new Set(nonEmptyCurrentAnswers.map(answer => answer.name));
+    const currentAnswersSet = new Set(nonEmptyCurrentAnswers);
 
     return currentAnswersSet.size !== nonEmptyCurrentAnswers.length;
-}
-
-/**
- * Check if participant is not allowed to create polls.
- *
- * @param {IReduxState} state - The redux state.
- * @returns {boolean} - Returns true if the participant is not allowed to create polls.
- */
-export function isCreatePollDisabled(state: IReduxState) {
-    if (iAmVisitor(state)) {
-        return true;
-    }
-
-    const { pollCreationRequiresPermission } = state['features/dynamic-branding'];
-
-    if (!pollCreationRequiresPermission) {
-        return false;
-    }
-
-    return !isJwtFeatureEnabled(state, MEET_FEATURES.CREATE_POLLS, false);
 }

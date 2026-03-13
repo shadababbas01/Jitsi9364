@@ -3,13 +3,10 @@ import { FlatList, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 import Button from '../../../base/ui/components/native/Button';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
-import {
-    default as AbstractPollResults,
-    type AbstractProps,
-    type AnswerInfo
-} from '../AbstractPollResults';
+import AbstractPollResults from '../AbstractPollResults';
+import type { AbstractProps, AnswerInfo } from '../AbstractPollResults';
 
-import { dialogStyles, pollsStyles, resultsStyles } from './styles';
+import { chatStyles, dialogStyles, resultsStyles } from './styles';
 
 /**
  * Component that renders the poll results.
@@ -65,11 +62,11 @@ const PollResults = (props: AbstractProps) => {
                     { voters && voterCount > 0
                         && <View style = { resultsStyles.voters as ViewStyle }>
                             {/* @ts-ignore */}
-                            {voters.map(voter =>
+                            {voters.map(({ id, name: voterName }) =>
                                 (<Text
-                                    key = { voter.id }
+                                    key = { id }
                                     style = { resultsStyles.voter as TextStyle }>
-                                    { voter.name }
+                                    { voterName }
                                 </Text>)
                             )}
                         </View>}
@@ -95,45 +92,31 @@ const PollResults = (props: AbstractProps) => {
     /* eslint-disable react/jsx-no-bind */
     return (
         <View>
-            <Text
-                id = 'question-text'
-                style = { dialogStyles.questionText as TextStyle } >{ question }</Text>
-            <Text
-                id = 'poll-owner-text'
-                style = { dialogStyles.questionOwnerText as TextStyle } >
+            <Text style = { dialogStyles.questionText as TextStyle } >{ question }</Text>
+            <Text style = { dialogStyles.questionOwnerText as TextStyle } >
                 { t('polls.by', { name: creatorName }) }
             </Text>
             <FlatList
                 data = { answers }
                 keyExtractor = { (item, index) => index.toString() }
                 renderItem = { answer => renderRow(answer.item) } />
-            <View style = { pollsStyles.bottomLinks as ViewStyle }>
+            <View style = { chatStyles.bottomLinks as ViewStyle }>
                 <Button
-                    id = {
-                        showDetails
-                            ? t('polls.results.hideDetailedResults')
-                            : t('polls.results.showDetailedResults')
-                    }
                     labelKey = {
                         showDetails
                             ? 'polls.results.hideDetailedResults'
                             : 'polls.results.showDetailedResults'
                     }
-                    labelStyle = { pollsStyles.toggleText }
+                    labelStyle = { chatStyles.toggleText }
                     onClick = { toggleIsDetailed }
                     type = { BUTTON_TYPES.TERTIARY } />
                 <Button
-                    id = {
-                        haveVoted
-                            ? t('polls.results.changeVote')
-                            : t('polls.results.vote')
-                    }
                     labelKey = {
                         haveVoted
                             ? 'polls.results.changeVote'
                             : 'polls.results.vote'
                     }
-                    labelStyle = { pollsStyles.toggleText }
+                    labelStyle = { chatStyles.toggleText }
                     onClick = { changeVote }
                     type = { BUTTON_TYPES.TERTIARY } />
             </View>

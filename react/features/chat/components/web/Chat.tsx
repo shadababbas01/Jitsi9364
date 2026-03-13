@@ -631,7 +631,10 @@ const Chat = ({
  */
 function _mapStateToProps(state: IReduxState, _ownProps: any) {
     const { isOpen, messages, unreadMessagesCount, unreadFilesCount, width, isResizing } = state['features/chat'];
-    const { unreadPollsCount } = state['features/polls'];
+    const { unreadPollsCount, nbUnreadPolls } = state['features/polls'];
+    const pollsCount = typeof unreadPollsCount === 'number'
+        ? unreadPollsCount
+        : nbUnreadPolls ?? 0;
     const _localParticipant = getLocalParticipant(state);
     const { reducedUI } = state['features/base/responsive-ui'];
 
@@ -646,7 +649,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _messages: messages,
         _reducedUI: reducedUI,
         _unreadMessagesCount: unreadMessagesCount,
-        _unreadPollsCount: unreadPollsCount,
+        _unreadPollsCount: pollsCount,
         _unreadFilesCount: unreadFilesCount,
         _showNamePrompt: !_localParticipant?.name,
         _width: width?.current || CHAT_SIZE,
