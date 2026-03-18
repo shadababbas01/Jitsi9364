@@ -14,6 +14,7 @@ import ConferenceTimer from '../ConferenceTimer';
 import Labels from './Labels';
 import styles from './styles';
 
+import ConnectionStatusLabel from '../../../conference/components/native/ConnectionStatusLabel';
 
 interface IProps {
 
@@ -75,10 +76,11 @@ const TitleBar = (props: IProps) => {
                         { props._meetingName }
                     </Text>
                 }
-                {
+                {/* {
                     props._conferenceTimerEnabled
                     && <ConferenceTimer textStyle = { styles.meetingTimer } />
-                }
+                } */}
+                <ConnectionStatusLabel />
                 <View style = { styles.titleBarLabels as ViewStyle }>
                     {/* eslint-disable-next-line react/jsx-no-bind */}
                     <Labels createOnPress = { props._createOnPress } />

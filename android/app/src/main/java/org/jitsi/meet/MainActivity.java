@@ -156,10 +156,10 @@ public class MainActivity extends JitsiMeetActivity {
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            // .setServerURL(buildURL("https://meetdev.melp.us/"))
-            .setServerURL(buildURL(defaultURL))
+            .setServerURL(buildURL("https://meetdev.melp.us/"))
+            // .setServerURL(buildURL(defaultURL))
             .setFeatureFlag("welcomepage.enabled", true)
-            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImNvbnRleHQiOnsiY2FsbGVlIjp7Im5hbWUiOiIiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiU2hhZGFiIEFiYmFzIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6Imh0dHBzOi8vdXMtYXBpLm1lbHAudXMvZG93bmxvYWQvdjAvODhwOHZtYW11azh3Lzg5NDZAdXNlci5qcGVnP3Nlc3Npb25pZD15YklCWUJFVGRHQ0RMbUhEYnRvOGFpSkNSTTBjTFU5OWJTSjN4UFRTWXhiNCZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczMzE2ODUxLCJyb29tIjoiYzVhYTc0MDY1NzkyNmY4Y2M2MjgyNmQ5MWEwYmNlMDgiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3MzM2MDA1MX0.ub1tTfogwbLGK1In7sRfPycoyzvkF7GFKuuWP3jgSqQ")
+            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImNvbnRleHQiOnsiY2FsbGVlIjp7Im5hbWUiOiIiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiU2hhZGFiIEFiYmFzIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6Imh0dHBzOi8vdXMtYXBpLm1lbHAudXMvZG93bmxvYWQvdjAvODhwOHZtYW11azh3Lzg5NDZAdXNlci5qcGVnP3Nlc3Npb25pZD1oYmpHc0xVOVFQdHQxT1ZxN3R4dGxiVE0xcUd2bTBtY1BsWjlxbFVzM0VUUSZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczODE0MjkzLCJyb29tIjoiZDMzMTA1NmViN2FiNGE0YWE2NzlmZDdkODMxZGQxODMiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3Mzg1NzQ5M30.FgdmmzRMnuCcmX8K3oMbOMJkE9KccmfRQQXDfyzF-NA")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -169,7 +169,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("c5aa740657926f8cc62826d91a0bce08")
+                       .setRoom("d331056eb7ab4a4aa679fd7d831dd183")
                         .build();
                 join(defaultOptions1);
             }

@@ -448,7 +448,6 @@ class Conference extends AbstractConference<IProps, State> {
 
                     <Captions onPress = { this._onClick } />
                     <SideToolbar />
-                    <ConnectionStatusLabel overlay = { true } />
                     { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
 
                     {

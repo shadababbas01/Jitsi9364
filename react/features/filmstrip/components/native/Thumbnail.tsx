@@ -386,7 +386,8 @@ class Thumbnail extends PureComponent<IProps> {
             aspectRatio: width/height,
             flex: 0,
             height,
-            maxHeight: null,
+            margin: 0,
+            maxHeight: height,
             maxWidth: null,
             width: width
         } : null;
@@ -447,28 +448,12 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const deviceType = participant?.deviceType;
 
     const { tileViewDimensions } = state['features/filmstrip'];
-    //added by jaswant
-    var width1,height1
-    if(localParticipantId == id){
-        if(participantCount == 3){
-        const { clientHeight: height, clientWidth: width } = state['features/base/responsive-ui'];
-        const widthToUse = width - (10 * 2);
-        if(width>height){
-            width1 = tileViewDimensions.thumbnailSize.width;
-            height1 = tileViewDimensions.thumbnailSize.height;
-        }else{
-        width1 = widthToUse;
-        height1 = tileViewDimensions.thumbnailSize.height;
-        }
-    }
-    else{
-        width1 = tileViewDimensions.thumbnailSize.width;
-        height1 = tileViewDimensions.thumbnailSize.height;
-    }
-     }else{
-         width1 = tileViewDimensions.thumbnailSize.width;
-         height1 = tileViewDimensions.thumbnailSize.height;
-     }
+    const width1 = typeof ownProps.width === 'number'
+        ? ownProps.width
+        : tileViewDimensions.thumbnailSize.width;
+    const height1 = typeof ownProps.height === 'number'
+        ? ownProps.height
+        : tileViewDimensions.thumbnailSize.height;
 
     return {
         _audioMuted: audioTrack?.muted ?? true,

@@ -53,20 +53,11 @@ export default {
         marginTop: BaseTheme.spacing[1]
     },
 
-    connectionStatusOverlay: {
-        position: 'absolute',
-        left: BaseTheme.spacing[3],
-        top: BaseTheme.spacing[2],
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        borderRadius: BaseTheme.shape.borderRadius,
-        paddingHorizontal: BaseTheme.spacing[2],
-        paddingVertical: BaseTheme.spacing[1],
-        zIndex: 3
-    },
-
     connectionStatusText: {
-        color: BaseTheme.palette.text02,
-        fontSize: 12
+        ...BaseTheme.typography.bodyShortBold,
+        color: BaseTheme.palette.text01,
+        marginTop: 2,
+        textAlign: 'center'
     },
 
     /**

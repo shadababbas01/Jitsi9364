@@ -7,7 +7,7 @@ import { IReduxState } from '../../../app/types';
 import styles from './styles';
 
 const TIMER_TICK_MS = 1000;
-const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting' ]);
+const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected' ]);
 
 function normalizeStatus(rawStatus?: string) {
     if (!rawStatus) {
@@ -24,15 +24,10 @@ function formatDuration(totalSeconds: number) {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-interface IProps {
-    overlay?: boolean;
-}
-
-export default function ConnectionStatusLabel({ overlay }: IProps) {
+export default function ConnectionStatusLabel() {
     const { connectionStatus, connectedTimestamp } = useSelector((state: IReduxState) => state['features/base/conference']);
     const normalizedStatus = normalizeStatus(connectionStatus);
     const [ tick, setTick ] = useState(0);
-    const containerStyle = overlay ? styles.connectionStatusOverlay : styles.connectionStatusContainer;
 
     const elapsedSeconds = useMemo(() => {
         if (!connectedTimestamp || normalizedStatus !== 'connected') {
@@ -70,25 +65,20 @@ export default function ConnectionStatusLabel({ overlay }: IProps) {
         return null;
     }
 
-    if (normalizedStatus === 'connected') {
-        return (
-            <View style = { containerStyle as ViewStyle }>
-                <Text style = { styles.connectionStatusText as TextStyle }>
-                    { formatDuration(elapsedSeconds) }
-                </Text>
-            </View>
-        );
-    }
-
     if (!STATUS_TEXT_VALUES.has(normalizedStatus)) {
         return null;
     }
 
     return (
-        <View style = { containerStyle as ViewStyle }>
+        <View style = { styles.connectionStatusContainer as ViewStyle }>
             <Text style = { styles.connectionStatusText as TextStyle }>
                 { normalizedStatus }
             </Text>
+            { normalizedStatus === 'connected' && (
+                <Text style = { styles.connectionStatusText as TextStyle }>
+                    { formatDuration(elapsedSeconds) }
+                </Text>
+            ) }
         </View>
     );
 }

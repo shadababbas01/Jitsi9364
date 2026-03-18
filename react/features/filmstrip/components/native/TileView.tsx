@@ -4,6 +4,7 @@ import {
     GestureResponderEvent,
     SafeAreaView,
     TouchableWithoutFeedback,
+    View,
     ViewToken
 } from 'react-native';
 import { EdgeInsets, withSafeAreaInsets } from 'react-native-safe-area-context';
@@ -97,16 +98,10 @@ const EMPTY_ARRAY: any[] = [];
  * @augments PureComponent
  */
 class TileView extends PureComponent<IProps> {
-
     /**
-     * The styles for the content container of the FlatList.
+     * Cached pages for pagination.
      */
-    _contentContainerStyles: any;
-
-    /**
-     * The styles for the FlatList.
-     */
-    _flatListStyles: any;
+    _pages: Array<Array<string>>;
 
     /**
      * The FlatList's viewabilityConfig.
@@ -122,19 +117,14 @@ class TileView extends PureComponent<IProps> {
         super(props);
 
         this._keyExtractor = this._keyExtractor.bind(this);
-        this._onViewableItemsChanged = this._onViewableItemsChanged.bind(this);
         this._renderThumbnail = this._renderThumbnail.bind(this);
+        this._renderPage = this._renderPage.bind(this);
+        this._onPageViewableItemsChanged = this._onPageViewableItemsChanged.bind(this);
 
+        this._pages = [];
         this._viewabilityConfig = {
-            itemVisiblePercentThreshold: 30,
-            minimumViewTime: 500
-        };
-        this._flatListStyles = {
-            ...styles.flatListTileView
-        };
-        this._contentContainerStyles = {
-            ...styles.contentContainer,
-            paddingBottom: this.props.insets?.bottom || 0
+            itemVisiblePercentThreshold: 60,
+            minimumViewTime: 300
         };
     }
 
@@ -148,31 +138,15 @@ class TileView extends PureComponent<IProps> {
         return item;
     }
 
-    /**
-     * A handler for visible items changes.
-     *
-     * @param {Object} data - The visible items data.
-     * @param {Array<Object>} data.viewableItems - The visible items array.
-     * @returns {void}
-     */
-    _onViewableItemsChanged({ viewableItems = [] }: { viewableItems: ViewToken[]; }) {
-        const { _disableSelfView } = this.props;
+    override componentDidMount() {
+        this._updateVisibleParticipantsForPage(0);
+    }
 
-        if (viewableItems[0]?.index === 0 && !_disableSelfView) {
-            // Skip the local thumbnail.
-            viewableItems.shift();
+    override componentDidUpdate(prevProps: IProps) {
+        if (prevProps._remoteParticipants.length !== this.props._remoteParticipants.length
+            || prevProps._disableSelfView !== this.props._disableSelfView) {
+            this._updateVisibleParticipantsForPage(0);
         }
-
-        if (viewableItems.length === 0) {
-            // User might be fast-scrolling, it will stabilize.
-            return;
-        }
-
-        // We are off by one in the remote participants array.
-        const startIndex = Number(viewableItems[0].index) - (_disableSelfView ? 0 : 1);
-        const endIndex = Number(viewableItems[viewableItems.length - 1].index) - (_disableSelfView ? 0 : 1);
-
-        this.props.dispatch(setVisibleRemoteParticipants(startIndex, endIndex));
     }
 
     /**
@@ -182,46 +156,35 @@ class TileView extends PureComponent<IProps> {
      * @returns {ReactElement}
      */
     render() {
-        const { _columns, _height, _thumbnailHeight, _width, onClick } = this.props;
+        const { _height, _width, onClick } = this.props;
         const participants = this._getSortedParticipants();
-        const initialRowsToRender = Math.ceil(_height / (Number(_thumbnailHeight) + (2 * styles.thumbnail.margin)));
+        const pages = this._chunkParticipants(participants, 6);
 
-        if (this._flatListStyles.minHeight !== _height || this._flatListStyles.minWidth !== _width) {
-            this._flatListStyles = {
-                ...styles.flatListTileView,
-                minHeight: _height,
-                minWidth: _width
-            };
-        }
+        this._pages = pages;
 
-        if (this._contentContainerStyles.minHeight !== _height || this._contentContainerStyles.minWidth !== _width) {
-            this._contentContainerStyles = {
-                ...styles.contentContainer,
-                minHeight: _height,
-                minWidth: _width,
-                paddingBottom: this.props.insets?.bottom || 0
-            };
+        if (participants.length > 6) {
+            return (
+                <TouchableWithoutFeedback onPress = { onClick }>
+                    <SafeAreaView style = { styles.flatListContainer }>
+                        <FlatList
+                            data = { pages }
+                            horizontal = { true }
+                            keyExtractor = { (_, index) => `page-${index}` }
+                            pagingEnabled = { true }
+                            renderItem = { this._renderPage }
+                            showsHorizontalScrollIndicator = { false }
+                            showsVerticalScrollIndicator = { false }
+                            viewabilityConfig = { this._viewabilityConfig }
+                            onViewableItemsChanged = { this._onPageViewableItemsChanged } />
+                    </SafeAreaView>
+                </TouchableWithoutFeedback>
+            );
         }
 
         return (
             <TouchableWithoutFeedback onPress = { onClick }>
                 <SafeAreaView style = { styles.flatListContainer }>
-                    <FlatList
-                        bounces = { false }
-                        contentContainerStyle = { this._contentContainerStyles }
-                        data = { participants }
-                        horizontal = { false }
-                        initialNumToRender = { initialRowsToRender }
-                        key = { _columns }
-                        keyExtractor = { this._keyExtractor }
-                        numColumns = { _columns }
-                        onViewableItemsChanged = { this._onViewableItemsChanged }
-                        renderItem = { this._renderThumbnail }
-                        showsHorizontalScrollIndicator = { false }
-                        showsVerticalScrollIndicator = { false }
-                        style = { this._flatListStyles }
-                        viewabilityConfig = { this._viewabilityConfig }
-                        windowSize = { 2 } />
+                    { this._renderGrid(participants) }
                 </SafeAreaView>
             </TouchableWithoutFeedback>
         );
@@ -253,17 +216,135 @@ class TileView extends PureComponent<IProps> {
      * @private
      * @returns {ReactElement}
      */
-    _renderThumbnail({ item }: { item: string; }) {
-        const { _thumbnailHeight } = this.props;
+    _renderThumbnail({ item, height, width }: { item: string; height?: number; width?: number; }) {
 
         return (
             <Thumbnail
-                height = { _thumbnailHeight }
                 key = { item }
+                height = { height }
                 participantID = { item }
                 renderDisplayName = { true }
-                tileView = { true } />)
+                tileView = { true }
+                width = { width } />)
         ;
+    }
+
+    _renderPage({ item }: { item: Array<string>; }) {
+        return this._renderGrid(item);
+    }
+
+    _renderGrid(participants: Array<string>) {
+        const { _height, _width } = this.props;
+        const { columns, rows, tileHeight, tileWidth, tileMargin } = this._getGridDimensions(participants.length);
+
+        return (
+            <View
+                style = { [
+                    styles.tileGridContainer,
+                    {
+                        height: _height,
+                        width: _width
+                    }
+                ] }>
+                { Array.from({ length: rows }).map((_, rowIndex) => {
+                    const start = rowIndex * columns;
+                    const rowItems = participants.slice(start, start + columns);
+                    const isLastRow = rowIndex === rows - 1;
+                    const hasShortRow = isLastRow && rowItems.length < columns;
+                    const justifyContent = 'flex-start';
+                    const rowTileWidth = hasShortRow
+                        ? (_width - (rowItems.length * tileMargin * 2)) / rowItems.length
+                        : tileWidth;
+
+                    return (
+                        <View
+                            // eslint-disable-next-line react/no-array-index-key
+                            key = { `tile-row-${rowIndex}` }
+                            style = { [
+                                styles.tileRow,
+                                {
+                                    height: tileHeight + (tileMargin * 2),
+                                    justifyContent
+                                }
+                            ] }>
+                            { rowItems.map(item => this._renderThumbnail({
+                                item,
+                                height: tileHeight,
+                                width: rowTileWidth
+                            })) }
+                        </View>
+                    );
+                }) }
+            </View>
+        );
+    }
+
+    _getGridDimensions(count: number) {
+        const { _height, _width, insets } = this.props;
+        const availableHeight = _height - (insets?.bottom || 0);
+        const availableWidth = _width;
+        const tileMargin = 2;
+
+        if (count <= 0) {
+            return {
+                columns: 1,
+                rows: 1,
+                tileHeight: availableHeight,
+                tileWidth: availableWidth,
+                tileMargin
+            };
+        }
+
+        const maxColumns = availableWidth > availableHeight ? 3 : 2;
+        const columns = Math.min(maxColumns, Math.ceil(Math.sqrt(count)));
+        const rows = Math.ceil(count / columns);
+
+        return {
+            columns,
+            rows,
+            tileHeight: (availableHeight - (rows * tileMargin * 2)) / rows,
+            tileWidth: (availableWidth - (columns * tileMargin * 2)) / columns,
+            tileMargin
+        };
+    }
+
+    _chunkParticipants(participants: Array<string>, pageSize: number) {
+        const pages: Array<Array<string>> = [];
+
+        for (let i = 0; i < participants.length; i += pageSize) {
+            pages.push(participants.slice(i, i + pageSize));
+        }
+
+        return pages;
+    }
+
+    _onPageViewableItemsChanged({ viewableItems = [] }: { viewableItems: ViewToken[]; }) {
+        const pageIndex = viewableItems[0]?.index ?? 0;
+
+        this._updateVisibleParticipantsForPage(pageIndex);
+    }
+
+    _updateVisibleParticipantsForPage(pageIndex: number) {
+        const { _remoteParticipants, dispatch } = this.props;
+        const page = this._pages[pageIndex] || [];
+        const remoteIds = page.filter(id => _remoteParticipants.includes(id));
+
+        if (remoteIds.length === 0) {
+            return;
+        }
+
+        const indices = remoteIds
+            .map(id => _remoteParticipants.indexOf(id))
+            .filter(index => index >= 0);
+
+        if (indices.length === 0) {
+            return;
+        }
+
+        const start = Math.min(...indices);
+        const end = Math.max(...indices);
+
+        dispatch(setVisibleRemoteParticipants(start, end));
     }
 }
 

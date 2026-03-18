@@ -95,6 +95,19 @@ export default {
         flex: 0
     },
 
+    tileGridContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        justifyContent: 'center'
+    },
+
+    tileRow: {
+        flexDirection: 'row',
+        alignItems: 'stretch',
+        width: '100%'
+    },
+
     /**
      * Container of the {@link LocalThumbnail}.
      */
