@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -6,8 +6,16 @@ import { IReduxState } from '../../../app/types';
 
 import styles from './styles';
 
-const TIMER_TICK_MS = 1000;
+const CONNECTED_LABEL_MS = 1000;
+const E2EE_LABEL_MS = 1000;
+const E2EE_LABEL_TEXT = 'End to end encrypted';
 const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected' ]);
+const STATUS_DISPLAY_TEXT: Record<string, string> = {
+    calling: 'Calling...',
+    connected: 'Connected',
+    connecting: 'Connecting...',
+    ringing: 'Ringing...'
+};
 
 function normalizeStatus(rawStatus?: string) {
     if (!rawStatus) {
@@ -17,25 +25,10 @@ function normalizeStatus(rawStatus?: string) {
     return rawStatus.trim().replace(/\.+$/, '').toLowerCase();
 }
 
-function formatDuration(totalSeconds: number) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
 export default function ConnectionStatusLabel() {
     const { connectionStatus, connectedTimestamp } = useSelector((state: IReduxState) => state['features/base/conference']);
     const normalizedStatus = normalizeStatus(connectionStatus);
-    const [ tick, setTick ] = useState(0);
-
-    const elapsedSeconds = useMemo(() => {
-        if (!connectedTimestamp || normalizedStatus !== 'connected') {
-            return 0;
-        }
-
-        return Math.max(0, Math.floor((Date.now() - connectedTimestamp) / 1000));
-    }, [ connectedTimestamp, normalizedStatus, tick ]);
+    const [ connectedPhase, setConnectedPhase ] = useState<'connected' | 'e2ee' | 'hidden' | null>(null);
 
     useEffect(() => {
         if (!connectionStatus && !connectedTimestamp) {
@@ -50,15 +43,25 @@ export default function ConnectionStatusLabel() {
     }, [ connectionStatus, normalizedStatus, connectedTimestamp ]);
 
     useEffect(() => {
-        if (normalizedStatus !== 'connected' || !connectedTimestamp) {
+        if (normalizedStatus !== 'connected') {
+            setConnectedPhase(null);
             return;
         }
 
-        const intervalId = setInterval(() => {
-            setTick(current => current + 1);
-        }, TIMER_TICK_MS);
+        setConnectedPhase('connected');
 
-        return () => clearInterval(intervalId);
+        const toE2ee = setTimeout(() => {
+            setConnectedPhase('e2ee');
+        }, CONNECTED_LABEL_MS);
+
+        const toHidden = setTimeout(() => {
+            setConnectedPhase('hidden');
+        }, CONNECTED_LABEL_MS + E2EE_LABEL_MS);
+
+        return () => {
+            clearTimeout(toE2ee);
+            clearTimeout(toHidden);
+        };
     }, [ normalizedStatus, connectedTimestamp ]);
 
     if (!normalizedStatus || normalizedStatus === 'clear') {
@@ -69,16 +72,19 @@ export default function ConnectionStatusLabel() {
         return null;
     }
 
+    if (normalizedStatus === 'connected' && connectedPhase === 'hidden') {
+        return null;
+    }
+
+    const statusText = normalizedStatus === 'connected'
+        ? (connectedPhase === 'e2ee' ? E2EE_LABEL_TEXT : STATUS_DISPLAY_TEXT.connected)
+        : (STATUS_DISPLAY_TEXT[normalizedStatus] || normalizedStatus);
+
     return (
         <View style = { styles.connectionStatusContainer as ViewStyle }>
             <Text style = { styles.connectionStatusText as TextStyle }>
-                { normalizedStatus }
+                { statusText }
             </Text>
-            { normalizedStatus === 'connected' && (
-                <Text style = { styles.connectionStatusText as TextStyle }>
-                    { formatDuration(elapsedSeconds) }
-                </Text>
-            ) }
         </View>
     );
 }

@@ -49,6 +49,7 @@ import { default as IconDeviceHeadphone } from './headset.svg';
 import { default as IconHelp } from './help.svg';
 import { default as IconHighlight } from './highlight.svg';
 import { default as IconRingGroup } from './icon-ring-group.svg';
+import { default as WhiteBreak } from './whiteBreak.svg';
 import { default as IconImage } from './image.svg';
 import { default as IconInfoCircle } from './info-circle.svg';
 import { default as IconInfo } from './info.svg';
@@ -190,6 +191,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconReply,
     IconRestore,
     IconRingGroup,
+    WhiteBreak,
     IconScreenshare,
     IconSearch,
     IconSecurityOff,

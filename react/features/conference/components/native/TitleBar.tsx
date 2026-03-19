@@ -76,14 +76,14 @@ const TitleBar = (props: IProps) => {
                         { props._meetingName }
                     </Text>
                 }
-                {/* {
+                <ConnectionStatusLabel />
+                {
                     props._conferenceTimerEnabled
                     && <ConferenceTimer textStyle = { styles.meetingTimer } />
-                } */}
-                <ConnectionStatusLabel />
+                }
                 <View style = { styles.titleBarLabels as ViewStyle }>
                     {/* eslint-disable-next-line react/jsx-no-bind */}
-                    <Labels createOnPress = { props._createOnPress } />
+                    {/* <Labels createOnPress = { props._createOnPress } /> */}
                 </View>
             </View>
             <View style = { styles.titleBarRightSpacer as ViewStyle } />

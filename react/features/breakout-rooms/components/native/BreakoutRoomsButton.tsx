@@ -6,7 +6,7 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
-import { IconRingGroup } from '../../../base/icons/svg';
+import { WhiteBreak } from '../../../base/icons/svg';
 import AbstractButton,
 {
     IProps as AbstractButtonProps
@@ -22,8 +22,8 @@ import { screen } from '../../../mobile/navigation/routes';
  */
 class BreakoutRoomsButton extends AbstractButton<AbstractButtonProps> {
     override accessibilityLabel = 'toolbar.accessibilityLabel.breakoutRooms';
-    override icon = IconRingGroup;
-    override label = 'breakoutRooms.buttonLabel';
+    override icon = WhiteBreak;
+    override label = 'toolbar.accessibilityLabel.breakoutRooms';
 
     /**
      * Handles clicking / pressing the button and opens the breakout rooms screen.

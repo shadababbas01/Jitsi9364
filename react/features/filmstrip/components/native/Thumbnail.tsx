@@ -385,8 +385,9 @@ class Thumbnail extends PureComponent<IProps> {
         const styleOverrides = tileView ? {
             aspectRatio: width/height,
             flex: 0,
+            borderWidth: 2,
             height,
-            margin: 0,
+            margin: 2,
             maxHeight: height,
             maxWidth: null,
             width: width

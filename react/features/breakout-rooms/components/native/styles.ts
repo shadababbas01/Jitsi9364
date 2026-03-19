@@ -5,10 +5,22 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
  * The styles of the native components of the feature {@code breakout rooms}.
  */
 export default {
-
+    centeredContainer: {
+        width: '100%' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
+    },
     button: {
-        marginBottom: BaseTheme.spacing[4],
-        marginHorizontal: BaseTheme.spacing[3]
+        width: '85%' ,
+        backgroundColor: '#ee4136' // added by Shadab
+    },
+    breakoutroombutton: {
+        marginBottom: BaseTheme.spacing[2],
+        marginTop: BaseTheme.spacing[2],
+        marginHorizontal: BaseTheme.spacing[2],
+        width: '85%' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
     },
 
     collapsibleList: {
@@ -42,7 +54,8 @@ export default {
         fontSize: 15,
         color: BaseTheme.palette.text01,
         fontWeight: 'bold',
-        marginLeft: BaseTheme.spacing[2]
+        marginLeft: BaseTheme.spacing[2],
+        flex: 1
     },
 
     autoAssignLabel: {
@@ -57,10 +70,35 @@ export default {
 
     breakoutRoomsContainer: {
         backgroundColor: BaseTheme.palette.ui01,
+        alignSelf: 'center',
         flex: 1,
         flexDirection: 'column',
         height: 'auto',
         paddingHorizontal: BaseTheme.spacing[3]
+    },
+    headerAction: {
+        marginLeft: BaseTheme.spacing[2]
+    },
+    joinButton: {
+        backgroundColor: BaseTheme.palette.link01,
+        borderRadius: BaseTheme.shape.borderRadius,
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[1],
+        backgroundColor: '#ee4136' 
+    },
+    joinButtonText: {
+    color: '#FFFFFF',
+        fontWeight: 'bold',
+    },
+    breakoutRoomsContaineroverflowmenu: {
+        backgroundColor: BaseTheme.palette.ui01,
+        alignSelf: 'center',
+        width: '100%', // Fill the full device width
+        flex: 1,
+        flexDirection: 'column',
+        height: 'auto',
+        paddingHorizontal: BaseTheme.spacing[0],
+        marginTop: BaseTheme.spacing[30],
     },
 
     inputContainer: {

@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import Button from '../../../base/ui/components/native/Button';
@@ -20,12 +21,14 @@ const AddBreakoutRoomButton = () => {
     , [ dispatch ]);
 
     return (
-        <Button
-            accessibilityLabel = 'breakoutRooms.actions.add'
-            labelKey = 'breakoutRooms.actions.add'
-            onClick = { onAdd }
-            style = { styles.button }
-            type = { BUTTON_TYPES.SECONDARY } />
+        <View style = { styles.centeredContainer }>
+            <Button
+                accessibilityLabel = 'breakoutRooms.actions.add'
+                labelKey = 'breakoutRooms.actions.add'
+                onClick = { onAdd }
+                style = { styles.breakoutroombutton }
+                type = { BUTTON_TYPES.SECONDARY } />
+        </View>
     );
 };
 

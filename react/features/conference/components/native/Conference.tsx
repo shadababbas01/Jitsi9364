@@ -50,7 +50,6 @@ import {
 import { isConnecting } from '../functions.native';
 
 import AlwaysOnLabels from './AlwaysOnLabels';
-import ConnectionStatusLabel from './ConnectionStatusLabel';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
@@ -120,11 +119,6 @@ interface IProps extends AbstractProps {
      * Whether Picture-in-Picture is enabled.
      */
     _pictureInPictureEnabled: boolean;
-
-    /**
-     * Current connection status coming from host app.
-     */
-    _connectionStatus?: string;
 
     /**
      * The indicator which determines whether the UI is reduced (to accommodate
@@ -345,8 +339,6 @@ class Conference extends AbstractConference<IProps, State> {
     _onConnectionStatus(event: { status?: string } | string) {
         const status = typeof event === 'string' ? event : event?.status;
 
-        console.log('[connectionStatus] event:', event, 'status:', status);
-
         if (typeof status === 'string') {
             this.props.dispatch(setConnectionStatus(status));
         }
@@ -451,13 +443,10 @@ class Conference extends AbstractConference<IProps, State> {
                     { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
 
                     {
-                        !_shouldDisplayTileView && (_isDisplayNameVisible || _connectionStatus) && (
+                        !_shouldDisplayTileView && _isDisplayNameVisible && (
                             <Container style = { styles.displayNameContainer }>
-                                { _isDisplayNameVisible && (
-                                    <DisplayNameLabel
-                                        participantId = { _largeVideoParticipantId } />
-                                ) }
-                                <ConnectionStatusLabel />
+                                <DisplayNameLabel
+                                    participantId = { _largeVideoParticipantId } />
                             </Container>
                         )
                     }
@@ -612,7 +601,6 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _audioOnlyEnabled: Boolean(audioOnlyEnabled),
         _brandingStyles: brandingStyles,
         _calendarEnabled: isCalendarEnabled(state),
-        _connectionStatus: state['features/base/conference'].connectionStatus,
         _connecting: isConnecting(state),
         _filmstripVisible: isFilmstripVisible(state),
         _isDisplayNameVisible: isDisplayNameVisible(state),

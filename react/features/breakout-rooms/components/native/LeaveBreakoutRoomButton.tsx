@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import { createBreakoutRoomsEvent } from '../../../analytics/AnalyticsEvents';
@@ -24,12 +25,14 @@ const LeaveBreakoutRoomButton = () => {
     , [ dispatch ]);
 
     return (
-        <Button
-            accessibilityLabel = 'breakoutRooms.actions.leaveBreakoutRoom'
-            labelKey = 'breakoutRooms.actions.leaveBreakoutRoom'
-            onClick = { onLeave }
-            style = { styles.button }
-            type = { BUTTON_TYPES.DESTRUCTIVE } />
+        <View style = { styles.centeredContainer }>
+            <Button
+                accessibilityLabel = 'breakoutRooms.actions.leaveBreakoutRoom'
+                labelKey = 'breakoutRooms.actions.leaveBreakoutRoom'
+                onClick = { onLeave }
+                style = { styles.button }
+                type = { BUTTON_TYPES.DESTRUCTIVE } />
+        </View>
     );
 };
 
