@@ -99,6 +99,7 @@ import { default as IconAudioOnlyOff } from './visibility-off.svg';
 import { default as IconAudioOnly } from './visibility.svg';
 import { default as IconVolumeOff } from './volume-off.svg';
 import { default as IconVolumeUp } from './volume-up.svg';
+import { default as IconVolumeUpToolBox } from './volume-up-toolbox.svg';
 import { default as IconWarningCircle } from './warning-circle.svg';
 import { default as IconWarning } from './warning.svg';
 import { default as IconWhiteboardHide } from './whiteboard-hide.svg';
@@ -213,6 +214,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconVideoOff,
     IconVolumeOff,
     IconVolumeUp,
+    IconVolumeUpToolBox,
     IconWarning,
     IconWarningCircle,
     IconWhiteboard,

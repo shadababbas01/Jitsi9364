@@ -130,8 +130,7 @@ function Toolbox(props: IProps) {
             borderRadius: 24 
         }
     };
-    const audiorouteUsesWhiteBg
-        = [ 'SPEAKER', 'BLUETOOTH', 'CAR' ].includes(_selectedAudioRouteType ?? '');
+    const audiorouteUsesWhiteBg = Boolean(_selectedAudioRouteType);
 
     const renderToolboxButtons = () => {
         if (!orderedButtons.length) {

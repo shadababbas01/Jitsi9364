@@ -28,7 +28,7 @@ function normalizeStatus(rawStatus?: string) {
 export default function ConnectionStatusLabel() {
     const { connectionStatus, connectedTimestamp } = useSelector((state: IReduxState) => state['features/base/conference']);
     const normalizedStatus = normalizeStatus(connectionStatus);
-    const [ connectedPhase, setConnectedPhase ] = useState<'connected' | 'e2ee' | 'hidden' | null>(null);
+    const [ now, setNow ] = useState(Date.now());
 
     useEffect(() => {
         if (!connectionStatus && !connectedTimestamp) {
@@ -43,26 +43,29 @@ export default function ConnectionStatusLabel() {
     }, [ connectionStatus, normalizedStatus, connectedTimestamp ]);
 
     useEffect(() => {
-        if (normalizedStatus !== 'connected') {
-            setConnectedPhase(null);
+        if (normalizedStatus !== 'connected' || !connectedTimestamp) {
             return;
         }
 
-        setConnectedPhase('connected');
+        const elapsed = Math.max(0, now - connectedTimestamp);
+        let delay: number | null = null;
 
-        const toE2ee = setTimeout(() => {
-            setConnectedPhase('e2ee');
-        }, CONNECTED_LABEL_MS);
+        if (elapsed < CONNECTED_LABEL_MS) {
+            delay = CONNECTED_LABEL_MS - elapsed;
+        } else if (elapsed < CONNECTED_LABEL_MS + E2EE_LABEL_MS) {
+            delay = CONNECTED_LABEL_MS + E2EE_LABEL_MS - elapsed;
+        }
 
-        const toHidden = setTimeout(() => {
-            setConnectedPhase('hidden');
-        }, CONNECTED_LABEL_MS + E2EE_LABEL_MS);
+        if (delay === null) {
+            return;
+        }
 
-        return () => {
-            clearTimeout(toE2ee);
-            clearTimeout(toHidden);
-        };
-    }, [ normalizedStatus, connectedTimestamp ]);
+        const timeoutId = setTimeout(() => {
+            setNow(Date.now());
+        }, delay);
+
+        return () => clearTimeout(timeoutId);
+    }, [ normalizedStatus, connectedTimestamp, now ]);
 
     if (!normalizedStatus || normalizedStatus === 'clear') {
         return null;
@@ -72,13 +75,19 @@ export default function ConnectionStatusLabel() {
         return null;
     }
 
-    if (normalizedStatus === 'connected' && connectedPhase === 'hidden') {
-        return null;
-    }
+    let statusText = STATUS_DISPLAY_TEXT[normalizedStatus] || normalizedStatus;
 
-    const statusText = normalizedStatus === 'connected'
-        ? (connectedPhase === 'e2ee' ? E2EE_LABEL_TEXT : STATUS_DISPLAY_TEXT.connected)
-        : (STATUS_DISPLAY_TEXT[normalizedStatus] || normalizedStatus);
+    if (normalizedStatus === 'connected' && connectedTimestamp) {
+        const elapsed = Math.max(0, now - connectedTimestamp);
+
+        if (elapsed >= CONNECTED_LABEL_MS + E2EE_LABEL_MS) {
+            return null;
+        }
+
+        statusText = elapsed >= CONNECTED_LABEL_MS
+            ? E2EE_LABEL_TEXT
+            : STATUS_DISPLAY_TEXT.connected;
+    }
 
     return (
         <View style = { styles.connectionStatusContainer as ViewStyle }>
