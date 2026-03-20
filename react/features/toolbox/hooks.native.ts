@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 
 import ChatButton from '../chat/components/native/ChatButton';
-import RaiseHandContainerButtons from '../reactions/components/native/RaiseHandContainerButtons';
 import TileViewButton from '../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../visitors/functions';
 
@@ -9,6 +8,7 @@ import AudioMuteButton from './components/native/AudioMuteButton';
 import CustomOptionButton from './components/native/CustomOptionButton';
 import HangupContainerButtons from './components/native/HangupContainerButtons';
 import OverflowMenuButton from './components/native/OverflowMenuButton';
+import RaiseHandButton from './components/native/RaiseHandButton';
 import ScreenSharingButton from './components/native/ScreenSharingButton';
 import VideoMuteButton from './components/native/VideoMuteButton';
 import { isDesktopShareButtonDisabled } from './functions.native';
@@ -41,7 +41,7 @@ const screensharing = {
 
 const raisehand = {
     key: 'raisehand',
-    Content: RaiseHandContainerButtons,
+    Content: RaiseHandButton,
     group: 2
 };
 

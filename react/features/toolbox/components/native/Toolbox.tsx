@@ -84,7 +84,12 @@ function Toolbox(props: IProps) {
     });
 
     const bottomEdge = Platform.OS === 'ios' && _visible;
-    const { buttonStylesBorderless, hangupButtonStyles } = _styles;
+    const {
+        buttonStylesBorderless,
+        hangupButtonStyles,
+        raiseHandButtonStyles,
+        raiseHandToggledButtonStyles
+    } = _styles;
     const style = { ...styles.toolbox };
 
     // Allow overriding the toolbox background color from config (configOverwrite/overwriteConfig).
@@ -147,9 +152,12 @@ function Toolbox(props: IProps) {
                             handleClick = { () => dispatch(customButtonPressed(key, text)) }
                             isToolboxButton = { true }
                             key = { key }
+                            toggledStyles = { key === 'raisehand' ? raiseHandToggledButtonStyles : undefined }
                             styles = {
                                 key === 'hangup'
                                     ? hangupButtonStyles
+                                    : key === 'raisehand'
+                                        ? raiseHandButtonStyles
                                     : key === 'audioroute'
                                         ? audiorouteUsesWhiteBg ? whiteCircleStyles : darkCircleStyles
                                         : key === 'camera'

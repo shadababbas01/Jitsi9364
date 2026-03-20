@@ -221,5 +221,22 @@ ColorSchemeRegistry.register('Toolbox', {
             ...toolbarButton
         },
         underlayColor: 'transparent'
+    },
+
+    raiseHandButtonStyles: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton,
+            backgroundColor: 'grey'
+        },
+        underlayColor: 'transparent'
+    },
+
+    raiseHandToggledButtonStyles: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton
+        },
+        underlayColor: 'transparent'
     }
 });
