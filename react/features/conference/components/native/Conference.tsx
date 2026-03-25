@@ -15,6 +15,7 @@ import { IReduxState, IStore } from '../../../app/types';
 import { setConnectionStatus } from '../../../base/conference/actions';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { isDisplayNameVisible } from '../../../base/config/functions.native';
+import { getLocalParticipant, getParticipantCountRemoteOnly } from '../../../base/participants/functions';
 import Container from '../../../base/react/components/native/Container';
 import LoadingIndicator from '../../../base/react/components/native/LoadingIndicator';
 import TintedView from '../../../base/react/components/native/TintedView';
@@ -41,6 +42,7 @@ import Captions from '../../../subtitles/components/native/Captions';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import { getCurrentRoomId, getRoomsInfo, isInBreakoutRoom } from '../../../breakout-rooms/functions';
 import EventLogPanel from '../../../debug-event-log/components/native/EventLogPanel';
 import {
     AbstractConference,
@@ -127,6 +129,11 @@ interface IProps extends AbstractProps {
     _reducedUI: boolean;
 
     /**
+     * Total users count for native event.
+     */
+    _totalUsersCount?: number;
+
+    /**
      * Indicates whether the lobby screen should be visible.
      */
     _showLobby: boolean;
@@ -185,6 +192,11 @@ class Conference extends AbstractConference<IProps, State> {
     _connectionStatusSubscription: any;
 
     /**
+     * Last sent total users count to native.
+     */
+    _lastTotalUsers?: number;
+
+    /**
      * Initializes a new Conference instance.
      *
      * @param {Object} props - The read-only properties with which the new
@@ -217,6 +229,7 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidMount() {
         const {
             _audioOnlyEnabled,
+            _totalUsersCount,
             _startCarMode,
             navigation
         } = this.props;
@@ -229,6 +242,8 @@ class Conference extends AbstractConference<IProps, State> {
         if (_audioOnlyEnabled && _startCarMode) {
             navigation.navigate(screen.conference.carmode);
         }
+
+        this._maybeSendTotalUsers(_totalUsersCount);
     }
 
     /**
@@ -239,6 +254,7 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidUpdate(prevProps: IProps) {
         const {
             _audioOnlyEnabled,
+            _totalUsersCount,
             _showLobby,
             _startCarMode
         } = this.props;
@@ -253,6 +269,10 @@ class Conference extends AbstractConference<IProps, State> {
             }
 
             navigate(screen.conference.main);
+        }
+
+        if (prevProps._totalUsersCount !== _totalUsersCount) {
+            this._maybeSendTotalUsers(_totalUsersCount);
         }
     }
 
@@ -270,6 +290,26 @@ class Conference extends AbstractConference<IProps, State> {
         this._connectionStatusSubscription?.remove();
 
         clearTimeout(this._expandedLabelTimeout.current ?? 0);
+        this._lastTotalUsers = undefined;
+    }
+
+    /**
+     * Sends total users count to native only on change.
+     *
+     * @param {number | undefined} count - Remote participants count.
+     * @returns {void}
+     */
+    _maybeSendTotalUsers(count?: number) {
+        if (typeof count !== 'number') {
+            return;
+        }
+
+        if (this._lastTotalUsers === count) {
+            return;
+        }
+
+        this._lastTotalUsers = count;
+        NativeModules?.NativeCallsNew?.totalUsers?.(count+1);
     }
 
     /**
@@ -608,6 +648,30 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _largeVideoParticipantId: state['features/large-video'].participantId,
         _pictureInPictureEnabled: isPipEnabled(state),
         _reducedUI: reducedUI,
+        _totalUsersCount: (() => {
+            const remoteCount = getParticipantCountRemoteOnly(state);
+            const localParticipant = getLocalParticipant(state);
+            const inBreakoutRoom = isInBreakoutRoom(state);
+
+            if (!inBreakoutRoom) {
+                return remoteCount;
+            }
+
+            const roomsInfo = getRoomsInfo(state);
+            const currentRoomId = getCurrentRoomId(state);
+            const currentRoom = roomsInfo?.rooms?.find(room =>
+                room.id === currentRoomId || room.jid === currentRoomId);
+            const participantIds = currentRoom?.participants
+                ?.map(p => p?.id)
+                .filter(Boolean) ?? [];
+            let count = participantIds.length;
+
+            if (localParticipant?.id && !participantIds.includes(localParticipant.id)) {
+                count += 1;
+            }
+
+            return count || (localParticipant ? 1 : 0);
+        })(),
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
         _toolboxVisible: isToolboxVisible(state)

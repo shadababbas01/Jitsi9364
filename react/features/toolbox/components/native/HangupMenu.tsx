@@ -50,26 +50,37 @@ function HangupMenu() {
 
     return (
         <BottomSheet>
-            <View style = { _styles.hangupMenuContainer }>
-                { isModerator && <Button
-                    accessibilityLabel = 'toolbar.endConference'
-                    labelKey = 'toolbar.endConference'
-                    onClick = { handleEndConference }
-                    style = { _styles.hangupButton }
-                    type = { DESTRUCTIVE } /> }
-                <Button
-                    accessibilityLabel = 'toolbar.leaveConference'
-                    labelKey = 'toolbar.leaveConference'
-                    onClick = { handleLeaveConference }
-                    style = { _styles.hangupButton }
-                    type = { SECONDARY } />
-                { inBreakoutRoom && <Button
-                    accessibilityLabel = 'breakoutRooms.actions.leaveBreakoutRoom'
-                    labelKey = 'breakoutRooms.actions.leaveBreakoutRoom'
-                    onClick = { handleLeaveBreakoutRoom }
-                    style = { _styles.hangupButton }
-                    type = { SECONDARY } /> }
-            </View>
+            <View style={_styles.hangupMenuContainer}>
+    {isModerator && (
+        <Button
+            accessibilityLabel='toolbar.endConference'
+            labelKey='toolbar.endConference'
+            onClick={handleEndConference}
+            style={[ _styles.hangupButton, _styles.endConferenceButton ]}
+            labelStyle={_styles.endConferenceText}
+            type={DESTRUCTIVE}
+        />
+    )}
+
+    <Button
+        accessibilityLabel='toolbar.leaveConference'
+        labelKey='toolbar.leaveConference'
+        onClick={handleLeaveConference}
+        style={[ _styles.hangupButton, _styles.leaveConferenceButton ]}
+        labelStyle={_styles.leaveConferenceText}
+        type={SECONDARY}
+    />
+
+    {inBreakoutRoom && (
+        <Button
+            accessibilityLabel='breakoutRooms.actions.leaveBreakoutRoom'
+            labelKey='breakoutRooms.actions.leaveBreakoutRoom'
+            onClick={handleLeaveBreakoutRoom}
+            style={[ _styles.hangupButton, _styles.breakoutButton ]}
+            type={SECONDARY}
+        />
+    )}
+</View>
         </BottomSheet>
     );
 }

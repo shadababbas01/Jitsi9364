@@ -154,6 +154,32 @@ ColorSchemeRegistry.register('Toolbox', {
         marginVertical: BaseTheme.spacing[2]
     },
 
+    endConferenceButton: {
+    backgroundColor: '#E0E0E0', // greyreact/features/toolbox/components/native/HangupMenu.tsx
+    borderColor: '#E0E0E0'
+},
+
+leaveConferenceButton: {
+    backgroundColor: '#FF3B30', // red
+    borderColor: '#FF3B30'
+},
+
+breakoutButton: {
+    backgroundColor: '#E0E0E0', // grey
+    borderColor: '#E0E0E0'
+},
+leaveConferenceText: {
+    color: '#FFFFFF' // white text
+},
+
+endConferenceText: {
+    color: '#000000'
+},
+
+breakoutText: {
+    color: '#000000'
+},
+
     hangupButton: {
         flex: 1,
         marginHorizontal: BaseTheme.spacing[2],

@@ -9,11 +9,12 @@ import styles from './styles';
 const CONNECTED_LABEL_MS = 1000;
 const E2EE_LABEL_MS = 1000;
 const E2EE_LABEL_TEXT = 'End to end encrypted';
-const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected' ]);
+const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected', 'reconnecting' ]);
 const STATUS_DISPLAY_TEXT: Record<string, string> = {
     calling: 'Calling...',
     connected: 'Connected',
     connecting: 'Connecting...',
+    reconnecting: 'Reconnecting...',
     ringing: 'Ringing...'
 };
 

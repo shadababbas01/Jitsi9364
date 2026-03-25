@@ -242,7 +242,7 @@ class TileView extends PureComponent<IProps> {
                 style = { [
                     styles.tileGridContainer,
                     {
-                        height: _height,
+                        height: _height,react/features/conference/components/native/ConnectionStatusLabel.tsx
                         width: _width
                     }
                 ] }>
@@ -291,6 +291,19 @@ class TileView extends PureComponent<IProps> {
                 rows: 1,
                 tileHeight: availableHeight,
                 tileWidth: availableWidth,
+                tileMargin
+            };
+        }
+
+        if (count === 2) {
+            const columns = 1;
+            const rows = 2;
+
+            return {
+                columns,
+                rows,
+                tileHeight: (availableHeight - (rows * tileMargin * 2)) / rows,
+                tileWidth: (availableWidth - (columns * tileMargin * 2)) / columns,
                 tileMargin
             };
         }
