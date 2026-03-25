@@ -241,10 +241,7 @@ class TileView extends PureComponent<IProps> {
             <View
                 style = { [
                     styles.tileGridContainer,
-                    {
-                        height: _height,react/features/conference/components/native/ConnectionStatusLabel.tsx
-                        width: _width
-                    }
+                    { height: _height, width: _width }
                 ] }>
                 { Array.from({ length: rows }).map((_, rowIndex) => {
                     const start = rowIndex * columns;
