@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, ViewStyle } from 'react-native';
+import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
