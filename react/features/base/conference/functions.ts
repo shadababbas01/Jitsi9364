@@ -351,7 +351,8 @@ export function getVisitorOptions(stateful: IStateful, vnode: string, focusJid: 
 }
 
 /**
-* Returns the UTC timestamp when the first participant joined the conference.
+* Returns the UTC timestamp when the connection became connected, falling back
+* to the conference created timestamp if not available.
 *
 * @param {IStateful} stateful - Reference that can be resolved to Redux
 * state with the {@code toState} function.
@@ -359,9 +360,9 @@ export function getVisitorOptions(stateful: IStateful, vnode: string, focusJid: 
 */
 export function getConferenceTimestamp(stateful: IStateful) {
     const state = toState(stateful);
-    const { conferenceTimestamp } = getConferenceState(state);
+    const { connectedTimestamp, conferenceTimestamp } = getConferenceState(state);
 
-    return conferenceTimestamp;
+    return connectedTimestamp ?? conferenceTimestamp;
 }
 
 /**

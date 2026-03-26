@@ -9,9 +9,7 @@ import RecordingLabel from '../../../recording/components/native/RecordingLabel'
 import { isLiveStreamingRunning } from '../../../recording/functions';
 import VisitorsCountLabel from '../../../visitors/components/native/VisitorsCountLabel';
 
-import RaisedHandsCountLabel from './RaisedHandsCountLabel';
 import {
-    LABEL_ID_RAISED_HANDS_COUNT,
     LABEL_ID_RECORDING,
     LABEL_ID_STREAMING,
     LABEL_ID_VISITORS_COUNT,
@@ -51,11 +49,6 @@ const AlwaysOnLabels = ({ createOnPress }: IProps) => {
             hitSlop = { LabelHitSlop }
             onPress = { openHighlightDialogCallback }>
             <HighlightButton />
-        </TouchableOpacity>
-        <TouchableOpacity
-            hitSlop = { LabelHitSlop }
-            onPress = { createOnPress(LABEL_ID_RAISED_HANDS_COUNT) } >
-            <RaisedHandsCountLabel />
         </TouchableOpacity>
         <TouchableOpacity
             hitSlop = { LabelHitSlop }

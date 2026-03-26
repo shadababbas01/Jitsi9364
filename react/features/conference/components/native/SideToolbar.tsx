@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, ViewStyle } from 'react-native';
-import { connect } from 'react-redux';
+import { Text, View, ViewStyle } from 'react-native';
+import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import {
@@ -11,7 +11,7 @@ import { getFeatureFlag } from '../../../base/flags/functions';
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
-import ZoomButton from '../../../toolbox/components/native/ZoomButton';
+import RaiseHandButton from '../../../toolbox/components/native/RaiseHandButton';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 
 import styles from './styles';
@@ -31,6 +31,9 @@ const SideToolbar = (props: IProps) => {
         _toggleCameraButtonEnabled,
         _visible
     } = props;
+    const raisedHandsCount = useSelector((state: IReduxState) =>
+        (state['features/base/participants'].raisedHandsQueue || []).length);
+    const showRaisedHandsCount = raisedHandsCount > 0;
 
     if (!_visible) {
         return null;
@@ -38,27 +41,42 @@ const SideToolbar = (props: IProps) => {
 
     return (
         <View
-            pointerEvents = 'box-none'
-            style = { styles.sideToolbar as ViewStyle }>
-            <View style = { styles.sideToolbarStack as ViewStyle }>
+            pointerEvents='box-none'
+            style={styles.sideToolbar as ViewStyle}>
+            <View style={styles.sideToolbarStack as ViewStyle}>
                 {
                     _isParticipantsPaneEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ParticipantsPaneButton styles = { styles.sideToolbarButton } />
+                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
+                        <ParticipantsPaneButton styles={styles.sideToolbarButton} />
                     </View>
                 }
                 {
                     _toggleCameraButtonEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ToggleCameraButton styles = { styles.sideToolbarButton } />
+                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
+                        <ToggleCameraButton styles={styles.sideToolbarButton} />
                     </View>
                 }
                 {
                     _audioDeviceButtonEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ChatButton styles = { styles.sideToolbarButton } />
+                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
+                        <ChatButton styles={styles.sideToolbarButton} />
                     </View>
                 }
+                {raisedHandsCount > 0 && (
+                    <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
+                        <View style={styles.sideToolbarButtonBadgeWrapper as ViewStyle}>
+                            <RaiseHandButton styles={styles.sideToolbarButton} />
+
+                            {showRaisedHandsCount && (
+                                <View style={styles.sideToolbarBadge as ViewStyle}>
+                                    <Text style={styles.sideToolbarBadgeText as ViewStyle}>
+                                        {raisedHandsCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                )}
             </View>
         </View>
     );

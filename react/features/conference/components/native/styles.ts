@@ -266,6 +266,10 @@ export default {
         marginBottom: BaseTheme.spacing[2]
     },
 
+    sideToolbarButtonBadgeWrapper: {
+        position: 'relative'
+    },
+
     sideToolbarButton: {
         iconStyle: {
             color: BaseTheme.palette.icon01,
@@ -280,6 +284,27 @@ export default {
             width: ROUND_BUTTON_SIZE
         },
         underlayColor: 'transparent'
+    },
+
+    sideToolbarBadge: {
+        alignItems: 'center',
+        backgroundColor: '#FF3B30',
+        borderColor: 'rgba(0, 0, 0, 0.7)',
+        borderRadius: 9,
+        borderWidth: 1,
+        height: 18,
+        justifyContent: 'center',
+        minWidth: 18,
+        paddingHorizontal: 4,
+        position: 'absolute',
+        right: -4,
+        top: -4
+    },
+
+    sideToolbarBadgeText: {
+        color: BaseTheme.palette.uiBackground,
+        fontSize: 11,
+        fontWeight: '600' as const
     },
 
     insecureRoomNameLabel: {

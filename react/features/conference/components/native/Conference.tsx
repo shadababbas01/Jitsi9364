@@ -134,6 +134,11 @@ interface IProps extends AbstractProps {
     _totalUsersCount?: number;
 
     /**
+     * Whether the user is currently in a breakout room.
+     */
+    _isInBreakoutRoom?: boolean;
+
+    /**
      * Indicates whether the lobby screen should be visible.
      */
     _showLobby: boolean;
@@ -197,6 +202,11 @@ class Conference extends AbstractConference<IProps, State> {
     _lastTotalUsers?: number;
 
     /**
+     * Last sent breakout room status to native.
+     */
+    _lastBreakoutStatus?: boolean;
+
+    /**
      * Initializes a new Conference instance.
      *
      * @param {Object} props - The read-only properties with which the new
@@ -229,6 +239,7 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidMount() {
         const {
             _audioOnlyEnabled,
+            _isInBreakoutRoom,
             _totalUsersCount,
             _startCarMode,
             navigation
@@ -244,6 +255,7 @@ class Conference extends AbstractConference<IProps, State> {
         }
 
         this._maybeSendTotalUsers(_totalUsersCount);
+        this._maybeSendBreakoutStatus(_isInBreakoutRoom);
     }
 
     /**
@@ -254,6 +266,7 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidUpdate(prevProps: IProps) {
         const {
             _audioOnlyEnabled,
+            _isInBreakoutRoom,
             _totalUsersCount,
             _showLobby,
             _startCarMode
@@ -274,6 +287,10 @@ class Conference extends AbstractConference<IProps, State> {
         if (prevProps._totalUsersCount !== _totalUsersCount) {
             this._maybeSendTotalUsers(_totalUsersCount);
         }
+
+        if (prevProps._isInBreakoutRoom !== _isInBreakoutRoom) {
+            this._maybeSendBreakoutStatus(_isInBreakoutRoom);
+        }
     }
 
     /**
@@ -291,6 +308,8 @@ class Conference extends AbstractConference<IProps, State> {
 
         clearTimeout(this._expandedLabelTimeout.current ?? 0);
         this._lastTotalUsers = undefined;
+        this._lastBreakoutStatus = undefined;
+        this._maybeSendBreakoutStatus(false);
     }
 
     /**
@@ -310,6 +329,25 @@ class Conference extends AbstractConference<IProps, State> {
 
         this._lastTotalUsers = count;
         NativeModules?.NativeCallsNew?.totalUsers?.(count+1);
+    }
+
+    /**
+     * Sends breakout room status to native only on change.
+     *
+     * @param {boolean | undefined} inBreakout - Whether user is in breakout room.
+     * @returns {void}
+     */
+    _maybeSendBreakoutStatus(inBreakout?: boolean) {
+        if (typeof inBreakout !== 'boolean') {
+            return;
+        }
+
+        if (this._lastBreakoutStatus === inBreakout) {
+            return;
+        }
+
+        this._lastBreakoutStatus = inBreakout;
+        NativeModules?.NativeCallsNew?.setInBreakoutRoom?.(inBreakout);
     }
 
     /**
@@ -644,6 +682,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _connecting: isConnecting(state),
         _filmstripVisible: isFilmstripVisible(state),
         _isDisplayNameVisible: isDisplayNameVisible(state),
+        _isInBreakoutRoom: isInBreakoutRoom(state),
         _isParticipantsPaneOpen: isOpen,
         _largeVideoParticipantId: state['features/large-video'].participantId,
         _pictureInPictureEnabled: isPipEnabled(state),
