@@ -1371,7 +1371,9 @@
         "videoSettings": "Video settings",
         "videomute": "Stop camera",
         "videomuteGUMPending": "Connecting your camera",
-        "videounmute": "Start camera"
+        "videounmute": "Start camera",
+        "ZoomInButton": "Zoom in",
+        "ZoomOutButton": "Zoom out"
     },
     "transcribing": {
         "ccButtonTooltip": "Start / Stop subtitles",

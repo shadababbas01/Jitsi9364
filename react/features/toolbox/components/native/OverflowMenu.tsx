@@ -45,6 +45,7 @@ import AudioOnlyButton from './AudioOnlyButton';
 import OpenCarmodeButton from './OpenCarmodeButton';
 import RaiseHandButton from './RaiseHandButton';
 import ScreenSharingButton from './ScreenSharingButton';
+import ZoomButton from './ZoomButton';
 
 const { NativeCallsNew, OpenMelpChat } = NativeModules;
 
@@ -380,7 +381,9 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     )} */}
                     <D />
                     <ScreenSharingButton { ...rowProps } />
-                   <TileViewButton { ...rowProps } />
+                    <TileViewButton { ...rowProps } />
+                    <D />
+                    <ZoomButton { ...rowProps } />
                     <D />
                     <SharedDocumentButton { ...rowProps } />
                     { this._renderOverflowMenuButtons(topRowProps, [ 'desktop', 'tileview', 'raisehand', 'polls' ]) }
