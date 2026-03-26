@@ -1,7 +1,9 @@
 import { appNavigate } from '../../app/actions.native';
-import { notifyConferenceFailed } from '../../conference/actions.native';
+import { openDialog } from '../../base/dialog/actions';
 import { JitsiConferenceErrors } from '../lib-jitsi-meet';
 import MiddlewareRegistry from '../redux/MiddlewareRegistry';
+import MeetingLimitDialog from '../../meeting-warning/components/native/MeetingLimitDialog';
+import { getMeetingLimitDialogPropsFromError } from '../../meeting-warning/functions';
 
 import { CONFERENCE_FAILED } from './actionTypes';
 import { conferenceLeft } from './actions.native';
@@ -39,10 +41,16 @@ MiddlewareRegistry.register(store => next => action => {
             Object.values(TRIGGER_READY_TO_CLOSE_REASONS).indexOf(reason)
         ];
 
-        dispatch(notifyConferenceFailed(reasonKey, () => {
-            dispatch(conferenceLeft(action.conference));
-            dispatch(appNavigate(undefined));
-        }));
+        // eslint-disable-next-line no-console
+        console.log('Conference failed reason = ', reason, reasonKey);
+        const meetingLimitDialogProps = getMeetingLimitDialogPropsFromError(error);
+
+        dispatch(conferenceLeft(action.conference));
+        dispatch(appNavigate(undefined));
+
+        if (meetingLimitDialogProps) {
+            dispatch(openDialog('MeetingLimitDialog', MeetingLimitDialog, meetingLimitDialogProps));
+        }
     }
     }
 

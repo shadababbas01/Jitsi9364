@@ -644,6 +644,7 @@ export interface IConfig {
         translationLanguagesHead?: Array<string>;
         useAppLanguage?: boolean;
     };
+    upgradePlansUrl?: string;
     useHostPageLocalStorage?: boolean;
     useTurnUdp?: boolean;
     videoQuality?: {

@@ -10,6 +10,9 @@ import { parseURLParams } from '../util/parseURLParams';
 import { JWT_VALIDATION_ERRORS, MEET_FEATURES } from './constants';
 import logger from './logger';
 
+export type JwtAccessFeature
+    = 'breakoutrooms' | 'evaluationmode' | 'noisesupression' | 'webinar' | 'whiteboard';
+
 /**
  * Note that this is just client-side code and it intentionally does not verify the signature of the JWT.
  */
@@ -42,6 +45,39 @@ export function getJwtName(state: IReduxState) {
     const { user } = state['features/base/jwt'];
 
     return user?.name;
+}
+
+/**
+ * Checks whether a plan-gated feature from JWT access flags is blocked.
+ * For these flags: false means blocked, true means allowed.
+ *
+ * @param {IReduxState} state - The app state.
+ * @param {JwtAccessFeature} feature - The feature key.
+ * @returns {boolean}
+ */
+export function isJwtAccessFeatureBlocked(state: IReduxState, feature: JwtAccessFeature): boolean {
+    const flags = state['features/base/jwt']?.featureAccessFlags;
+
+    if (!flags) {
+        return false;
+    }
+
+    if (feature === 'noisesupression') {
+        if (typeof flags.noisesupression === 'boolean') {
+            return flags.noisesupression === false;
+        }
+        if (typeof (flags as any).noisesuppression === 'boolean') {
+            return (flags as any).noisesuppression === false;
+        }
+
+        return false;
+    }
+
+    if (typeof flags[feature] !== 'boolean') {
+        return false;
+    }
+
+    return flags[feature] === false;
 }
 
 /**

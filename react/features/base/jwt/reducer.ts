@@ -2,14 +2,31 @@ import PersistenceRegistry from '../redux/PersistenceRegistry';
 import ReducerRegistry from '../redux/ReducerRegistry';
 import { equals } from '../redux/functions';
 
-import { SET_DELAYED_LOAD_OF_AVATAR_URL, SET_JWT, SET_KNOWN_AVATAR_URL } from './actionTypes';
+import {
+    INCREMENT_FEATURE_USAGE,
+    SET_DELAYED_LOAD_OF_AVATAR_URL,
+    SET_JWT,
+    SET_KNOWN_AVATAR_URL
+} from './actionTypes';
 import logger from './logger';
+
+export interface IFeatureUsageLimit {
+    alertlimit?: number;
+    enabled?: boolean;
+    limit?: number;
+    used?: number;
+}
+
+export type IFeatureUsageLimits = Record<string, IFeatureUsageLimit>;
+export type IFeatureAccessFlags = Record<string, boolean>;
 
 export interface IJwtState {
     callee?: {
         name: string;
     };
     delayedLoadOfAvatarUrl?: string;
+    featureAccessFlags?: IFeatureAccessFlags;
+    featureUsageLimits?: IFeatureUsageLimits;
     group?: string;
     jwt?: string;
     knownAvatarUrl?: string;
@@ -59,6 +76,27 @@ ReducerRegistry.register<IJwtState>(
             const nextState = {
                 ...state,
                 ...payload
+            };
+
+            return equals(state, nextState) ? state : nextState;
+        }
+        case INCREMENT_FEATURE_USAGE: {
+            const currentLimits = state.featureUsageLimits || {};
+            const currentFeature = currentLimits[action.feature];
+
+            if (!currentFeature) {
+                return state;
+            }
+
+            const nextState = {
+                ...state,
+                featureUsageLimits: {
+                    ...currentLimits,
+                    [action.feature]: {
+                        ...currentFeature,
+                        used: Number(currentFeature.used || 0) + 1
+                    }
+                }
             };
 
             return equals(state, nextState) ? state : nextState;

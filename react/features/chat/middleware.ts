@@ -29,6 +29,7 @@ import { arePollsDisabled } from '../conference/functions.any';
 import { isFileSharingEnabled } from '../file-sharing/functions.any';
 import { addGif } from '../gifs/actions';
 import { extractGifURL, getGifDisplayMode, isGifEnabled, isGifMessage } from '../gifs/function.any';
+import MeetingLimitDialog from '../meeting-warning/components/MeetingLimitDialog.native';
 import { showMessageNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 import { resetUnreadPollsCount } from '../polls/actions';
@@ -37,7 +38,7 @@ import { pushReactions } from '../reactions/actions.any';
 import { ENDPOINT_REACTION_NAME } from '../reactions/constants';
 import { getReactionMessageFromBuffer, isReactionsEnabled } from '../reactions/functions.any';
 import { isCCTabEnabled } from '../subtitles/functions.any';
-import { showToolbox } from '../toolbox/actions';
+import { showToolbox } from '../toolbox/actions.native';
 import { getDisplayName } from '../visitors/functions';
 
 import {
@@ -85,6 +86,8 @@ import './subscriber';
  * message after we have received a private message in the last 20 seconds.
  */
 const PRIVACY_NOTICE_TIMEOUT = 20 * 1000;
+const SUPPRESSED_SYSTEM_MESSAGE_TTL = 5 * 60 * 1000;
+const suppressedSystemMessages: Map<string, number> = new Map();
 
 /**
  * Implements the middleware of the chat feature.
@@ -168,12 +171,16 @@ MiddlewareRegistry.register(store => next => action => {
     }
 
     case NON_PARTICIPANT_MESSAGE_RECEIVED: {
-        const { participantId, json: data } = action;
+        const { id, json: data } = action;
+
+        if (_showMeetingLimitDialog(store, data)) {
+            break;
+        }
 
         if (data?.type === MESSAGE_TYPE_SYSTEM && data.message) {
             _handleReceivedMessage(store, {
                 displayName: data.displayName ?? i18next.t('chat.systemDisplayName'),
-                participantId,
+                participantId: id,
                 lobbyChat: false,
                 message: data.message,
                 privateMessage: true,
@@ -408,14 +415,17 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
         (participantId: string, message: string, timestamp: number,
                 displayName: string, isFromVisitor: boolean, messageId: string, source: string) => {
         /* eslint-enable max-params */
+            const meetingLimitPayload = _extractMeetingLimitPayload(message);
+
             _onConferenceMessageReceived(store, {
                 // in case of messages coming from visitors we can have unknown id
                 participantId: participantId || displayName,
-                message,
+                message: meetingLimitPayload?.message ?? message,
                 timestamp,
                 displayName,
                 isFromVisitor,
                 messageId,
+                meetingLimitPayload,
                 source,
                 privateMessage: false
             });
@@ -442,12 +452,15 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
     conference.on(
         JitsiConferenceEvents.PRIVATE_MESSAGE_RECEIVED,
         (participantId: string, message: string, timestamp: number, messageId: string, displayName?: string, isFromVisitor?: boolean) => {
+            const meetingLimitPayload = _extractMeetingLimitPayload(message);
+
             _onConferenceMessageReceived(store, {
                 participantId,
-                message,
+                message: meetingLimitPayload?.message ?? message,
                 timestamp,
                 displayName,
                 messageId,
+                meetingLimitPayload,
                 privateMessage: true,
                 isFromVisitor
             });
@@ -468,10 +481,15 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
  * @returns {void}
  */
 function _onConferenceMessageReceived(store: IStore,
-        { displayName, isFromVisitor, message, messageId, participantId, privateMessage, timestamp, source }: {
-            displayName?: string; isFromVisitor?: boolean; message: string; messageId?: string;
-            participantId: string; privateMessage: boolean; source?: string; timestamp: number; }
+        { displayName, isFromVisitor, meetingLimitPayload, message, messageId, participantId,
+            privateMessage, timestamp, source }: {
+            displayName?: string; isFromVisitor?: boolean; meetingLimitPayload?: IMeetingLimitPayload;
+            message: string; messageId?: string; participantId: string; privateMessage: boolean;
+            source?: string; timestamp: number; }
 ) {
+    if (_showMeetingLimitDialog(store, meetingLimitPayload)) {
+        return;
+    }
 
     const isGif = isGifEnabled(store.getState()) && isGifMessage(message);
 
@@ -492,6 +510,77 @@ function _onConferenceMessageReceived(store: IStore,
         messageId,
         source
     }, true, isGif);
+}
+
+type IMeetingLimitPayload = {
+    ended?: boolean;
+    message: string;
+    title?: string;
+    warning?: boolean;
+};
+
+function _extractMeetingLimitPayload(rawMessage: string): IMeetingLimitPayload | undefined {
+    if (typeof rawMessage !== 'string') {
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(rawMessage);
+
+        if (parsed && typeof parsed === 'object' && typeof parsed.message === 'string'
+            && (parsed.warning || parsed.ended || parsed.title)) {
+            return {
+                ended: Boolean(parsed.ended),
+                message: parsed.message,
+                title: typeof parsed.title === 'string' ? parsed.title : undefined,
+                warning: Boolean(parsed.warning)
+            };
+        }
+    } catch (error) {
+        return;
+    }
+}
+
+function _showMeetingLimitDialog(store: IStore, payload?: any) {
+    const meetingLimitPayload = _toMeetingLimitPayload(payload);
+
+    if (!meetingLimitPayload) {
+        return false;
+    }
+
+    const key = `${meetingLimitPayload.title || ''}:${meetingLimitPayload.message}`;
+    const now = Date.now();
+    const lastShown = suppressedSystemMessages.get(key);
+
+    if (lastShown && now - lastShown < SUPPRESSED_SYSTEM_MESSAGE_TTL) {
+        return true;
+    }
+
+    suppressedSystemMessages.set(key, now);
+    store.dispatch(openDialog('MeetingLimitDialog', MeetingLimitDialog, {
+        message: meetingLimitPayload.message,
+        title: meetingLimitPayload.title
+            || (meetingLimitPayload.ended ? 'Meeting ended' : 'Meeting ending soon')
+    }));
+
+    return true;
+}
+
+function _toMeetingLimitPayload(payload: any): IMeetingLimitPayload | undefined {
+    if (!payload || typeof payload !== 'object' || typeof payload.message !== 'string') {
+        return;
+    }
+
+    if (!payload.warning && !payload.ended && typeof payload.title !== 'string') {
+        return;
+    }
+
+    return {
+        ended: Boolean(payload.ended),
+        message: payload.message,
+        title: typeof payload.title === 'string' ? payload.title : undefined,
+        warning: Boolean(payload.warning)
+    };
 }
 
 /**
