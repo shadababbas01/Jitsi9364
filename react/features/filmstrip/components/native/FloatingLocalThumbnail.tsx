@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, PanResponder, useWindowDimensions, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { getLocalParticipant } from '../../../base/participants/functions';
+import { pinParticipant } from '../../../base/participants/actions';
+import { getLocalParticipant, getPinnedParticipant } from '../../../base/participants/functions';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
@@ -19,16 +20,19 @@ const FLOATING_WIDTH = 140;
 const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
 const FLOATING_RADIUS = 12;
+const TAP_SLOP = 4;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
 export default function FloatingLocalThumbnail() {
     const localParticipant = useSelector(getLocalParticipant);
+    const pinnedParticipant = useSelector(getPinnedParticipant);
     const disableSelfView = useSelector(getHideSelfView);
     const isTileView = useSelector(shouldDisplayTileView);
     const toolboxVisible = useSelector(isToolboxVisible);
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const dispatch = useDispatch();
 
     const minX = insets.left + FLOATING_MARGIN;
     const minY = insets.top + FLOATING_MARGIN;
@@ -85,8 +89,14 @@ export default function FloatingLocalThumbnail() {
 
             lastPosition.current = { x: nextX, y: nextY };
             position.setValue(lastPosition.current);
+
+            if (Math.abs(gesture.dx) < TAP_SLOP && Math.abs(gesture.dy) < TAP_SLOP && localParticipant) {
+                const isPinned = pinnedParticipant?.id === localParticipant.id;
+
+                dispatch(pinParticipant(isPinned ? null : localParticipant.id));
+            }
         }
-    }), [ minX, minY, maxX, maxY, position ]);
+    }), [ minX, minY, maxX, maxY, position, localParticipant, pinnedParticipant, dispatch ]);
 
     if (!localParticipant || disableSelfView || isTileView) {
         return null;
