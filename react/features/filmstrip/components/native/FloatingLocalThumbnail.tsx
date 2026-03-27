@@ -18,6 +18,7 @@ const TOOLBOX_MARGIN = BaseTheme.spacing[3];
 const FLOATING_WIDTH = 140;
 const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
+const FLOATING_RADIUS = 12;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
@@ -34,11 +35,12 @@ export default function FloatingLocalThumbnail() {
     const maxX = Math.max(minX, screenWidth - FLOATING_WIDTH - FLOATING_MARGIN - insets.right);
     const maxY = Math.max(minY, screenHeight - FLOATING_HEIGHT - FLOATING_MARGIN - insets.bottom);
     const toolboxOffset = toolboxVisible ? (TOOLBOX_HEIGHT + TOOLBOX_MARGIN) : 0;
+    const toolboxHiddenShift = toolboxVisible ? 0 : 50;
     const defaultY = clamp(
     maxY - (
         FILMSTRIP_SIZE +
         FLOATING_MARGIN +
-        (toolboxVisible ? toolboxOffset * 2 : toolboxOffset)
+        (toolboxVisible ? toolboxOffset -25  : toolboxOffset - 25)
     ),
     minY,
     maxY
@@ -54,6 +56,15 @@ export default function FloatingLocalThumbnail() {
         lastPosition.current = { x: nextX, y: nextY };
         position.setValue(lastPosition.current);
     }, [ minX, minY, maxX, maxY, position ]);
+
+    useEffect(() => {
+        const delta = toolboxVisible ? -100 : 100;
+        const nextX = clamp(lastPosition.current.x, minX, maxX);
+        const nextY = clamp(lastPosition.current.y + delta, minY, maxY);
+
+        lastPosition.current = { x: nextX, y: nextY };
+        position.setValue(lastPosition.current);
+    }, [ toolboxVisible, minX, minY, maxX, maxY, position ]);
 
     const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: () => true,
@@ -83,19 +94,22 @@ export default function FloatingLocalThumbnail() {
 
     return (
         <Animated.View
+            needsOffscreenAlphaCompositing = { true }
             pointerEvents = 'box-only'
+            renderToHardwareTextureAndroid = { true }
             style = { {
                 position: 'absolute',
                 zIndex: 10,
                 width: FLOATING_WIDTH,
                 height: FLOATING_HEIGHT,
-                borderRadius: 12,
+                borderRadius: FLOATING_RADIUS,
                 overflow: 'hidden',
                 left: position.x,
                 top: position.y
             } as ViewStyle }
             { ...panResponder.panHandlers }>
             <Thumbnail
+                disableDominantSpeakerIndicator = { true }
                 height = { FLOATING_HEIGHT }
                 participantID = { localParticipant.id }
                 renderDisplayName = { false }

@@ -153,6 +153,11 @@ interface IProps {
      */
     tileView?: boolean;
 
+    /**
+     * Whether to disable dominant speaker highlighting for this thumbnail.
+     */
+    disableDominantSpeakerIndicator?: boolean;
+
       /**
      * The width of the thumnail.
      */
@@ -371,6 +376,7 @@ class Thumbnail extends PureComponent<IProps> {
      */
     render() {
         const {
+            disableDominantSpeakerIndicator,
             _fakeParticipant,
             _gifSrc,
             _isScreenShare: isScreenShare,
@@ -401,7 +407,9 @@ class Thumbnail extends PureComponent<IProps> {
                     styles.thumbnail,
                     styleOverrides,
                     _raisedHand && !_isVirtualScreenshare ? styles.thumbnailRaisedHand : null,
-                    _renderDominantSpeakerIndicator && !_isVirtualScreenshare ? styles.thumbnailDominantSpeaker : null
+                    _renderDominantSpeakerIndicator && !_isVirtualScreenshare && !disableDominantSpeakerIndicator
+                        ? styles.thumbnailDominantSpeaker
+                        : null
                 ] as StyleType[] }
                 touchFeedback = { false }>
                 { _gifSrc ? <Image
