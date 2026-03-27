@@ -13,6 +13,7 @@ import { setVisibleRemoteParticipants } from '../../actions.native';
 import {
     getFilmstripDimensions,
     isFilmstripVisible,
+    shouldDisplayFloatingLocalThumbnail,
     shouldDisplayLocalThumbnailSeparately,
     shouldRemoteVideosBeVisible
 } from '../../functions.native';
@@ -152,7 +153,9 @@ class Filmstrip extends PureComponent<IProps> {
             _localParticipantId,
             insets
         } = this.props;
-        const localParticipantVisible = Boolean(_localParticipantId) && !_disableSelfView;
+        const localParticipantVisible = Boolean(_localParticipantId)
+            && !_disableSelfView
+            && !shouldDisplayFloatingLocalThumbnail();
 
         return getFilmstripDimensions({
             aspectRatio: _aspectRatio,
@@ -243,6 +246,7 @@ class Filmstrip extends PureComponent<IProps> {
             _participants,
             _visible
         } = this.props;
+        const floatingLocalThumbnail = shouldDisplayFloatingLocalThumbnail();
 
         if (!_visible) {
             return null;
@@ -259,7 +263,7 @@ class Filmstrip extends PureComponent<IProps> {
         );
         let participants;
 
-        if (this._separateLocalThumbnail || _disableSelfView) {
+        if (floatingLocalThumbnail || this._separateLocalThumbnail || _disableSelfView) {
             participants = _participants;
         } else if (isNarrowAspectRatio) {
             participants = [..._participants, _localParticipantId];
@@ -272,7 +276,8 @@ class Filmstrip extends PureComponent<IProps> {
                 edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
                 style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
                 {
-                    this._separateLocalThumbnail
+                    !floatingLocalThumbnail
+                    && this._separateLocalThumbnail
                     && !isNarrowAspectRatio
                     && !_disableSelfView
                     && <LocalThumbnail />
@@ -295,7 +300,8 @@ class Filmstrip extends PureComponent<IProps> {
                     viewabilityConfig={this._viewabilityConfig}
                     windowSize={2} />
                 {
-                    this._separateLocalThumbnail
+                    !floatingLocalThumbnail
+                    && this._separateLocalThumbnail
                     && isNarrowAspectRatio
                     && !_disableSelfView
                     && <LocalThumbnail />

@@ -280,7 +280,7 @@ public class JitsiMeetActivity extends AppCompatActivity
     }
 
     protected void onConferenceWillJoin(HashMap<String, Object> extraData) {
-        JitsiMeetLogger.i("Conference will join: " + extraData);
+        JitsiMeetLogger.i("Conference wihangupll join: " + extraData);
     }
 
     protected void onParticipantJoined(HashMap<String, Object> extraData) {

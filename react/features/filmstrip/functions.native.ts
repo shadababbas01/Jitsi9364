@@ -288,6 +288,15 @@ export function shouldDisplayLocalThumbnailSeparately() {
 }
 
 /**
+ * Returns true if the local thumbnail should be shown as a floating overlay.
+ *
+ * @returns {boolean}
+ */
+export function shouldDisplayFloatingLocalThumbnail() {
+    return true;
+}
+
+/**
  * Not implemented on mobile.
  *
  * @param {any} _state - Used on web.
@@ -296,5 +305,3 @@ export function shouldDisplayLocalThumbnailSeparately() {
 export function getScreenshareFilmstripParticipantId(_state: any) {
     return undefined;
 }
-
-

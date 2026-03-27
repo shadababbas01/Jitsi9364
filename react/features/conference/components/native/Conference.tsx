@@ -29,6 +29,7 @@ import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
 import Filmstrip from '../../../filmstrip/components/native/Filmstrip';
+import FloatingLocalThumbnail from '../../../filmstrip/components/native/FloatingLocalThumbnail';
 import TileView from '../../../filmstrip/components/native/TileView';
 import { FILMSTRIP_SIZE } from '../../../filmstrip/constants';
 import { isFilmstripVisible } from '../../../filmstrip/functions.native';
@@ -518,6 +519,7 @@ class Conference extends AbstractConference<IProps, State> {
 
                     <Captions onPress = { this._onClick } />
                     <SideToolbar />
+                    <FloatingLocalThumbnail />
                     { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
 
                     {
