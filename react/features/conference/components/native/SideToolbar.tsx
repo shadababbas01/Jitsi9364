@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, TextStyle, View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
@@ -31,45 +31,63 @@ const SideToolbar = (props: IProps) => {
         _toggleCameraButtonEnabled,
         _visible
     } = props;
+    const visibility = useRef(new Animated.Value(_visible ? 1 : 0)).current;
     const raisedHandsCount = useSelector((state: IReduxState) =>
         (state['features/base/participants'].raisedHandsQueue || []).length);
     const showRaisedHandsCount = raisedHandsCount > 0;
 
-    if (!_visible) {
-        return null;
-    }
+    useEffect(() => {
+        Animated.timing(visibility, {
+            toValue: _visible ? 1 : 0,
+            duration: 200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true
+        }).start();
+    }, [ _visible, visibility ]);
+
+    const animatedStyle = useMemo(() => ({
+        opacity: visibility,
+        transform: [
+            {
+                translateX: visibility.interpolate({
+                    inputRange: [ 0, 1 ],
+                    outputRange: [ 36, 0 ]
+                })
+            }
+        ]
+    }), [ visibility ]);
 
     return (
-        <View
-            pointerEvents='box-none'
-            style={styles.sideToolbar as ViewStyle}>
-            <View style={styles.sideToolbarStack as ViewStyle}>
+        <Animated.View
+            pointerEvents = { _visible ? 'box-none' : 'none' }
+            style = { [ styles.sideToolbar, animatedStyle ] as ViewStyle[] }>
+            <View style = { styles.sideToolbarStack as ViewStyle }>
                 {
                     _isParticipantsPaneEnabled
-                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
-                        <ParticipantsPaneButton styles={styles.sideToolbarButton} />
+                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                        <ParticipantsPaneButton styles = { styles.sideToolbarButton } />
                     </View>
                 }
                 {
                     _toggleCameraButtonEnabled
-                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
-                        <ToggleCameraButton styles={styles.sideToolbarButton} />
+                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                        <ToggleCameraButton styles = { styles.sideToolbarButton } />
                     </View>
                 }
                 {
                     _audioDeviceButtonEnabled
-                    && <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
-                        <ChatButton styles={styles.sideToolbarButton} />
+                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                        <ChatButton styles = { styles.sideToolbarButton } />
                     </View>
                 }
                 {raisedHandsCount > 0 && (
-                    <View style={styles.sideToolbarButtonWrapper as ViewStyle}>
-                        <View style={styles.sideToolbarButtonBadgeWrapper as ViewStyle}>
-                            <RaiseHandButton styles={styles.sideToolbarButton} />
+                    <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                        <View style = { styles.sideToolbarButtonBadgeWrapper as ViewStyle }>
+                            <RaiseHandButton styles = { styles.sideToolbarButton } />
 
                             {showRaisedHandsCount && (
-                                <View style={styles.sideToolbarBadge as ViewStyle}>
-                                    <Text style={styles.sideToolbarBadgeText as ViewStyle}>
+                                <View style = { styles.sideToolbarBadge as ViewStyle }>
+                                    <Text style = { styles.sideToolbarBadgeText as ViewStyle }>
                                         {raisedHandsCount}
                                     </Text>
                                 </View>
@@ -78,7 +96,7 @@ const SideToolbar = (props: IProps) => {
                     </View>
                 )}
             </View>
-        </View>
+        </Animated.View>
     );
 };
 

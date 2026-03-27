@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, Text, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
@@ -54,14 +54,33 @@ interface IProps {
  */
 const TitleBar = (props: IProps) => {
     const { _visible } = props;
+    const visibility = useRef(new Animated.Value(_visible ? 1 : 0)).current;
 
-    if (!_visible) {
-        return null;
-    }
+    useEffect(() => {
+        Animated.timing(visibility, {
+            toValue: _visible ? 1 : 0,
+            duration: 200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true
+        }).start();
+    }, [ _visible, visibility ]);
+
+    const animatedStyle = useMemo(() => ({
+        opacity: visibility,
+        transform: [
+            {
+                translateY: visibility.interpolate({
+                    inputRange: [ 0, 1 ],
+                    outputRange: [ -24, 0 ]
+                })
+            }
+        ]
+    }), [ visibility ]);
 
     return (
-        <View
-            style = { styles.titleBarWrapper as ViewStyle }>
+        <Animated.View
+            pointerEvents = { _visible ? 'box-none' : 'none' }
+            style = { [ styles.titleBarWrapper, animatedStyle ] as ViewStyle[] }>
             <View style = { styles.titleBarLeft as ViewStyle }>
                 <PictureInPictureButton styles = { styles.titleBarRoundButton } />
             </View>
@@ -87,7 +106,7 @@ const TitleBar = (props: IProps) => {
                 </View>
             </View>
             <View style = { styles.titleBarRightSpacer as ViewStyle } />
-        </View>
+        </Animated.View>
     );
 };
 

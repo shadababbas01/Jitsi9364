@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, View, ViewStyle } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 
@@ -60,10 +60,37 @@ function Toolbox(props: IProps) {
         _visible,
         dispatch
     } = props;
+    const visibility = useRef(new Animated.Value(_visible ? 1 : 0)).current;
+    const [ shouldRender, setShouldRender ] = useState(_visible);
 
-    if (!_visible) {
-        return null;
-    }
+    useEffect(() => {
+        if (_visible) {
+            setShouldRender(true);
+        }
+
+        Animated.timing(visibility, {
+            toValue: _visible ? 1 : 0,
+            duration: 200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true
+        }).start(() => {
+            if (!_visible) {
+                setShouldRender(false);
+            }
+        });
+    }, [ _visible, visibility ]);
+
+    const animatedStyle = useMemo(() => ({
+        opacity: visibility,
+        transform: [
+            {
+                translateY: visibility.interpolate({
+                    inputRange: [ 0, 1 ],
+                    outputRange: [ 48, 0 ]
+                })
+            }
+        ]
+    }), [ visibility ]);
 
     const { clientWidth } = useSelector((state: IReduxState) => state['features/base/responsive-ui']);
     const { customToolbarButtons } = useSelector((state: IReduxState) => state['features/base/config']);
@@ -170,9 +197,14 @@ function Toolbox(props: IProps) {
         );
     };
 
+    if (!shouldRender) {
+        return null;
+    }
+
     return (
-        <View
-            style = { styles.toolboxContainer as ViewStyle }>
+        <Animated.View
+            pointerEvents = { _visible ? 'box-none' : 'none' }
+            style = { [ styles.toolboxContainer, animatedStyle ] as ViewStyle[] }>
             <SafeAreaView
                 accessibilityRole = 'toolbar'
                 edges = { [ bottomEdge && 'bottom' ].filter(Boolean) as Edge[] }
@@ -182,7 +214,7 @@ function Toolbox(props: IProps) {
                     { renderToolboxButtons() }
                 </View>
             </SafeAreaView>
-        </View>
+        </Animated.View>
     );
 }
 
