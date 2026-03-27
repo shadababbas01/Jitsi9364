@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { FlatList, ViewStyle, ViewToken } from 'react-native';
+import { Animated, Easing, FlatList, ViewStyle, ViewToken } from 'react-native';
 import { SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
@@ -8,6 +8,7 @@ import { getLocalParticipant } from '../../../base/participants/functions';
 import Platform from '../../../base/react/Platform.native';
 import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
 import { getHideSelfView } from '../../../base/settings/functions.any';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 import { setVisibleRemoteParticipants } from '../../actions.native';
 import {
@@ -25,6 +26,9 @@ import styles from './styles';
 
 // Immutable reference to avoid re-renders.
 const NO_REMOTE_VIDEOS: any[] = [];
+const TOOLBOX_HEIGHT = 50 + (BaseTheme.spacing[2] * 2);
+const TOOLBOX_MARGIN = BaseTheme.spacing[3];
+const TOOLBOX_SHIFT = TOOLBOX_HEIGHT + TOOLBOX_MARGIN;
 
 /**
  * Filmstrip component's property types.
@@ -92,6 +96,11 @@ class Filmstrip extends PureComponent<IProps> {
     _viewabilityConfig: Object;
 
     /**
+     * Animated shift used when toolbox visibility changes.
+     */
+    _toolboxShift: Animated.Value;
+
+    /**
      * Constructor of the component.
      *
      * @inheritdoc
@@ -123,10 +132,40 @@ class Filmstrip extends PureComponent<IProps> {
             minimumViewTime: 500
         };
 
+        this._toolboxShift = new Animated.Value(0);
+
         this._keyExtractor = this._keyExtractor.bind(this);
         this._getItemLayout = this._getItemLayout.bind(this);
         this._onViewableItemsChanged = this._onViewableItemsChanged.bind(this);
         this._renderThumbnail = this._renderThumbnail.bind(this);
+    }
+
+    /**
+     * Implements {@code Component#componentDidUpdate}.
+     *
+     * @inheritdoc
+     */
+    override componentDidUpdate(prevProps: IProps) {
+        if (prevProps._toolboxVisible !== this.props._toolboxVisible) {
+            if (this.props._toolboxVisible) {
+                this._toolboxShift.setValue(TOOLBOX_SHIFT);
+                Animated.timing(this._toolboxShift, {
+                    toValue: 0,
+                    duration: 200,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: true
+                }).start();
+            } else {
+                Animated.timing(this._toolboxShift, {
+                    toValue: TOOLBOX_SHIFT,
+                    duration: 200,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: true
+                }).start(() => {
+                    this._toolboxShift.setValue(0);
+                });
+            }
+        }
     }
 
     /**
@@ -272,9 +311,11 @@ class Filmstrip extends PureComponent<IProps> {
         }
 
         return (
-            <SafeAreaView
-                edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
-                style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
+            <Animated.View
+                style = { { transform: [ { translateY: this._toolboxShift } ] } }>
+                <SafeAreaView
+                    edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
+                    style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
                 {
                     !floatingLocalThumbnail
                     && this._separateLocalThumbnail
@@ -306,7 +347,8 @@ class Filmstrip extends PureComponent<IProps> {
                     && !_disableSelfView
                     && <LocalThumbnail />
                 }
-            </SafeAreaView>
+                </SafeAreaView>
+            </Animated.View>
         );
     }
 }
