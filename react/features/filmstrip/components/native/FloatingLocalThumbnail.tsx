@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, PanResponder, useWindowDimensions, ViewStyle } from 'react-native';
+import { Animated, PanResponder, useWindowDimensions, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -8,6 +8,7 @@ import { getLocalParticipant, getPinnedParticipant } from '../../../base/partici
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
 import { FILMSTRIP_SIZE } from '../../constants';
 
@@ -21,6 +22,9 @@ const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
 const FLOATING_RADIUS = 12;
 const TAP_SLOP = 4;
+const CAMERA_BUTTON_SIZE = 32;
+const CAMERA_BUTTON_PADDING = 4;
+const CAMERA_BUTTON_MARGIN = 8;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
@@ -52,6 +56,19 @@ export default function FloatingLocalThumbnail() {
 
     const position = useRef(new Animated.ValueXY({ x: maxX, y: defaultY })).current;
     const lastPosition = useRef({ x: maxX, y: defaultY });
+    const panEnabled = useRef(true);
+
+    const isTouchOnCameraButton = (evt: any) => {
+        const { locationX, locationY } = evt.nativeEvent || {};
+        const hitSize = CAMERA_BUTTON_SIZE + (CAMERA_BUTTON_PADDING * 2);
+        const minHitX = FLOATING_WIDTH - CAMERA_BUTTON_MARGIN - hitSize;
+        const maxHitY = CAMERA_BUTTON_MARGIN + hitSize;
+
+        return typeof locationX === 'number'
+            && typeof locationY === 'number'
+            && locationX >= minHitX
+            && locationY <= maxHitY;
+    };
 
     useEffect(() => {
         const nextX = clamp(lastPosition.current.x, minX, maxX);
@@ -71,9 +88,15 @@ export default function FloatingLocalThumbnail() {
     }, [ toolboxVisible, minX, minY, maxX, maxY, position ]);
 
     const panResponder = useMemo(() => PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponder: evt => {
+            const allowPan = !isTouchOnCameraButton(evt);
+
+            panEnabled.current = allowPan;
+
+            return allowPan;
+        },
         onMoveShouldSetPanResponder: (_evt, gesture) =>
-            Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
+            panEnabled.current && (Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2),
         onPanResponderGrant: () => {
             position.setOffset(lastPosition.current);
             position.setValue({ x: 0, y: 0 });
@@ -118,6 +141,19 @@ export default function FloatingLocalThumbnail() {
                 top: position.y
             } as ViewStyle }
             { ...panResponder.panHandlers }>
+            <View
+                pointerEvents = 'box-none'
+                style = { {
+                    position: 'absolute',
+                    right: CAMERA_BUTTON_MARGIN,
+                    top: CAMERA_BUTTON_MARGIN,
+                    zIndex: 2,
+                    padding: CAMERA_BUTTON_PADDING,
+                    borderRadius: CAMERA_BUTTON_SIZE,
+                    backgroundColor: 'rgba(0, 0, 0, 0.25)'
+                } }>
+                
+            </View>
             <Thumbnail
                 disableDominantSpeakerIndicator = { true }
                 height = { FLOATING_HEIGHT }

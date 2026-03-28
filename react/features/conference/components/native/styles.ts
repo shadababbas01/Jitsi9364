@@ -159,7 +159,7 @@ export default {
         },
         style: {
             alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backgroundColor: '#4949498f', 
             borderRadius: ROUND_BUTTON_SIZE / 2,
             height: ROUND_BUTTON_SIZE,
             justifyContent: 'center',
@@ -263,7 +263,7 @@ export default {
     },
 
     sideToolbarButtonWrapper: {
-        marginBottom: BaseTheme.spacing[2]
+        marginBottom: BaseTheme.spacing[3],
     },
 
     sideToolbarButtonBadgeWrapper: {
@@ -277,7 +277,7 @@ export default {
         },
         style: {
             alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backgroundColor: '#4949498f',
             borderRadius: ROUND_BUTTON_SIZE / 2,
             height: ROUND_BUTTON_SIZE,
             justifyContent: 'center',
@@ -288,7 +288,7 @@ export default {
 
     sideToolbarBadge: {
         alignItems: 'center',
-        backgroundColor: '#FF3B30',
+        backgroundColor: BaseTheme.palette.ui03,
         borderColor: 'rgba(0, 0, 0, 0.7)',
         borderRadius: 9,
         borderWidth: 1,
@@ -302,10 +302,20 @@ export default {
     },
 
     sideToolbarBadgeText: {
-        color: BaseTheme.palette.uiBackground,
-        fontSize: 11,
-        fontWeight: '600' as const
-    },
+            backgroundColor: BaseTheme.palette.ui03,
+            borderRadius: BaseTheme.spacing[2],
+            borderColor: 'white',
+            overflow: 'hidden',
+            height: 18,
+            minWidth: 18,
+            color: BaseTheme.palette.text01,
+            ...BaseTheme.typography.labelBold,
+            position: 'absolute',
+            right: -3,
+            top: -3,
+            textAlign: 'center',
+            paddingHorizontal: 2
+        },
 
     insecureRoomNameLabel: {
         backgroundColor: INSECURE_ROOM_NAME_LABEL_COLOR,
