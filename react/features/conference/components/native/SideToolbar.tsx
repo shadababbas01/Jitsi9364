@@ -83,7 +83,7 @@ const SideToolbar = (props: IProps) => {
                 {raisedHandsCount > 0 && (
                     <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
                         <View style = { styles.sideToolbarButtonBadgeWrapper as ViewStyle }>
-                            <RaiseHandButton styles = { styles.sideToolbarButton } />
+                            <RaiseHandButton styles = { styles.sideToolbarButtonRaiseHand } />
 
                             {showRaisedHandsCount && (
                                 <View style = { styles.sideToolbarBadge as ViewStyle }>

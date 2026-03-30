@@ -135,7 +135,7 @@ export default {
 
     titleBarLeft: {
         alignItems: 'flex-start',
-        width: ROUND_BUTTON_SIZE
+        width: 66
     },
 
     titleBarCenter: {
@@ -277,11 +277,27 @@ export default {
         },
         style: {
             alignItems: 'center',
-            backgroundColor: '#4949498f',
-            borderRadius: ROUND_BUTTON_SIZE / 2,
-            height: ROUND_BUTTON_SIZE,
+            backgroundColor: '#494949ff',
+            borderRadius: 60 / 2,
+            height: 60,
             justifyContent: 'center',
-            width: ROUND_BUTTON_SIZE
+            width: 60
+        },
+        underlayColor: 'transparent'
+    },
+    
+    sideToolbarButtonRaiseHand: {
+        iconStyle: {
+            color: BaseTheme.palette.icon01,
+            fontSize: TITLE_BAR_BUTTON_SIZE
+        },
+        style: {
+            alignItems: 'center',
+            backgroundColor: '#494949ff',
+            borderRadius: 60 / 2,
+            height: 60,
+            justifyContent: 'center',
+            width: 60
         },
         underlayColor: 'transparent'
     },
@@ -316,6 +332,21 @@ export default {
             textAlign: 'center',
             paddingHorizontal: 2
         },
+sideToolbarBadgeTextRaiseHand: {
+    backgroundColor: BaseTheme.palette.ui03,
+    borderRadius: BaseTheme.spacing[2],
+    borderColor: 'white',
+    overflow: 'hidden',
+    height: 18,
+    minWidth: 18,
+    color: BaseTheme.palette.text01,
+    ...BaseTheme.typography.labelBold,
+    position: 'absolute',
+    right: 4,   // inside
+    top: 4,     // inside
+    textAlign: 'center',
+    paddingHorizontal: 2
+},
 
     insecureRoomNameLabel: {
         backgroundColor: INSECURE_ROOM_NAME_LABEL_COLOR,

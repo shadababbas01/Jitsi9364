@@ -85,6 +85,59 @@ import './subscriber';
  * message after we have received a private message in the last 20 seconds.
  */
 const PRIVACY_NOTICE_TIMEOUT = 20 * 1000;
+let nativeNewMessageSubscription: any;
+
+function _registerNativeNewMessageListener(store: IStore) {
+    if (nativeNewMessageSubscription || navigator.product !== 'ReactNative') {
+        return;
+    }
+
+    let DeviceEventEmitter: any;
+
+    try {
+        ({ DeviceEventEmitter } = require('react-native'));
+    } catch (error) {
+        return;
+    }
+
+    if (!DeviceEventEmitter?.addListener) {
+        return;
+    }
+
+    nativeNewMessageSubscription = DeviceEventEmitter.addListener('newMessage', (data: any = {}) => {
+        const message = typeof data.message === 'string' ? data.message : '';
+
+        if (!message) {
+            return;
+        }
+
+        const displayName = typeof data.displayName === 'string'
+            ? data.displayName
+            : i18next.t('chat.systemDisplayName');
+        const participantId = typeof data.participantId === 'string' ? data.participantId : 'native';
+        const timestamp = Number.isFinite(Number(data.timestamp)) ? Number(data.timestamp) : Date.now();
+
+        store.dispatch(addMessage({
+            displayName,
+            hasRead: false,
+            participantId,
+            messageType: MESSAGE_TYPE_REMOTE,
+            message,
+            privateMessage: Boolean(data.privateMessage),
+            lobbyChat: false,
+            recipient: displayName,
+            timestamp
+        }));
+    });
+}
+
+function _unregisterNativeNewMessageListener() {
+    if (nativeNewMessageSubscription?.remove) {
+        nativeNewMessageSubscription.remove();
+    }
+
+    nativeNewMessageSubscription = undefined;
+}
 
 /**
  * Implements the middleware of the chat feature.
@@ -115,10 +168,12 @@ MiddlewareRegistry.register(store => next => action => {
     case APP_WILL_MOUNT:
         dispatch(
                 registerSound(INCOMING_MSG_SOUND_ID, INCOMING_MSG_SOUND_FILE));
+        _registerNativeNewMessageListener(store);
         break;
 
     case APP_WILL_UNMOUNT:
         dispatch(unregisterSound(INCOMING_MSG_SOUND_ID));
+        _unregisterNativeNewMessageListener();
         break;
 
     case CONFERENCE_JOINED:
