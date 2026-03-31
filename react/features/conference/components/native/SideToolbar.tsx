@@ -86,7 +86,9 @@ const SideToolbar = (props: IProps) => {
                             <RaiseHandButton styles = { styles.sideToolbarButtonRaiseHand } />
 
                             {showRaisedHandsCount && (
-                                <View style = { styles.sideToolbarBadge as ViewStyle }>
+                                <View
+                                    pointerEvents = 'none'
+                                    style = { styles.sideToolbarBadge as ViewStyle }>
                                     <Text style = { styles.sideToolbarBadgeText as ViewStyle }>
                                         {raisedHandsCount}
                                     </Text>

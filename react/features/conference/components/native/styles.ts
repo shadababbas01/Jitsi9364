@@ -267,7 +267,15 @@ export default {
     },
 
     sideToolbarButtonBadgeWrapper: {
-        position: 'relative'
+        alignItems: 'center',
+        backgroundColor: '#16253a',
+        borderColor: '#4c8dff',
+        borderRadius: 24,
+        borderWidth: 2,
+        height: 48,
+        justifyContent: 'center',
+        position: 'relative',
+        width: 60
     },
 
     sideToolbarButton: {
@@ -288,50 +296,39 @@ export default {
     
     sideToolbarButtonRaiseHand: {
         iconStyle: {
-            color: BaseTheme.palette.icon01,
-            fontSize: TITLE_BAR_BUTTON_SIZE
+            color: '#8bc1ff',
+            fontSize: 22
         },
         style: {
-            alignItems: 'center',
-            backgroundColor: '#494949ff',
-            borderRadius: 60 / 2,
-            height: 60,
+            alignItems: 'flex-start',
+            backgroundColor: 'transparent',
+            borderRadius: 24,
+            bottom: 0,
             justifyContent: 'center',
-            width: 60
+            left: 0,
+            paddingLeft: 7,
+            position: 'absolute',
+            right: 0,
+            top: 0
         },
         underlayColor: 'transparent'
     },
 
     sideToolbarBadge: {
         alignItems: 'center',
-        backgroundColor: BaseTheme.palette.ui03,
-        borderColor: 'rgba(0, 0, 0, 0.7)',
-        borderRadius: 9,
-        borderWidth: 1,
-        height: 18,
+        bottom: 0,
         justifyContent: 'center',
-        minWidth: 18,
-        paddingHorizontal: 4,
+        minWidth: 16,
         position: 'absolute',
-        right: -4,
-        top: -4
+        right: 7,
+        top: 0
     },
 
     sideToolbarBadgeText: {
-            backgroundColor: BaseTheme.palette.ui03,
-            borderRadius: BaseTheme.spacing[2],
-            borderColor: 'white',
-            overflow: 'hidden',
-            height: 18,
-            minWidth: 18,
-            color: BaseTheme.palette.text01,
-            ...BaseTheme.typography.labelBold,
-            position: 'absolute',
-            right: -3,
-            top: -3,
-            textAlign: 'center',
-            paddingHorizontal: 2
-        },
+        color: '#ffffff',
+        ...BaseTheme.typography.bodyShortBold,
+        textAlign: 'center'
+    },
 sideToolbarBadgeTextRaiseHand: {
     backgroundColor: BaseTheme.palette.ui03,
     borderRadius: BaseTheme.spacing[2],
