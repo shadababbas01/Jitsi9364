@@ -63,6 +63,11 @@ interface IProps {
     _thumbnailHeight?: number;
 
     /**
+     * Safe area top inset.
+     */
+    _safeAreaTop: number;
+
+    /**
      * Application's viewport height.
      */
     _width: number;
@@ -227,14 +232,18 @@ class TileView extends PureComponent<IProps> {
     }
 
     _renderGrid(participants: Array<string>) {
-        const { _height, _width } = this.props;
+        const { _height, _width, _safeAreaTop } = this.props;
         const { columns, rows, tileHeight, tileWidth, tileMargin } = this._getGridDimensions(participants.length);
 
         return (
             <View
                 style = { [
                     styles.tileGridContainer,
-                    { height: _height, width: _width }
+                    {
+                        height: _height,
+                        paddingTop: 12,
+                        width: _width
+                    }
                 ] }>
                 { Array.from({ length: rows }).map((_, rowIndex) => {
                     const start = rowIndex * columns;
@@ -270,8 +279,8 @@ class TileView extends PureComponent<IProps> {
     }
 
     _getGridDimensions(count: number) {
-        const { _height, _width } = this.props;
-        const availableHeight = _height;
+        const { _height, _width, _safeAreaTop } = this.props;
+        const availableHeight = _height - _safeAreaTop;
         const availableWidth = _width;
         const tileMargin = 2;
 
@@ -361,6 +370,7 @@ class TileView extends PureComponent<IProps> {
  */
 function _mapStateToProps(state: IReduxState, ownProps: any) {
     const responsiveUi = state['features/base/responsive-ui'];
+    const { safeAreaInsets } = responsiveUi;
     const { remoteParticipants, tileViewDimensions } = state['features/filmstrip'];
     const disableSelfView = getHideSelfView(state);
     const { height } = tileViewDimensions?.thumbnailSize ?? {};
@@ -374,6 +384,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _localParticipant: getLocalParticipant(state),
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,
+        _safeAreaTop: safeAreaInsets?.top ?? 0,
         _thumbnailHeight: height,
         _width: responsiveUi.clientWidth
     };
