@@ -43,6 +43,7 @@ import ModeratorIndicator from './ModeratorIndicator';
 import PinnedIndicator from './PinnedIndicator';
 import RaisedHandIndicator from './RaisedHandIndicator';
 import ScreenShareIndicator from './ScreenShareIndicator';
+import ThumbnailAudioIndicator from './ThumbnailAudioIndicator';
 import styles, { AVATAR_SIZE } from './styles';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 
@@ -57,6 +58,11 @@ interface IProps {
      * Whether local audio (microphone) is muted or not.
      */
     _audioMuted: boolean;
+
+    /**
+     * The audio track that will be displayed in the thumbnail.
+     */
+    _audioTrack?: ITrack;
 
     /**
      * The type of participant if the participant is fake.
@@ -232,6 +238,7 @@ class Thumbnail extends PureComponent<IProps> {
     _renderIndicators() {
         const {
             _audioMuted: audioMuted,
+            _audioTrack: audioTrack,
             _fakeParticipant,
             _isScreenShare: isScreenShare,
             _isVirtualScreenshare,
@@ -421,6 +428,7 @@ class Thumbnail extends PureComponent<IProps> {
                             disableVideo = { !tileView && (isScreenShare || _fakeParticipant) }
                             participantId = { participantId }
                             zOrder = { 1 } />
+                        <ThumbnailAudioIndicator _audioTrack = { this.props._audioTrack } />
                         {
                             this._renderIndicators()
                         }

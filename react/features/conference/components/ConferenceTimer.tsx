@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { getConferenceTimestamp } from '../../base/conference/functions';
+import { IReduxState } from '../../app/types';
 import { getLocalizedDurationFormatter } from '../../base/i18n/dateUtil';
 
 import { ConferenceTimerDisplay } from './index';
@@ -31,7 +31,8 @@ export interface IDisplayProps {
 }
 
 const ConferenceTimer = ({ textStyle }: IProps) => {
-    const startTimestamp = useSelector(getConferenceTimestamp);
+    const connectedTimestamp = useSelector(
+        (state: IReduxState) => state['features/base/conference'].connectedTimestamp);
     const [ timerValue, setTimerValue ] = useState(getLocalizedDurationFormatter(0));
     const interval = useRef<number>();
 
@@ -65,14 +66,14 @@ const ConferenceTimer = ({ textStyle }: IProps) => {
      * @returns {void}
      */
     const startTimer = useCallback(() => {
-        if (!interval.current && startTimestamp) {
-            setStateFromUTC(startTimestamp, new Date().getTime());
+        if (!interval.current && connectedTimestamp) {
+            setStateFromUTC(connectedTimestamp, new Date().getTime());
 
             interval.current = window.setInterval(() => {
-                setStateFromUTC(startTimestamp, new Date().getTime());
+                setStateFromUTC(connectedTimestamp, new Date().getTime());
             }, 1000);
         }
-    }, [ startTimestamp, interval ]);
+    }, [ connectedTimestamp, interval ]);
 
     /**
      * Stop conference timer.
@@ -92,10 +93,10 @@ const ConferenceTimer = ({ textStyle }: IProps) => {
         startTimer();
 
         return () => stopTimer();
-    }, [ startTimestamp ]);
+    }, [ connectedTimestamp ]);
 
 
-    if (!startTimestamp) {
+    if (!connectedTimestamp) {
         return null;
     }
 

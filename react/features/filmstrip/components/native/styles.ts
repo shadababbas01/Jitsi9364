@@ -127,7 +127,7 @@ export default {
         alignItems: 'stretch',
         backgroundColor: BaseTheme.palette.ui02,
         borderColor: BaseTheme.palette.ui03,
-        borderRadius: BaseTheme.shape.borderRadius,
+        borderRadius: 16,
         borderStyle: 'solid',
         borderWidth: 1,
         flex: 1,
@@ -193,7 +193,7 @@ export default {
 
     thumbnailDominantSpeaker: {
         borderWidth: 2,
-        borderColor: '#ee4136' //added by jaswant
+        borderColor: '#ffffffff' //added by jaswant
     },
 
     thumbnailGif: {
@@ -210,5 +210,27 @@ export default {
             height: -1,
             width: 0
         }
+    },
+
+    voiceIndicatorContainer: {
+        bottom: 18,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    voiceIndicatorRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center'
+    },
+
+    voiceLine: {
+        backgroundColor: '#d7d7d7',
+        borderRadius: 3,
+        marginHorizontal: 3,
+        width: 6
     }
 };

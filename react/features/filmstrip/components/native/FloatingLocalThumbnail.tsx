@@ -135,7 +135,7 @@ export default function FloatingLocalThumbnail() {
                 zIndex: 10,
                 width: FLOATING_WIDTH,
                 height: FLOATING_HEIGHT,
-                borderRadius: FLOATING_RADIUS,
+                borderRadius: 16,
                 overflow: 'hidden',
                 left: position.x,
                 top: position.y
