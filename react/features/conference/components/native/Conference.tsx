@@ -535,11 +535,15 @@ class Conference extends AbstractConference<IProps, State> {
 
                     {
                         _shouldDisplayTileView
-                        || <>
-                            <Filmstrip />
-                            { this._renderNotificationsContainer() }
-                            <Toolbox />
-                        </>
+                            ? <>
+                                { this._renderNotificationsContainer() }
+                                <Toolbox />
+                            </>
+                            : <>
+                                <Filmstrip />
+                                { this._renderNotificationsContainer() }
+                                <Toolbox />
+                            </>
                     }
                 </View>
 
@@ -575,13 +579,6 @@ class Conference extends AbstractConference<IProps, State> {
 
                 <TestConnectionInfo />
 
-                {
-                    _shouldDisplayTileView
-                    && <>
-                        { this._renderNotificationsContainer() }
-                        <Toolbox />
-                    </>
-                }
             </>
         );
     }

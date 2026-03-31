@@ -2,12 +2,10 @@ import React, { PureComponent } from 'react';
 import {
     FlatList,
     GestureResponderEvent,
-    SafeAreaView,
     TouchableWithoutFeedback,
     View,
     ViewToken
 } from 'react-native';
-import { EdgeInsets, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
@@ -73,11 +71,6 @@ interface IProps {
      * Invoked to update the receiver video quality.
      */
     dispatch: IStore['dispatch'];
-
-    /**
-     * Object containing the safe area insets.
-     */
-    insets: EdgeInsets;
 
     /**
      * Callback to invoke when tile view is tapped.
@@ -165,7 +158,7 @@ class TileView extends PureComponent<IProps> {
         if (participants.length > 6) {
             return (
                 <TouchableWithoutFeedback onPress = { onClick }>
-                    <SafeAreaView style = { styles.flatListContainer }>
+                    <View style = { styles.flatListContainer }>
                         <FlatList
                             data = { pages }
                             horizontal = { true }
@@ -176,16 +169,16 @@ class TileView extends PureComponent<IProps> {
                             showsVerticalScrollIndicator = { false }
                             viewabilityConfig = { this._viewabilityConfig }
                             onViewableItemsChanged = { this._onPageViewableItemsChanged } />
-                    </SafeAreaView>
+                    </View>
                 </TouchableWithoutFeedback>
             );
         }
 
         return (
             <TouchableWithoutFeedback onPress = { onClick }>
-                <SafeAreaView style = { styles.flatListContainer }>
+                <View style = { styles.flatListContainer }>
                     { this._renderGrid(participants) }
-                </SafeAreaView>
+                </View>
             </TouchableWithoutFeedback>
         );
     }
@@ -277,8 +270,8 @@ class TileView extends PureComponent<IProps> {
     }
 
     _getGridDimensions(count: number) {
-        const { _height, _width, insets } = this.props;
-        const availableHeight = _height - (insets?.bottom || 0);
+        const { _height, _width } = this.props;
+        const availableHeight = _height;
         const availableWidth = _width;
         const tileMargin = 2;
 
@@ -377,14 +370,13 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _aspectRatio: responsiveUi.aspectRatio,
         _columns: columns ?? 1,
         _disableSelfView: disableSelfView,
-        _height: responsiveUi.clientHeight - (ownProps.insets?.top || 0),
-        _insets: ownProps.insets,
+        _height: responsiveUi.clientHeight,
         _localParticipant: getLocalParticipant(state),
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,
         _thumbnailHeight: height,
-        _width: responsiveUi.clientWidth - (ownProps.insets?.right || 0) - (ownProps.insets?.left || 0)
+        _width: responsiveUi.clientWidth
     };
 }
 
-export default withSafeAreaInsets(connect(_mapStateToProps)(TileView));
+export default connect(_mapStateToProps)(TileView);
