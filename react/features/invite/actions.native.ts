@@ -1,5 +1,6 @@
 import { IStore } from '../app/types';
 import { addPeopleFeatureControl } from '../base/participants/functions';
+import { enterPictureInPicture } from '../mobile/picture-in-picture/actions';
 import { navigate } from '../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../mobile/navigation/routes';
 import { beginShareRoom } from '../share-room/actions';
@@ -15,6 +16,8 @@ export * from './actions.any';
 export function doInvitePeople() {
     return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const state = getState();
+
+        dispatch(enterPictureInPicture());
 
         if (addPeopleFeatureControl(state)) {
             return navigate(screen.conference.invite);

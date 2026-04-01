@@ -3,8 +3,9 @@ import { Animated, PanResponder, useWindowDimensions, View, ViewStyle } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { IReduxState } from '../../../app/types';
 import { pinParticipant } from '../../../base/participants/actions';
-import { getLocalParticipant, getPinnedParticipant } from '../../../base/participants/functions';
+import { getLocalParticipant, getRemoteParticipantsSorted } from '../../../base/participants/functions';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
@@ -21,6 +22,7 @@ const FLOATING_WIDTH = 140;
 const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
 const FLOATING_RADIUS = 12;
+const FLOATING_PADDING = 2;
 const TAP_SLOP = 4;
 const CAMERA_BUTTON_SIZE = 32;
 const CAMERA_BUTTON_PADDING = 4;
@@ -30,7 +32,9 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 
 export default function FloatingLocalThumbnail() {
     const localParticipant = useSelector(getLocalParticipant);
-    const pinnedParticipant = useSelector(getPinnedParticipant);
+    const largeVideoParticipantId = useSelector(
+        (state: IReduxState) => state['features/large-video']?.participantId);
+    const remoteParticipants = useSelector(getRemoteParticipantsSorted);
     const disableSelfView = useSelector(getHideSelfView);
     const isTileView = useSelector(shouldDisplayTileView);
     const toolboxVisible = useSelector(isToolboxVisible);
@@ -57,6 +61,17 @@ export default function FloatingLocalThumbnail() {
     const position = useRef(new Animated.ValueXY({ x: maxX, y: defaultY })).current;
     const lastPosition = useRef({ x: maxX, y: defaultY });
     const panEnabled = useRef(true);
+    const lastNonLocalLargeVideoId = useRef<string | undefined>();
+
+    useEffect(() => {
+        if (!localParticipant) {
+            return;
+        }
+
+        if (largeVideoParticipantId && largeVideoParticipantId !== localParticipant.id) {
+            lastNonLocalLargeVideoId.current = largeVideoParticipantId;
+        }
+    }, [ largeVideoParticipantId, localParticipant ]);
 
     const isTouchOnCameraButton = (evt: any) => {
         const { locationX, locationY } = evt.nativeEvent || {};
@@ -114,16 +129,41 @@ export default function FloatingLocalThumbnail() {
             position.setValue(lastPosition.current);
 
             if (Math.abs(gesture.dx) < TAP_SLOP && Math.abs(gesture.dy) < TAP_SLOP && localParticipant) {
-                const isPinned = pinnedParticipant?.id === localParticipant.id;
+                const isLocalOnStage = largeVideoParticipantId === localParticipant.id;
 
-                dispatch(pinParticipant(isPinned ? null : localParticipant.id));
+                if (isLocalOnStage) {
+                    const targetId = lastNonLocalLargeVideoId.current || remoteParticipants?.[0];
+
+                    dispatch(pinParticipant(targetId ?? null));
+                } else {
+                    if (largeVideoParticipantId) {
+                        lastNonLocalLargeVideoId.current = largeVideoParticipantId;
+                    }
+
+                    dispatch(pinParticipant(localParticipant.id));
+                }
             }
         }
-    }), [ minX, minY, maxX, maxY, position, localParticipant, pinnedParticipant, dispatch ]);
+    }), [
+        minX,
+        minY,
+        maxX,
+        maxY,
+        position,
+        localParticipant,
+        largeVideoParticipantId,
+        remoteParticipants,
+        dispatch
+    ]);
 
     if (!localParticipant || disableSelfView || isTileView) {
         return null;
     }
+
+    const isLocalOnStage = largeVideoParticipantId === localParticipant.id;
+    const floatingParticipantId = isLocalOnStage
+        ? (lastNonLocalLargeVideoId.current || remoteParticipants?.[0] || localParticipant.id)
+        : localParticipant.id;
 
     return (
         <Animated.View
@@ -141,23 +181,11 @@ export default function FloatingLocalThumbnail() {
                 top: position.y
             } as ViewStyle }
             { ...panResponder.panHandlers }>
-            <View
-                pointerEvents = 'box-none'
-                style = { {
-                    position: 'absolute',
-                    right: CAMERA_BUTTON_MARGIN,
-                    top: CAMERA_BUTTON_MARGIN,
-                    zIndex: 2,
-                    padding: CAMERA_BUTTON_PADDING,
-                    borderRadius: CAMERA_BUTTON_SIZE,
-                    backgroundColor: 'rgba(0, 0, 0, 0.25)'
-                } }>
-                
-            </View>
-            <Thumbnail
+            
+           <Thumbnail
                 disableDominantSpeakerIndicator = { true }
                 height = { FLOATING_HEIGHT }
-                participantID = { localParticipant.id }
+                participantID = { floatingParticipantId }
                 renderDisplayName = { false }
                 tileView = { true }
                 width = { FLOATING_WIDTH } />

@@ -423,11 +423,13 @@ class Thumbnail extends PureComponent<IProps> {
                     source = {{ uri: _gifSrc }}
                     style = { styles.thumbnailGif as ImageStyle } />
                     : <>
-                        <ParticipantView
-                            avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
-                            disableVideo = { !tileView && (isScreenShare || _fakeParticipant) }
-                            participantId = { participantId }
-                            zOrder = { 1 } />
+                        <View style = { styles.thumbnailVideoClip as ViewStyle }>
+                            <ParticipantView
+                                avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
+                                disableVideo = { !tileView && (isScreenShare || _fakeParticipant) }
+                                participantId = { participantId }
+                                zOrder = { 1 } />
+                        </View>
                         <ThumbnailAudioIndicator _audioTrack = { this.props._audioTrack } />
                         {
                             this._renderIndicators()

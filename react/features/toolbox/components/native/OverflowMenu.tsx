@@ -366,7 +366,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <D />
                     {/* <RecordButton { ...rowProps } /> */}
                     {/* {!_isAudioOnly && <><D /><LiveStreamButton { ...rowProps } /></>} */}
-                    <WhiteboardButton { ...rowProps } />
+                    {/* <WhiteboardButton { ...rowProps } /> */}
                     {(Boolean(OpenMelpChat?.showAttendees) || Boolean(NativeCallsNew?.showAttendees) || Boolean(NativeCallsNew?.showAttendeeeees))
                         && <><D /><TranslatedOverflowAttendeesButton { ...topRowProps } /></>}
                     {/* {!_isAudioOnly && _isSharedVideoEnabled && <><D /><SharedVideoButton { ...rowProps } /></>} */}

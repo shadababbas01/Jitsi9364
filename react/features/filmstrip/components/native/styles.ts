@@ -200,6 +200,12 @@ export default {
         flexGrow: 1,
         resizeMode: 'contain'
     },
+    thumbnailVideoClip: {
+        flex: 1,
+        borderRadius: BaseTheme.shape.borderRadius,
+        overflow: 'hidden',
+        backgroundColor: BaseTheme.palette.ui02
+    },
     indicator: {
         backgroundColor: 'red',
         //padding: 2,

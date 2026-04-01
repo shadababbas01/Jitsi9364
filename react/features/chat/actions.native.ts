@@ -1,5 +1,6 @@
 import { IStore } from '../app/types';
 import { IParticipant } from '../base/participants/types';
+import { enterPictureInPicture } from '../mobile/picture-in-picture/actions';
 import { navigate } from '../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../mobile/navigation/routes';
 
@@ -30,5 +31,7 @@ export function openChat(participant?: IParticipant | undefined | Object, disabl
             participant,
             type: OPEN_CHAT
         });
+
+        dispatch(enterPictureInPicture());
     };
 }

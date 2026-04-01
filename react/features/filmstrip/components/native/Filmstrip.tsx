@@ -4,7 +4,7 @@ import { SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
-import { getLocalParticipant } from '../../../base/participants/functions';
+import { getLocalParticipant, getParticipantCountWithFake } from '../../../base/participants/functions';
 import Platform from '../../../base/react/Platform.native';
 import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
 import { getHideSelfView } from '../../../base/settings/functions.any';
@@ -365,6 +365,8 @@ function _mapStateToProps(state: IReduxState) {
     const disableSelfView = getHideSelfView(state);
     const showRemoteVideos = shouldRemoteVideosBeVisible(state);
     const responsiveUI = state['features/base/responsive-ui'];
+    const participantCount = getParticipantCountWithFake(state);
+    const showFilmstrip = participantCount > 2;
 
     return {
         _aspectRatio: responsiveUI.aspectRatio,
@@ -374,7 +376,7 @@ function _mapStateToProps(state: IReduxState) {
         _localParticipantId: getLocalParticipant(state)?.id ?? '',
         _participants: showRemoteVideos ? remoteParticipants : NO_REMOTE_VIDEOS,
         _toolboxVisible: isToolboxVisible(state),
-        _visible: enabled && isFilmstripVisible(state)
+        _visible: enabled && isFilmstripVisible(state) && showFilmstrip
     };
 }
 

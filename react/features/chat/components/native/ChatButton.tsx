@@ -9,6 +9,7 @@ import { translate } from '../../../base/i18n/functions';
 import { IconMessage } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { arePollsDisabled } from '../../../conference/functions.any';
+import { enterPictureInPicture } from '../../../mobile/picture-in-picture/actions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import { getUnreadPollCount } from '../../../polls/functions';
@@ -69,12 +70,15 @@ class ChatButton extends AbstractButton<IProps> {
     override _handleClick() {
         if (NativeModules?.NativeCallsNew?.OpenChat) {
             NativeModules.NativeCallsNew.OpenChat();
+            this.props.dispatch(enterPictureInPicture());
             return;
         }
 
         this.props._isPollsDisabled
             ? navigate(screen.conference.chat)
             : navigate(screen.conference.chatTabs.main);
+
+        this.props.dispatch(enterPictureInPicture());
     }
 
     /**
