@@ -185,8 +185,10 @@ export default function FloatingLocalThumbnail() {
            <Thumbnail
                 disableDominantSpeakerIndicator = { true }
                 height = { FLOATING_HEIGHT }
+                hideAudioIndicatorWhenVideoOn = { true }
                 participantID = { floatingParticipantId }
                 renderDisplayName = { false }
+                showAudioIndicator = { true }
                 tileView = { true }
                 width = { FLOATING_WIDTH } />
         </Animated.View>

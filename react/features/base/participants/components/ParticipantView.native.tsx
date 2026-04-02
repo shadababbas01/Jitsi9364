@@ -210,6 +210,9 @@ class ParticipantView extends Component<IProps> {
                     transform: [ { translateY: this.props.avatarSize / 2 + 6 }, { scale: 0.4 } ]
                 }
                 : styles.audioIndicatorStyleSmall);
+        const isLargeVideo = this.props.testHintId === 'org.jitsi.meet.LargeVideo';
+        const shouldShowAudioIndicator = (this.props.showAudioIndicator ?? true)
+            && !(isLargeVideo && renderVideo);
 
         return (
             <Container
@@ -243,9 +246,11 @@ class ParticipantView extends Component<IProps> {
                             size = { this.props.avatarSize } />
                             
                     </View> }
-                     <ThumbnailAudioIndicator
-                        _audioTrack = { this.props._audioTrack }
-                        containerStyle = { audioIndicatorContainerStyle } />
+                     { shouldShowAudioIndicator && (
+                        <ThumbnailAudioIndicator
+                            _audioTrack = { this.props._audioTrack }
+                            containerStyle = { audioIndicatorContainerStyle } />
+                    ) }
                         
                 
 

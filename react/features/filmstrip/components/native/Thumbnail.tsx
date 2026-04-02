@@ -17,6 +17,7 @@ import {
     isEveryoneModerator,
     isScreenShareParticipant
 } from '../../../base/participants/functions';
+import { shouldRenderVideoTrack } from '../../../base/media/functions';
 import { FakeParticipant } from '../../../base/participants/types';
 import Container from '../../../base/react/components/native/Container';
 import { StyleType } from '../../../base/styles/functions.any';
@@ -153,6 +154,16 @@ interface IProps {
      * Whether to display or hide the display name of the participant in the thumbnail.
      */
     renderDisplayName?: boolean;
+
+    /**
+     * Whether to show the audio indicator in the thumbnail.
+     */
+    showAudioIndicator?: boolean;
+
+    /**
+     * If true, hide the audio indicator when video is rendering.
+     */
+    hideAudioIndicatorWhenVideoOn?: boolean;
 
     /**
      * If true, it tells the thumbnail that it needs to behave differently. E.g. React differently to a single tap.
@@ -391,7 +402,10 @@ class Thumbnail extends PureComponent<IProps> {
             _participantId: participantId,
             _raisedHand,
             _renderDominantSpeakerIndicator,
+            _videoTrack,
             height,
+            hideAudioIndicatorWhenVideoOn,
+            showAudioIndicator,
             tileView,
             width
         } = this.props;
@@ -408,6 +422,10 @@ class Thumbnail extends PureComponent<IProps> {
         const indicatorStyle: ViewStyle = {
             bottom: tileView ? 10 : 6
         };
+        const disableVideo = !tileView && (isScreenShare || _fakeParticipant);
+        const isVideoOn = Boolean(_videoTrack) && !disableVideo && shouldRenderVideoTrack(_videoTrack, false);
+        const shouldShowAudioIndicator = (showAudioIndicator ?? true)
+            && !(hideAudioIndicatorWhenVideoOn && isVideoOn);
 
         return (
             <Container
@@ -429,8 +447,9 @@ class Thumbnail extends PureComponent<IProps> {
                         <View style = { styles.thumbnailVideoClip as ViewStyle }>
                             <ParticipantView
                                 avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
-                                disableVideo = { !tileView && (isScreenShare || _fakeParticipant) }
+                                disableVideo = { disableVideo }
                                 participantId = { participantId }
+                                showAudioIndicator = { shouldShowAudioIndicator }
                                 zOrder = { 1 } />
                                 
                         </View>

@@ -222,6 +222,7 @@ class TileView extends PureComponent<IProps> {
                 height = { height }
                 participantID = { item }
                 renderDisplayName = { true }
+                showAudioIndicator = { true }
                 tileView = { true }
                 width = { width } />)
         ;

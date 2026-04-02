@@ -266,7 +266,8 @@ class Filmstrip extends PureComponent<IProps> {
         return (
             <Thumbnail
                 key={item}
-                participantID={item} />)
+                participantID={item}
+                showAudioIndicator={false} />)
             ;
     }
 

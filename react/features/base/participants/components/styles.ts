@@ -49,7 +49,7 @@ export default {
      */
     audioIndicatorStyleSmall: {
         bottom: 12,
-        transform: [ { scale: 0.4 } ]
+        transform: [ { scaleX: 0.6 }, { scaleY: 0.4 } ]
     },
 
     /**
