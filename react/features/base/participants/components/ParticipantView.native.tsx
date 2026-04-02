@@ -14,15 +14,17 @@ import Avatar from '../../avatar/components/Avatar';
 import { translate } from '../../i18n/functions';
 import VideoTrack from '../../media/components/native/VideoTrack';
 import { shouldRenderVideoTrack } from '../../media/functions';
+import { MEDIA_TYPE } from '../../media/constants';
 import Container from '../../react/components/native/Container';
 import { toState } from '../../redux/functions';
 import { StyleType } from '../../styles/functions.any';
 import TestHint from '../../testing/components/TestHint';
-import { getVideoTrackByParticipant } from '../../tracks/functions';
+import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../tracks/functions';
 import { ITrack } from '../../tracks/types';
 import { getParticipantById, getParticipantDisplayName, isSharedVideoParticipant } from '../functions';
 
 import styles from './styles';
+import ThumbnailAudioIndicator from '../../../filmstrip/components/native/ThumbnailAudioIndicator';
 
 /**
  * The type of the React {@link Component} props of {@link ParticipantView}.
@@ -64,6 +66,11 @@ interface IProps {
     _videoTrack?: ITrack;
 
     /**
+     * The audio Track of the participant with {@link #participantId}.
+     */
+    _audioTrack?: ITrack;
+
+    /**
      * The avatar size.
      */
     avatarSize: number;
@@ -90,6 +97,16 @@ interface IProps {
      * default style.
      */
     style: StyleType;
+
+    /**
+     * Whether to show the audio wave indicator.
+     */
+    showAudioIndicator?: boolean;
+
+    /**
+     * Optional style overrides for the audio indicator container.
+     */
+    audioIndicatorStyle?: ViewStyle;
 
     /**
      * The function to translate human-readable text.
@@ -185,6 +202,14 @@ class ParticipantView extends Component<IProps> {
                 : `org.jitsi.meet.Participant#${this.props.participantId}`;
 
         const renderSharedVideo = _isSharedVideoParticipant && !disableVideo && _sharedVideoEnabled;
+        const isAvatarOnly = !renderSharedVideo && !renderVideo;
+        const audioIndicatorContainerStyle = this.props.audioIndicatorStyle
+            ?? (isAvatarOnly
+                ? {
+                    ...styles.audioIndicatorStyleBelowAvatar,
+                    transform: [ { translateY: this.props.avatarSize / 2 + 6 }, { scale: 0.4 } ]
+                }
+                : styles.audioIndicatorStyleSmall);
 
         return (
             <Container
@@ -212,10 +237,17 @@ class ParticipantView extends Component<IProps> {
 
                 { !renderSharedVideo && !renderVideo
                     && <View style = { styles.avatarContainer as ViewStyle }>
+                        
                         <Avatar
                             participantId = { this.props.participantId }
                             size = { this.props.avatarSize } />
+                            
                     </View> }
+                     <ThumbnailAudioIndicator
+                        _audioTrack = { this.props._audioTrack }
+                        containerStyle = { audioIndicatorContainerStyle } />
+                        
+                
 
                 { _isConnectionInactive && this.props.useConnectivityInfoLabel
                     && this._renderInactiveConnectionInfo() }
@@ -238,8 +270,14 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const { disableVideo, participantId } = ownProps;
     const participant = getParticipantById(state, participantId);
     const videoTrack = getVideoTrackByParticipant(state, participant);
+    const audioTrack = getTrackByMediaTypeAndParticipant(
+        state['features/base/tracks'],
+        MEDIA_TYPE.AUDIO,
+        participant?.id
+    );
 
     return {
+        _audioTrack: audioTrack,
         _isConnectionInactive: isTrackStreamingStatusInactive(videoTrack),
         _isSharedVideoParticipant: isSharedVideoParticipant(participant),
         _participantName: getParticipantDisplayName(state, participantId),

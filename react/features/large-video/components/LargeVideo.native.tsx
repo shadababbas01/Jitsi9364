@@ -11,7 +11,6 @@ import { trackStreamingStatusChanged } from '../../base/tracks/actions.native';
 import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../base/tracks/functions';
 import { isLocalVideoTrackDesktop } from '../../base/tracks/functions.native';
 import { ITrack } from '../../base/tracks/types';
-import ThumbnailAudioIndicator from '../../filmstrip/components/native/ThumbnailAudioIndicator';
 
 import { AVATAR_SIZE } from './styles';
 
@@ -240,8 +239,8 @@ class LargeVideo extends PureComponent<IProps, IState> {
             left: 0,
             position: 'absolute',
             right: 0,
-            top: '50%',
-            transform: [ { translateY: avatarSize / 2 + 18 } ]
+            top: '25%',
+            transform: [ { translateY: avatarSize /2 - 30} ]
         };
 
         return (
@@ -249,15 +248,14 @@ class LargeVideo extends PureComponent<IProps, IState> {
                 <ParticipantView
                     avatarSize = { avatarSize }
                     disableVideo = { _disableVideo }
+                    audioIndicatorStyle = { indicatorStyle }
                     onPress = { onClick }
                     participantId = { _participantId }
+                    showAudioIndicator = { true }
                     testHintId = 'org.jitsi.meet.LargeVideo'
                     useConnectivityInfoLabel = { useConnectivityInfoLabel }
                     zOrder = { 0 }
                     zoomEnabled = { true } />
-                <ThumbnailAudioIndicator
-                    _audioTrack = { this.props._audioTrack }
-                    containerStyle = { indicatorStyle } />
             </View>
         );
     }

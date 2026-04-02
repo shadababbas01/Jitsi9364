@@ -405,6 +405,9 @@ class Thumbnail extends PureComponent<IProps> {
             maxWidth: null,
             width: width
         } : null;
+        const indicatorStyle: ViewStyle = {
+            bottom: tileView ? 10 : 6
+        };
 
         return (
             <Container
@@ -429,8 +432,9 @@ class Thumbnail extends PureComponent<IProps> {
                                 disableVideo = { !tileView && (isScreenShare || _fakeParticipant) }
                                 participantId = { participantId }
                                 zOrder = { 1 } />
+                                
                         </View>
-                        <ThumbnailAudioIndicator _audioTrack = { this.props._audioTrack } />
+                        
                         {
                             this._renderIndicators()
                         }

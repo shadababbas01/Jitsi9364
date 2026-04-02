@@ -42,5 +42,23 @@ export default {
         alignItems: 'stretch',
         flex: 1,
         justifyContent: 'center'
+    },
+
+    /**
+     * Smaller audio indicator container style for thumbnails.
+     */
+    audioIndicatorStyleSmall: {
+        bottom: 12,
+        transform: [ { scale: 0.4 } ]
+    },
+
+    /**
+     * Places the audio indicator just below the avatar.
+     */
+    audioIndicatorStyleBelowAvatar: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: '25%'
     }
 };
