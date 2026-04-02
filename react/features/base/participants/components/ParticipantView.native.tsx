@@ -170,10 +170,10 @@ class ParticipantView extends Component<IProps> {
 
         return (
             <View
-                pointerEvents = 'box-none'
-                style = { containerStyle as ViewStyle }>
-                <Text style = { styles.connectionInfoText as TextStyle }>
-                    { t('connection.LOW_BANDWIDTH', { displayName }) }
+                pointerEvents='box-none'
+                style={containerStyle as ViewStyle}>
+                <Text style={styles.connectionInfoText as TextStyle}>
+                    {t('connection.LOW_BANDWIDTH', { displayName })}
                 </Text>
             </View>
         );
@@ -207,7 +207,7 @@ class ParticipantView extends Component<IProps> {
             ?? (isAvatarOnly
                 ? {
                     ...styles.audioIndicatorStyleBelowAvatar,
-                    transform: [ { translateY: this.props.avatarSize / 2 + 6 }, { scale: 0.4 } ]
+                    transform: [{ translateY: this.props.avatarSize / 2 + 6 }, { scale: 0.4 }]
                 }
                 : styles.audioIndicatorStyleSmall);
         const isLargeVideo = this.props.testHintId === 'org.jitsi.meet.LargeVideo';
@@ -216,46 +216,50 @@ class ParticipantView extends Component<IProps> {
 
         return (
             <Container
-                onClick = { renderVideo || renderSharedVideo ? undefined : onPress }
-                style = {{
+                onClick={renderVideo || renderSharedVideo ? undefined : onPress}
+                style={{
                     ...styles.participantView,
                     ...this.props.style
                 }}
-                touchFeedback = { false }>
+                touchFeedback={false}>
 
                 <TestHint
-                    id = { testHintId }
-                    onPress = { renderSharedVideo ? undefined : onPress }
-                    value = '' />
+                    id={testHintId}
+                    onPress={renderSharedVideo ? undefined : onPress}
+                    value='' />
 
-                { renderSharedVideo && <SharedVideo /> }
+                {renderSharedVideo && <SharedVideo />}
 
-                { renderVideo
+                {renderVideo
                     && <VideoTrack
-                        onPress = { onPress }
-                        videoTrack = { videoTrack }
-                        waitForVideoStarted = { false }
-                        zOrder = { this.props.zOrder }
-                        zoomEnabled = { this.props.zoomEnabled } /> }
+                        onPress={onPress}
+                        videoTrack={videoTrack}
+                        waitForVideoStarted={false}
+                        zOrder={this.props.zOrder}
+                        zoomEnabled={this.props.zoomEnabled} />}
 
-                { !renderSharedVideo && !renderVideo
-                    && <View style = { styles.avatarContainer as ViewStyle }>
-                        
+                {!renderSharedVideo && !renderVideo
+                    && <View style={styles.avatarContainer as ViewStyle}>
+
                         <Avatar
-                            participantId = { this.props.participantId }
-                            size = { this.props.avatarSize } />
-                            
-                    </View> }
-                     { shouldShowAudioIndicator && (
-                        <ThumbnailAudioIndicator
-                            _audioTrack = { this.props._audioTrack }
-                            containerStyle = { audioIndicatorContainerStyle } />
-                    ) }
-                        
-                
+                            participantId={this.props.participantId}
+                            size={this.props.avatarSize} />
+                        {shouldShowAudioIndicator && (
+                            <ThumbnailAudioIndicator
+                                _audioTrack={this.props._audioTrack}
+                                containerStyle={{
+                                    ...audioIndicatorContainerStyle,
+                                    marginTop: this.props.avatarSize * 0.6   // 10% of avatar size   // adjust value as needed
+                                }}
+                            />
+                        )}
+                    </View>}
 
-                { _isConnectionInactive && this.props.useConnectivityInfoLabel
-                    && this._renderInactiveConnectionInfo() }
+
+
+
+                {_isConnectionInactive && this.props.useConnectivityInfoLabel
+                    && this._renderInactiveConnectionInfo()}
             </Container>
         );
     }
