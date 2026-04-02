@@ -162,6 +162,14 @@ function Toolbox(props: IProps) {
             borderRadius: 24 
         }
     };
+    const whiteCircleStylesMutedMic = {
+        ...buttonStylesBorderless,
+        style: {
+            ...buttonStylesBorderless.style,
+            backgroundColor: '#ffff',
+            borderRadius: 24
+        }
+    };
     const audiorouteUsesWhiteBg = Boolean(_selectedAudioRouteType);
 
     const renderToolboxButtons = () => {
@@ -179,7 +187,13 @@ function Toolbox(props: IProps) {
                             handleClick = { () => dispatch(customButtonPressed(key, text)) }
                             isToolboxButton = { true }
                             key = { key }
-                            toggledStyles = { key === 'raisehand' ? raiseHandToggledButtonStyles : undefined }
+                            toggledStyles = {
+                                key === 'raisehand'
+                                    ? raiseHandToggledButtonStyles
+                                    : key === 'microphone'
+                                        ? whiteCircleStylesMutedMic
+                                        : undefined
+                            }
                             styles = {
                                 key === 'hangup'
                                     ? hangupButtonStyles

@@ -57,6 +57,7 @@ import { default as IconRecordLead } from './lead-record.svg';
 import { default as IconMessage } from './message.svg';
 import { default as IconMessageDot } from './messagedot.svg';
 import { default as IconMeter } from './meter.svg';
+import { default as IconMicSlashRed } from './mic-slash-red.svg';
 import { default as IconMicSlash } from './mic-slash.svg';
 import { default as IconMic } from './mic.svg';
 import { default as IconModerator } from './moderator.svg';
@@ -171,6 +172,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconMessageDot,
     IconMeter,
     IconMic,
+    IconMicSlashRed,
     IconMicSlash,
     IconModerator,
     IconNoiseSuppressionOff,
