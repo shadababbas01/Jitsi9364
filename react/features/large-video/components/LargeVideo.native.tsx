@@ -1,15 +1,25 @@
 import React, { PureComponent } from 'react';
+import { View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../app/types';
 import { JitsiTrackEvents } from '../../base/lib-jitsi-meet';
+import { MEDIA_TYPE } from '../../base/media/constants';
 import ParticipantView from '../../base/participants/components/ParticipantView.native';
 import { getParticipantById, isLocalScreenshareParticipant } from '../../base/participants/functions';
 import { trackStreamingStatusChanged } from '../../base/tracks/actions.native';
-import { getVideoTrackByParticipant, isLocalVideoTrackDesktop } from '../../base/tracks/functions.native';
+import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../base/tracks/functions';
+import { isLocalVideoTrackDesktop } from '../../base/tracks/functions.native';
 import { ITrack } from '../../base/tracks/types';
+import ThumbnailAudioIndicator from '../../filmstrip/components/native/ThumbnailAudioIndicator';
 
 import { AVATAR_SIZE } from './styles';
+
+const containerStyles = {
+    largeVideoContainer: {
+        flex: 1
+    }
+};
 
 /**
  * The type of the React {@link Component} props of {@link LargeVideo}.
@@ -32,6 +42,11 @@ interface IProps {
      * @private
      */
     _participantId: string;
+
+    /**
+     * The audio track of the participant on large video.
+     */
+    _audioTrack?: ITrack;
 
     /**
      * The video track that will be displayed in the thumbnail.
@@ -220,16 +235,30 @@ class LargeVideo extends PureComponent<IProps, IState> {
             onClick
         } = this.props;
 
+        const indicatorStyle: ViewStyle = {
+            alignItems: 'center',
+            left: 0,
+            position: 'absolute',
+            right: 0,
+            top: '50%',
+            transform: [ { translateY: avatarSize / 2 + 18 } ]
+        };
+
         return (
-            <ParticipantView
-                avatarSize = { avatarSize }
-                disableVideo = { _disableVideo }
-                onPress = { onClick }
-                participantId = { _participantId }
-                testHintId = 'org.jitsi.meet.LargeVideo'
-                useConnectivityInfoLabel = { useConnectivityInfoLabel }
-                zOrder = { 0 }
-                zoomEnabled = { true } />
+            <View style = { containerStyles.largeVideoContainer as ViewStyle }>
+                <ParticipantView
+                    avatarSize = { avatarSize }
+                    disableVideo = { _disableVideo }
+                    onPress = { onClick }
+                    participantId = { _participantId }
+                    testHintId = 'org.jitsi.meet.LargeVideo'
+                    useConnectivityInfoLabel = { useConnectivityInfoLabel }
+                    zOrder = { 0 }
+                    zoomEnabled = { true } />
+                <ThumbnailAudioIndicator
+                    _audioTrack = { this.props._audioTrack }
+                    containerStyle = { indicatorStyle } />
+            </View>
         );
     }
 }
@@ -244,8 +273,10 @@ class LargeVideo extends PureComponent<IProps, IState> {
 function _mapStateToProps(state: IReduxState) {
     const { participantId } = state['features/large-video'];
     const participant = getParticipantById(state, participantId ?? '');
+    const tracks = state['features/base/tracks'];
     const { clientHeight: height, clientWidth: width } = state['features/base/responsive-ui'];
     const videoTrack = getVideoTrackByParticipant(state, participant);
+    const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participant?.id);
     let disableVideo = false;
 
     if (isLocalScreenshareParticipant(participant)) {
@@ -255,6 +286,7 @@ function _mapStateToProps(state: IReduxState) {
     }
 
     return {
+        _audioTrack: audioTrack,
         _disableVideo: disableVideo,
         _height: height,
         _participantId: participantId ?? '',

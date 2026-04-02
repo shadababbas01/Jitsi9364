@@ -234,7 +234,7 @@ export default {
     },
 
     voiceLine: {
-        backgroundColor: '#d7d7d7',
+        backgroundColor: '#ffffff',
         borderRadius: 3,
         marginHorizontal: 3,
         width: 6
