@@ -1,12 +1,12 @@
 import React from 'react';
-import { NativeModules, View, ViewStyle } from 'react-native';
+import { DeviceEventEmitter, NativeModules, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { CHAT_ENABLED } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
-import { IconMessage } from '../../../base/icons/svg';
+import { IconMessage, IconMessageDot } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { arePollsDisabled } from '../../../conference/functions.any';
 import { enterPictureInPicture } from '../../../mobile/picture-in-picture/actions';
@@ -33,17 +33,60 @@ interface IProps extends AbstractButtonProps {
     _isChatOpen: boolean;
 }
 
+interface IState {
+    _hasNativeNewMessage: boolean;
+}
+
 /**
  * Implements an {@link AbstractButton} to open the chat screen on mobile.
  */
-class ChatButton extends AbstractButton<IProps> {
+class ChatButton extends AbstractButton<IProps, IState> {
     override accessibilityLabel = 'toolbar.accessibilityLabel.chat';
     override icon = IconMessage;
     override label = 'toolbar.chat';
-    override toggledIcon = IconMessage;
+    override toggledIcon = IconMessageDot;
+
+    state: IState = {
+        _hasNativeNewMessage: false
+    };
+
+    _nativeNewMessageSubscription?: { remove?: () => void };
+
+    override componentDidMount() {
+        this._nativeNewMessageSubscription = DeviceEventEmitter.addListener('newMessage', (data: any = {}) => {
+            if (typeof data?.newMessage === 'boolean') {
+                this._setNativeNewMessage(data.newMessage);
+                return;
+            }
+
+            const hasMessage = typeof data?.message === 'string' && data.message.length > 0;
+
+            if (hasMessage) {
+                this._setNativeNewMessage(true);
+            }
+        });
+    }
+
+    override componentDidUpdate(prevProps: IProps) {
+        if (!prevProps._isChatOpen && this.props._isChatOpen) {
+            this._setNativeNewMessage(false);
+        }
+    }
+
+    override componentWillUnmount() {
+        this._nativeNewMessageSubscription?.remove?.();
+        this._nativeNewMessageSubscription = undefined;
+    }
+
+    _setNativeNewMessage(hasNewMessage: boolean) {
+        if (this.state._hasNativeNewMessage !== hasNewMessage) {
+            this.setState({ _hasNativeNewMessage: hasNewMessage });
+        }
+    }
 
     override render() {
-        const showUnreadDot = Boolean(this.props._unreadMessageCount)
+        const hasUnread = Boolean(this.props._unreadMessageCount) || this.state._hasNativeNewMessage;
+        const showUnreadDot = hasUnread
             && !this.props._isChatOpen
             && !this.props.showLabel;
 
@@ -68,17 +111,18 @@ class ChatButton extends AbstractButton<IProps> {
      * @returns {void}
      */
     override _handleClick() {
-        if (NativeModules?.NativeCallsNew?.OpenChat) {
+        this._setNativeNewMessage(false);
+        // if (NativeModules?.NativeCallsNew?.OpenChat) {
             NativeModules.NativeCallsNew.OpenChat();
-            this.props.dispatch(enterPictureInPicture());
-            return;
-        }
+            // this.props.dispatch(enterPictureInPicture());
+            // return;
+        // }
 
-        this.props._isPollsDisabled
-            ? navigate(screen.conference.chat)
-            : navigate(screen.conference.chatTabs.main);
+        // this.props._isPollsDisabled
+            // ? navigate(screen.conference.chat)
+            // : navigate(screen.conference.chatTabs.main);
 
-        this.props.dispatch(enterPictureInPicture());
+        // this.props.dispatch(enterPictureInPicture());
     }
 
     /**
@@ -88,7 +132,7 @@ class ChatButton extends AbstractButton<IProps> {
      * @returns {boolean}
      */
     override _isToggled() {
-        return Boolean(this.props._unreadMessageCount);
+        return Boolean(this.props._unreadMessageCount) || this.state._hasNativeNewMessage;
     }
 }
 
@@ -118,14 +162,14 @@ const unreadDotStyles = {
         position: 'relative' as const
     },
     dot: {
-        backgroundColor: '#FF3B30',
-        borderColor: '#0B0B0C',
-        borderRadius: 4,
-        borderWidth: 1,
-        height: 8,
-        position: 'absolute' as const,
-        right: 6,
-        top: 6,
-        width: 8
+        // backgroundColor: '#FF3B30',
+        // borderColor: '#0B0B0C',
+        // borderRadius: 4,
+        // borderWidth: 1,
+        // height: 8,
+        // position: 'absolute' as const,
+        // right: 6,
+        // top: 6,
+        // width: 8
     }
 };
