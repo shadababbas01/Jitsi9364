@@ -28,7 +28,15 @@ import {
     VISITOR_ASKED_TO_JOIN_NOTIFICATION_ID
 } from '../../notifications/constants';
 import { open as openParticipantsPane } from '../../participants-pane/actions';
-import { CALLING, INVITED } from '../../presence-status/constants';
+import {
+    CALLING,
+    CONNECTED_USER,
+    CONNECTING,
+    CONNECTING2,
+    INITIALIZING_CALL,
+    INVITED,
+    RINGING
+} from '../../presence-status/constants';
 import { RAISE_HAND_SOUND_ID } from '../../reactions/constants';
 import { RECORDING_OFF_SOUND_ID, RECORDING_ON_SOUND_ID } from '../../recording/constants';
 import { iAmVisitor } from '../../visitors/functions';
@@ -309,7 +317,11 @@ MiddlewareRegistry.register(store => next => action => {
             && !isWhiteboardParticipant(action.participant)
         ) && _maybePlaySounds(store, action);
 
-        return _participantJoinedOrUpdated(store, next, action);
+        const result = _participantJoinedOrUpdated(store, next, action);
+
+        _maybeSetConnectedPresence(store);
+
+        return result;
     }
 
     case PARTICIPANT_LEFT: {
@@ -318,7 +330,11 @@ MiddlewareRegistry.register(store => next => action => {
             && !isWhiteboardParticipant(action.participant)
         ) && _maybePlaySounds(store, action);
 
-        break;
+        const result = next(action);
+
+        _maybeSetConnectedPresence(store);
+
+        return result;
     }
 
     case PARTICIPANT_MUTED_US: {
@@ -762,6 +778,42 @@ function _participantJoinedOrUpdated(store: IStore, next: Function, action: AnyA
     }
 
     return result;
+}
+
+/**
+ * Sets the local participant presence to connected when there are 2 or more participants.
+ *
+ * @param {Store} store - The redux store.
+ * @returns {void}
+ */
+function _maybeSetConnectedPresence(store: IStore) {
+    const state = store.getState();
+
+    if (getParticipantCount(state) < 2) {
+        return;
+    }
+
+    const pendingStatuses = new Set([
+        CALLING,
+        CONNECTING,
+        CONNECTING2,
+        INITIALIZING_CALL,
+        INVITED,
+        RINGING
+    ]);
+
+    for (const [ id, participant ] of getRemoteParticipants(state)) {
+        if (participant.presence === CONNECTED_USER) {
+            continue;
+        }
+
+        if (!participant.presence || pendingStatuses.has(participant.presence)) {
+            store.dispatch(participantUpdated({
+                id,
+                presence: CONNECTED_USER
+            }));
+        }
+    }
 }
 
 /**

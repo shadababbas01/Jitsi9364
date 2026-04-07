@@ -31,6 +31,25 @@ import './middleware.any';
 let screenLock: WakeLockSentinel | undefined;
 
 /**
+ * Checks if the conference destroyed reason indicates a session termination by moderator.
+ *
+ * @param {string} reason - The destroy reason string.
+ * @param {string} titlekey - The mapped title key, if any.
+ * @returns {boolean}
+ */
+function _isSessionTerminatedReason(reason: string | undefined, titlekey: string | undefined) {
+    if (titlekey === 'dialog.sessTerminatedReason') {
+        return true;
+    }
+
+    if (!reason) {
+        return false;
+    }
+
+    return reason.toLowerCase().includes('terminated');
+}
+
+/**
  * Releases the screen lock.
  *
  * @returns {Promise}
@@ -135,6 +154,12 @@ MiddlewareRegistry.register(store => next => action => {
             const titlekey = Object.keys(TRIGGER_READY_TO_CLOSE_REASONS)[
                 Object.values(TRIGGER_READY_TO_CLOSE_REASONS).indexOf(reason)
             ];
+
+            if (_isSessionTerminatedReason(reason, titlekey)) {
+                // Close silently when the moderator ends the meeting for everyone.
+                dispatch(hangup(false, undefined, false));
+                break;
+            }
 
             dispatch(hangup(true, i18next.t(titlekey) || reason, notifyOnConferenceDestruction));
         }
