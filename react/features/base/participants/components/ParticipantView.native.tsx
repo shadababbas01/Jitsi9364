@@ -19,7 +19,11 @@ import Container from '../../react/components/native/Container';
 import { toState } from '../../redux/functions';
 import { StyleType } from '../../styles/functions.any';
 import TestHint from '../../testing/components/TestHint';
-import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../tracks/functions';
+import {
+    getTrackByMediaTypeAndParticipant,
+    getVideoTrackByParticipant,
+    isParticipantAudioMuted
+} from '../../tracks/functions';
 import { ITrack } from '../../tracks/types';
 import { getParticipantById, getParticipantDisplayName, isSharedVideoParticipant } from '../functions';
 
@@ -42,6 +46,21 @@ interface IProps {
      * Whether the participant is a shared video participant.
      */
     _isSharedVideoParticipant: boolean;
+
+    /**
+     * Whether the participant's audio is muted.
+     */
+    _isAudioMuted: boolean;
+
+    /**
+     * Whether the participant is on hold.
+     */
+    _isOnHold: boolean;
+
+    /**
+     * Whether the participant is local.
+     */
+    _isLocal: boolean;
 
     /**
      * The name of the participant which this component represents.
@@ -102,6 +121,11 @@ interface IProps {
      * Whether to show the audio wave indicator.
      */
     showAudioIndicator?: boolean;
+
+    /**
+     * Whether to show status labels (muted/on-hold) for this view.
+     */
+    showStatusLabel?: boolean;
 
     /**
      * Optional style overrides for the audio indicator container.
@@ -188,6 +212,9 @@ class ParticipantView extends Component<IProps> {
     override render() {
         const {
             _isConnectionInactive,
+            _isAudioMuted,
+            _isOnHold,
+            _isLocal,
             _isSharedVideoParticipant,
             _renderVideo: renderVideo,
             _sharedVideoEnabled,
@@ -211,8 +238,44 @@ class ParticipantView extends Component<IProps> {
                 }
                 : styles.audioIndicatorStyleSmall);
         const isLargeVideo = this.props.testHintId === 'org.jitsi.meet.LargeVideo';
+        const isTileStatus = Boolean(this.props.showStatusLabel) && !isLargeVideo;
         const shouldShowAudioIndicator = (this.props.showAudioIndicator ?? true)
             && !(isLargeVideo && renderVideo);
+        const shouldShowStatusLabels = (isLargeVideo || this.props.showStatusLabel)
+            && !_isSharedVideoParticipant
+            && !_isLocal
+            && (_isAudioMuted || _isOnHold);
+        const statusLabels: Array<string> = [];
+
+        if (_isAudioMuted) {
+            statusLabels.push(this.props.t('videothumbnail.participantMuted', {
+                participantName: this.props._participantName
+            }));
+        }
+
+        if (_isOnHold) {
+            statusLabels.push(this.props.t('videothumbnail.onHold'));
+        }
+
+        const statusLabelsView = shouldShowStatusLabels
+            ? (
+                <View
+                    pointerEvents='none'
+                    style={(isAvatarOnly
+                        ? (isTileStatus ? styles.statusLabelsAboveAvatarSmall : styles.statusLabelsAboveAvatar)
+                        : (isTileStatus ? styles.statusLabelsOnThumbnail : styles.statusLabelsOnLargeVideo)) as ViewStyle}>
+                    {statusLabels.map(label => (
+                        <View
+                            key={label}
+                            style={(isTileStatus ? styles.statusLabelPillSmall : styles.statusLabelPill) as ViewStyle}>
+                            <Text
+                                style={(isTileStatus ? styles.statusLabelTextSmall : styles.statusLabelText) as TextStyle}>
+                                {label}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            ) : null;
 
         return (
             <Container
@@ -238,8 +301,12 @@ class ParticipantView extends Component<IProps> {
                         zOrder={this.props.zOrder}
                         zoomEnabled={this.props.zoomEnabled} />}
 
+                {!isAvatarOnly && statusLabelsView}
+
                 {!renderSharedVideo && !renderVideo
                     && <View style={styles.avatarContainer as ViewStyle}>
+
+                        {statusLabelsView}
 
                         <Avatar
                             participantId={this.props.participantId}
@@ -287,7 +354,10 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
 
     return {
         _audioTrack: audioTrack,
+        _isAudioMuted: isParticipantAudioMuted(participant, state),
         _isConnectionInactive: isTrackStreamingStatusInactive(videoTrack),
+        _isLocal: Boolean(participant?.local),
+        _isOnHold: Boolean(participant?.isSilent),
         _isSharedVideoParticipant: isSharedVideoParticipant(participant),
         _participantName: getParticipantDisplayName(state, participantId),
         _renderVideo: shouldRenderParticipantVideo(state, participantId) && !disableVideo,

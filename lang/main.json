@@ -1479,6 +1479,8 @@
         "moderator": "Moderator",
         "mute": "Participant is muted",
         "muted": "Muted",
+        "participantMuted": "{{participantName}} is on mute",
+        "onHold": "On hold",
         "pinToStage": "Pin to stage",
         "remoteControl": "Start / Stop remote control",
         "screenSharing": "Participant is sharing their screen",
