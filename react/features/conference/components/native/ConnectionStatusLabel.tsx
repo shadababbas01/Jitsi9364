@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TextStyle, View, ViewStyle } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import { setConnectionStatus } from '../../../base/conference/actions.any';
+import { getParticipantCount } from '../../../base/participants/functions';
 
 import styles from './styles';
 
@@ -27,9 +29,36 @@ function normalizeStatus(rawStatus?: string) {
 }
 
 export default function ConnectionStatusLabel() {
+    const dispatch = useDispatch();
     const { connectionStatus, connectedTimestamp } = useSelector((state: IReduxState) => state['features/base/conference']);
+    const participantCount = useSelector((state: IReduxState) => getParticipantCount(state));
     const normalizedStatus = normalizeStatus(connectionStatus);
+    const [ forcedConnectedTimestamp, setForcedConnectedTimestamp ] = useState<number | undefined>(undefined);
     const [ now, setNow ] = useState(Date.now());
+
+    const shouldForceConnected = normalizedStatus === 'connecting' && participantCount >= 2;
+    const effectiveStatus = shouldForceConnected ? 'connected' : normalizedStatus;
+    const effectiveConnectedTimestamp = effectiveStatus === 'connected'
+        ? (connectedTimestamp ?? forcedConnectedTimestamp)
+        : undefined;
+
+    useEffect(() => {
+        if (shouldForceConnected) {
+            dispatch(setConnectionStatus('connected'));
+        }
+    }, [ dispatch, shouldForceConnected ]);
+
+    useEffect(() => {
+        if (shouldForceConnected) {
+            setForcedConnectedTimestamp(prev => prev ?? Date.now());
+
+            return;
+        }
+
+        if (forcedConnectedTimestamp) {
+            setForcedConnectedTimestamp(undefined);
+        }
+    }, [ shouldForceConnected, forcedConnectedTimestamp ]);
 
     useEffect(() => {
         if (!connectionStatus && !connectedTimestamp) {
@@ -39,16 +68,18 @@ export default function ConnectionStatusLabel() {
         console.log('[connectionStatus] redux:', {
             connectionStatus,
             normalizedStatus,
-            connectedTimestamp
+            connectedTimestamp,
+            participantCount,
+            shouldForceConnected
         });
-    }, [ connectionStatus, normalizedStatus, connectedTimestamp ]);
+    }, [ connectionStatus, normalizedStatus, connectedTimestamp, participantCount, shouldForceConnected ]);
 
     useEffect(() => {
-        if (normalizedStatus !== 'connected' || !connectedTimestamp) {
+        if (effectiveStatus !== 'connected' || !effectiveConnectedTimestamp) {
             return;
         }
 
-        const elapsed = Math.max(0, now - connectedTimestamp);
+        const elapsed = Math.max(0, now - effectiveConnectedTimestamp);
         let delay: number | null = null;
 
         if (elapsed < CONNECTED_LABEL_MS) {
@@ -66,20 +97,20 @@ export default function ConnectionStatusLabel() {
         }, delay);
 
         return () => clearTimeout(timeoutId);
-    }, [ normalizedStatus, connectedTimestamp, now ]);
+    }, [ effectiveStatus, effectiveConnectedTimestamp, now ]);
 
-    if (!normalizedStatus || normalizedStatus === 'clear') {
+    if (!effectiveStatus || effectiveStatus === 'clear') {
         return null;
     }
 
-    if (!STATUS_TEXT_VALUES.has(normalizedStatus)) {
+    if (!STATUS_TEXT_VALUES.has(effectiveStatus)) {
         return null;
     }
 
-    let statusText = STATUS_DISPLAY_TEXT[normalizedStatus] || normalizedStatus;
+    let statusText = STATUS_DISPLAY_TEXT[effectiveStatus] || effectiveStatus;
 
-    if (normalizedStatus === 'connected' && connectedTimestamp) {
-        const elapsed = Math.max(0, now - connectedTimestamp);
+    if (effectiveStatus === 'connected' && effectiveConnectedTimestamp) {
+        const elapsed = Math.max(0, now - effectiveConnectedTimestamp);
 
         if (elapsed >= CONNECTED_LABEL_MS + E2EE_LABEL_MS) {
             return null;
