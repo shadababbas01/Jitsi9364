@@ -12,6 +12,7 @@ import { IReduxState, IStore } from '../../../app/types';
 import { getLocalParticipant, getParticipantCountWithFake } from '../../../base/participants/functions';
 import { ILocalParticipant } from '../../../base/participants/types';
 import { getHideSelfView } from '../../../base/settings/functions.any';
+import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import { setVisibleRemoteParticipants } from '../../actions.web';
 
 import Thumbnail from './Thumbnail';
@@ -119,6 +120,7 @@ class TileView extends PureComponent<IProps, IState> {
      * The FlatList's viewabilityConfig.
      */
     _viewabilityConfig: Object;
+    _flatListRef: React.RefObject<FlatList<Array<string>>>;
 
     /**
      * Creates new TileView component.
@@ -133,12 +135,14 @@ class TileView extends PureComponent<IProps, IState> {
         this._renderPage = this._renderPage.bind(this);
         this._renderPageIndicators = this._renderPageIndicators.bind(this);
         this._onPageViewableItemsChanged = this._onPageViewableItemsChanged.bind(this);
+        this._getItemLayout = this._getItemLayout.bind(this);
 
         this._pages = [];
         this._viewabilityConfig = {
             itemVisiblePercentThreshold: 60,
             minimumViewTime: 300
         };
+        this._flatListRef = React.createRef();
 
         this.state = {
             _currentPage: 0
@@ -164,6 +168,30 @@ class TileView extends PureComponent<IProps, IState> {
             || prevProps._disableSelfView !== this.props._disableSelfView) {
             this._updateVisibleParticipantsForPage(0);
         }
+
+        if (prevProps._width !== this.props._width
+            || prevProps._height !== this.props._height
+            || prevProps._aspectRatio !== this.props._aspectRatio) {
+            const participants = this._getSortedParticipants();
+            const pages = this._chunkParticipants(participants, 6);
+            const lastIndex = Math.max(pages.length - 1, 0);
+            const nextPage = Math.min(this.state._currentPage, lastIndex);
+
+            if (nextPage !== this.state._currentPage) {
+                this.setState({ _currentPage: nextPage });
+            }
+
+            this._updateVisibleParticipantsForPage(nextPage);
+
+            if (pages.length > 1 && this._flatListRef.current) {
+                setTimeout(() => {
+                    this._flatListRef.current?.scrollToIndex({
+                        index: nextPage,
+                        animated: false
+                    });
+                }, 0);
+            }
+        }
     }
 
     /**
@@ -184,13 +212,18 @@ class TileView extends PureComponent<IProps, IState> {
                 <TouchableWithoutFeedback onPress = { onClick }>
                     <View style = { styles.flatListContainer }>
                         <FlatList
+                            ref = { this._flatListRef }
                             data = { pages }
                             horizontal = { true }
                             keyExtractor = { (_, index) => `page-${index}` }
+                            key = { `tile-pages-${_width}x${_height}` }
                             pagingEnabled = { true }
+                            initialScrollIndex = { this.state._currentPage }
                             renderItem = { this._renderPage }
+                            getItemLayout = { this._getItemLayout }
                             showsHorizontalScrollIndicator = { false }
                             showsVerticalScrollIndicator = { false }
+                            extraData = { this.state._currentPage }
                             viewabilityConfig = { this._viewabilityConfig }
                             onViewableItemsChanged = { this._onPageViewableItemsChanged } />
                         { this._renderPageIndicators(pages.length) }
@@ -250,6 +283,16 @@ class TileView extends PureComponent<IProps, IState> {
 
     _renderPage({ item }: { item: Array<string>; }) {
         return this._renderGrid(item);
+    }
+
+    _getItemLayout(_data: Array<Array<string>> | null | undefined, index: number) {
+        const { _width } = this.props;
+
+        return {
+            length: _width,
+            offset: _width * index,
+            index
+        };
     }
 
     _renderPageIndicators(pageCount: number) {
@@ -323,7 +366,7 @@ class TileView extends PureComponent<IProps, IState> {
     }
 
     _getGridDimensions(count: number) {
-        const { _height, _width, _safeAreaTop, _safeAreaBottom } = this.props;
+        const { _height, _width, _safeAreaTop, _safeAreaBottom, _aspectRatio } = this.props;
         const availableHeight = _height - _safeAreaTop - _safeAreaBottom - GRID_PADDING_TOP - GRID_PADDING_BOTTOM;
         const availableWidth = _width;
         const tileMargin = 2;
@@ -341,6 +384,19 @@ class TileView extends PureComponent<IProps, IState> {
         if (count === 2) {
             const columns = 1;
             const rows = 2;
+
+            return {
+                columns,
+                rows,
+                tileHeight: (availableHeight - (rows * tileMargin * 2)) / rows,
+                tileWidth: (availableWidth - (columns * tileMargin * 2)) / columns,
+                tileMargin
+            };
+        }
+
+        if (count === 3 && _aspectRatio === ASPECT_RATIO_WIDE) {
+            const columns = 3;
+            const rows = 1;
 
             return {
                 columns,
