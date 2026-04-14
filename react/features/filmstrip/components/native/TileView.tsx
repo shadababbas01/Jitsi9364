@@ -88,13 +88,20 @@ interface IProps {
     onClick: (e?: GestureResponderEvent) => void;
 }
 
+interface IState {
+    /**
+     * The current visible page index.
+     */
+    _currentPage: number;
+}
+
 /**
  * An empty array. The purpose of the constant is to use the same reference every time we need an empty array.
  * This will prevent unnecessary re-renders.
  */
 const EMPTY_ARRAY: any[] = [];
 const GRID_PADDING_TOP = 12;
-const GRID_PADDING_BOTTOM = 16;
+const GRID_PADDING_BOTTOM = 24;
 
 /**
  * Implements a React {@link PureComponent} which displays thumbnails in a two
@@ -102,7 +109,7 @@ const GRID_PADDING_BOTTOM = 16;
  *
  * @augments PureComponent
  */
-class TileView extends PureComponent<IProps> {
+class TileView extends PureComponent<IProps, IState> {
     /**
      * Cached pages for pagination.
      */
@@ -124,12 +131,17 @@ class TileView extends PureComponent<IProps> {
         this._keyExtractor = this._keyExtractor.bind(this);
         this._renderThumbnail = this._renderThumbnail.bind(this);
         this._renderPage = this._renderPage.bind(this);
+        this._renderPageIndicators = this._renderPageIndicators.bind(this);
         this._onPageViewableItemsChanged = this._onPageViewableItemsChanged.bind(this);
 
         this._pages = [];
         this._viewabilityConfig = {
             itemVisiblePercentThreshold: 60,
             minimumViewTime: 300
+        };
+
+        this.state = {
+            _currentPage: 0
         };
     }
 
@@ -181,6 +193,7 @@ class TileView extends PureComponent<IProps> {
                             showsVerticalScrollIndicator = { false }
                             viewabilityConfig = { this._viewabilityConfig }
                             onViewableItemsChanged = { this._onPageViewableItemsChanged } />
+                        { this._renderPageIndicators(pages.length) }
                     </View>
                 </TouchableWithoutFeedback>
             );
@@ -237,6 +250,28 @@ class TileView extends PureComponent<IProps> {
 
     _renderPage({ item }: { item: Array<string>; }) {
         return this._renderGrid(item);
+    }
+
+    _renderPageIndicators(pageCount: number) {
+        if (pageCount <= 1) {
+            return null;
+        }
+
+        const { _currentPage } = this.state;
+
+        return (
+            <View style = { styles.pageIndicatorContainer }>
+                { Array.from({ length: pageCount }).map((_, index) => (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key
+                        key = { `page-dot-${index}` }
+                        style = { [
+                            styles.pageIndicatorDot,
+                            index === _currentPage ? styles.pageIndicatorDotActive : null
+                        ] } />
+                )) }
+            </View>
+        );
     }
 
     _renderGrid(participants: Array<string>) {
@@ -342,6 +377,9 @@ class TileView extends PureComponent<IProps> {
     _onPageViewableItemsChanged({ viewableItems = [] }: { viewableItems: ViewToken[]; }) {
         const pageIndex = viewableItems[0]?.index ?? 0;
 
+        if (pageIndex !== this.state._currentPage) {
+            this.setState({ _currentPage: pageIndex });
+        }
         this._updateVisibleParticipantsForPage(pageIndex);
     }
 

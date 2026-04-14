@@ -108,6 +108,32 @@ export default {
         width: '100%'
     },
 
+    pageIndicatorContainer: {
+        position: 'absolute',
+        bottom: -12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: '#494949ff',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 8
+    },
+
+    pageIndicatorDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#ffffff',
+        opacity: 0.35,
+        marginHorizontal: 3
+    },
+
+    pageIndicatorDotActive: {
+        opacity: 1
+    },
+
     /**
      * Container of the {@link LocalThumbnail}.
      */
