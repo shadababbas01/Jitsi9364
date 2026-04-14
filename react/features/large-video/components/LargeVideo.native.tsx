@@ -11,8 +11,11 @@ import { trackStreamingStatusChanged } from '../../base/tracks/actions.native';
 import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../base/tracks/functions';
 import { isLocalVideoTrackDesktop } from '../../base/tracks/functions.native';
 import { ITrack } from '../../base/tracks/types';
+import { setTileView } from '../../video-layout/actions.native';
 
 import { AVATAR_SIZE } from './styles';
+
+const DOUBLE_TAP_TIMEOUT_MS = 300;
 
 const containerStyles = {
     largeVideoContainer: {
@@ -99,6 +102,11 @@ const DEFAULT_STATE = {
  */
 class LargeVideo extends PureComponent<IProps, IState> {
     /**
+     * Timeout used to detect double tapping on large video.
+     */
+    _doubleTapTimeout?: ReturnType<typeof setTimeout>;
+
+    /**
      * Creates new LargeVideo component.
      *
      * @param {IProps} props - The props of the component.
@@ -108,6 +116,9 @@ class LargeVideo extends PureComponent<IProps, IState> {
         super(props);
 
         this.handleTrackStreamingStatusChanged = this.handleTrackStreamingStatusChanged.bind(this);
+        this._onPress = this._onPress.bind(this);
+        this._handleSingleTap = this._handleSingleTap.bind(this);
+        this._handleDoubleTap = this._handleDoubleTap.bind(this);
     }
 
     state = {
@@ -193,6 +204,10 @@ class LargeVideo extends PureComponent<IProps, IState> {
      * @returns {void}
      */
     override componentWillUnmount() {
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+        }
         // TODO: after converting this component to a react function component,
         // use a custom hook to update local track streaming status.
         const { _videoTrack, dispatch } = this.props;
@@ -218,6 +233,41 @@ class LargeVideo extends PureComponent<IProps, IState> {
     }
 
     /**
+     * Handles single/double taps on the large video.
+     *
+     * @returns {void}
+     */
+    _onPress() {
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+            this._handleDoubleTap();
+            return;
+        }
+
+        this._doubleTapTimeout = setTimeout(this._handleSingleTap, DOUBLE_TAP_TIMEOUT_MS);
+    }
+
+    /**
+     * Single tap handler for large video.
+     *
+     * @returns {void}
+     */
+    _handleSingleTap() {
+        this._doubleTapTimeout = undefined;
+        this.props.onClick?.();
+    }
+
+    /**
+     * Double tap handler for large video.
+     *
+     * @returns {void}
+     */
+    _handleDoubleTap() {
+        this.props.dispatch(setTileView(true));
+    }
+
+    /**
      * Implements React's {@link Component#render()}.
      *
      * @inheritdoc
@@ -231,7 +281,6 @@ class LargeVideo extends PureComponent<IProps, IState> {
         const {
             _disableVideo,
             _participantId,
-            onClick
         } = this.props;
 
         const indicatorStyle: ViewStyle = {
@@ -249,7 +298,7 @@ class LargeVideo extends PureComponent<IProps, IState> {
                     avatarSize = { avatarSize }
                     disableVideo = { _disableVideo }
                     audioIndicatorStyle = { indicatorStyle }
-                    onPress = { onClick }
+                    onPress = { this._onPress }
                     participantId = { _participantId }
                     showAudioIndicator = { true }
                     testHintId = 'org.jitsi.meet.LargeVideo'

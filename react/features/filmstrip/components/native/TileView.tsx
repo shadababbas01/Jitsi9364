@@ -382,8 +382,9 @@ class TileView extends PureComponent<IProps, IState> {
         }
 
         if (count === 2) {
-            const columns = 1;
-            const rows = 2;
+            const isLandscape = _aspectRatio === ASPECT_RATIO_WIDE;
+            const columns = isLandscape ? 2 : 1;
+            const rows = isLandscape ? 1 : 2;
 
             return {
                 columns,

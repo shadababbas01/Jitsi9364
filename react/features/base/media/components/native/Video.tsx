@@ -153,10 +153,10 @@ class Video extends Component<IProps> {
     }
 }
 
-const mapStateToProps = (state: IReduxState) => ({
+const mapStateToProps = (state: IReduxState, ownProps: IProps) => ({
     aspectRatio: state['features/base/responsive-ui'].aspectRatio,
     cameraFacingMode: state['features/base/media']?.video?.facingMode,
-    objectFit: state['features/base/settings'].zoomtype
+    objectFit: ownProps.objectFit ?? state['features/base/settings'].zoomtype
 });
 
 export default connect(mapStateToProps)(Video);

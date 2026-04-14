@@ -239,9 +239,10 @@ class ParticipantView extends Component<IProps> {
                 : styles.audioIndicatorStyleSmall);
         const isLargeVideo = this.props.testHintId === 'org.jitsi.meet.LargeVideo';
         const isTileStatus = Boolean(this.props.showStatusLabel) && !isLargeVideo;
+        const objectFit = isLargeVideo ? 'contain' : (this.props.showStatusLabel ? 'cover' : undefined);
         const shouldShowAudioIndicator = (this.props.showAudioIndicator ?? true)
             && !(isLargeVideo && renderVideo);
-        const shouldShowStatusLabels = (isLargeVideo || this.props.showStatusLabel)
+        const shouldShowStatusLabels = isLargeVideo
             && !_isSharedVideoParticipant
             && !_isLocal
             && (_isAudioMuted || _isOnHold);
@@ -295,6 +296,7 @@ class ParticipantView extends Component<IProps> {
 
                 {renderVideo
                     && <VideoTrack
+                        objectFit = { objectFit }
                         onPress={onPress}
                         videoTrack={videoTrack}
                         waitForVideoStarted={false}

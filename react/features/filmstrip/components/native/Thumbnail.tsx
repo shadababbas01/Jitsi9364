@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Image, ImageStyle, View, ViewStyle } from 'react-native';
-import { connect } from 'react-redux';
+import { batch, connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
 import { JitsiTrackEvents } from '../../../base/lib-jitsi-meet';
@@ -37,6 +37,7 @@ import {
 } from '../../../participants-pane/actions.native';
 import { toggleToolboxVisible } from '../../../toolbox/actions.native';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
+import { setTileView } from '../../../video-layout/actions.native';
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
 
 import AudioMutedIndicator from './AudioMutedIndicator';
@@ -47,6 +48,8 @@ import ScreenShareIndicator from './ScreenShareIndicator';
 import ThumbnailAudioIndicator from './ThumbnailAudioIndicator';
 import styles, { AVATAR_SIZE } from './styles';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+
+const DOUBLE_TAP_TIMEOUT_MS = 200;
 
 
 
@@ -185,6 +188,10 @@ interface IProps {
  * React component for video thumbnail.
  */
 class Thumbnail extends PureComponent<IProps> {
+    /**
+     * Timeout used to detect double tapping on tile view.
+     */
+    _doubleTapTimeout?: ReturnType<typeof setTimeout>;
 
     /**
      * Creates new Thumbnail component.
@@ -198,6 +205,8 @@ class Thumbnail extends PureComponent<IProps> {
         this._onClick = this._onClick.bind(this);
         this._onThumbnailLongPress = this._onThumbnailLongPress.bind(this);
         this.handleTrackStreamingStatusChanged = this.handleTrackStreamingStatusChanged.bind(this);
+        this._handleTileViewSingleTap = this._handleTileViewSingleTap.bind(this);
+        this._handleTileViewDoubleTap = this._handleTileViewDoubleTap.bind(this);
     }
 
     /**
@@ -206,12 +215,46 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     _onClick() {
-        const { _participantId, _pinned, dispatch, tileView, _toolboxVisible } = this.props;
+        const { _participantId, _pinned, dispatch, tileView } = this.props;
 
-        if (tileView) {
-            dispatch(toggleToolboxVisible());
-        } else {
+        if (!tileView) {
             dispatch(pinParticipant(_pinned ? null : _participantId));
+            return;
+        }
+
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+            this._handleTileViewDoubleTap();
+            return;
+        }
+
+        this._doubleTapTimeout = setTimeout(this._handleTileViewSingleTap, DOUBLE_TAP_TIMEOUT_MS);
+    }
+
+    /**
+     * Single tap handler for tile view thumbnails.
+     *
+     * @returns {void}
+     */
+    _handleTileViewSingleTap() {
+        this._doubleTapTimeout = undefined;
+        this.props.dispatch(toggleToolboxVisible());
+    }
+
+    /**
+     * Double tap handler for tile view thumbnails.
+     *
+     * @returns {void}
+     */
+    _handleTileViewDoubleTap() {
+        const { _participantId, dispatch } = this.props;
+
+        if (_participantId) {
+            batch(() => {
+                dispatch(pinParticipant(_participantId));
+                dispatch(setTileView(false));
+            });
         }
     }
 
@@ -221,6 +264,10 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     _onThumbnailLongPress() {
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+        }
         const { _fakeParticipant, _participantId, _local, _localVideoOwner, dispatch } = this.props;
 
         if (!_fakeParticipant) {
@@ -362,6 +409,10 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     componentWillUnmount() {
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+        }
         // TODO: after converting this component to a react function component,
         // use a custom hook to update local track streaming status.
         const { _videoTrack, dispatch } = this.props;
