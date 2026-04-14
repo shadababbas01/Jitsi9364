@@ -243,7 +243,7 @@ class TileView extends PureComponent<IProps> {
                     {
                         height: _height,
                         paddingTop: 12,
-                        width: _width
+                        width: _width,
                     }
                 ] }>
                 { Array.from({ length: rows }).map((_, rowIndex) => {
