@@ -68,6 +68,11 @@ interface IProps {
     _safeAreaTop: number;
 
     /**
+     * Safe area bottom inset.
+     */
+    _safeAreaBottom: number;
+
+    /**
      * Application's viewport height.
      */
     _width: number;
@@ -88,6 +93,8 @@ interface IProps {
  * This will prevent unnecessary re-renders.
  */
 const EMPTY_ARRAY: any[] = [];
+const GRID_PADDING_TOP = 12;
+const GRID_PADDING_BOTTOM = 16;
 
 /**
  * Implements a React {@link PureComponent} which displays thumbnails in a two
@@ -233,7 +240,7 @@ class TileView extends PureComponent<IProps> {
     }
 
     _renderGrid(participants: Array<string>) {
-        const { _height, _width, _safeAreaTop } = this.props;
+        const { _height, _width, _safeAreaBottom } = this.props;
         const { columns, rows, tileHeight, tileWidth, tileMargin } = this._getGridDimensions(participants.length);
 
         return (
@@ -242,7 +249,8 @@ class TileView extends PureComponent<IProps> {
                     styles.tileGridContainer,
                     {
                         height: _height,
-                        paddingTop: 12,
+                        paddingTop: GRID_PADDING_TOP,
+                        paddingBottom: GRID_PADDING_BOTTOM + _safeAreaBottom,
                         width: _width,
                     }
                 ] }>
@@ -280,8 +288,8 @@ class TileView extends PureComponent<IProps> {
     }
 
     _getGridDimensions(count: number) {
-        const { _height, _width, _safeAreaTop } = this.props;
-        const availableHeight = _height - _safeAreaTop;
+        const { _height, _width, _safeAreaTop, _safeAreaBottom } = this.props;
+        const availableHeight = _height - _safeAreaTop - _safeAreaBottom - GRID_PADDING_TOP - GRID_PADDING_BOTTOM;
         const availableWidth = _width;
         const tileMargin = 2;
 
@@ -385,6 +393,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _localParticipant: getLocalParticipant(state),
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,
+        _safeAreaBottom: safeAreaInsets?.bottom ?? 0,
         _safeAreaTop: safeAreaInsets?.top ?? 0,
         _thumbnailHeight: height,
         _width: responsiveUi.clientWidth
