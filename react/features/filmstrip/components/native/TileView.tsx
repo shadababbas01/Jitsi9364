@@ -39,6 +39,11 @@ interface IProps {
     _disableSelfView: boolean;
 
     /**
+     * Active speaker participant ids (if any).
+     */
+    _activeSpeakerIds?: Array<string>;
+
+    /**
      * Application's viewport height.
      */
     _height: number;
@@ -248,17 +253,29 @@ class TileView extends PureComponent<IProps, IState> {
      * @returns {Participant[]}
      */
     _getSortedParticipants() {
-        const { _localParticipant, _remoteParticipants, _disableSelfView } = this.props;
+        const { _localParticipant, _remoteParticipants, _disableSelfView, _activeSpeakerIds } = this.props;
 
         if (!_localParticipant) {
             return EMPTY_ARRAY;
         }
 
+        let participants: Array<string>;
+
         if (_disableSelfView) {
-            return _remoteParticipants;
+            participants = [ ..._remoteParticipants ];
+        } else {
+            participants = [ _localParticipant?.id, ..._remoteParticipants ].reverse();
         }
 
-        return [ _localParticipant?.id, ..._remoteParticipants ].reverse();
+        if (_activeSpeakerIds?.length) {
+            const active = _activeSpeakerIds
+                .filter(id => id && id !== _localParticipant?.id && participants.includes(id));
+            const rest = participants.filter(id => !active.includes(id));
+
+            participants = [ ...active, ...rest ];
+        }
+
+        return participants;
     }
 
     /**
@@ -483,15 +500,24 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const { safeAreaInsets } = responsiveUi;
     const { remoteParticipants, tileViewDimensions } = state['features/filmstrip'];
     const disableSelfView = getHideSelfView(state);
+    const { speakersList, dominantSpeaker } = state['features/base/participants'];
+    const localParticipant = getLocalParticipant(state);
     const { height } = tileViewDimensions?.thumbnailSize ?? {};
     const { columns } = tileViewDimensions ?? {};
+    const activeSpeakerIds = Array.from(speakersList?.keys?.() ?? []);
+
+    if (dominantSpeaker && !activeSpeakerIds.includes(dominantSpeaker)) {
+        activeSpeakerIds.unshift(dominantSpeaker);
+    }
 
     return {
         _aspectRatio: responsiveUi.aspectRatio,
         _columns: columns ?? 1,
         _disableSelfView: disableSelfView,
+        _activeSpeakerIds: activeSpeakerIds
+            .filter(id => id && id !== localParticipant?.id),
         _height: responsiveUi.clientHeight,
-        _localParticipant: getLocalParticipant(state),
+        _localParticipant: localParticipant,
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,
         _safeAreaBottom: safeAreaInsets?.bottom ?? 0,
