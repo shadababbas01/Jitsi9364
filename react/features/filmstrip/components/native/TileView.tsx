@@ -375,7 +375,13 @@ class TileView extends PureComponent<IProps, IState> {
     }
 
     _onPageViewableItemsChanged({ viewableItems = [] }: { viewableItems: ViewToken[]; }) {
-        const pageIndex = viewableItems[0]?.index ?? 0;
+        const firstViewable = viewableItems.find(item => item.isViewable && typeof item.index === 'number');
+
+        if (!firstViewable || typeof firstViewable.index !== 'number') {
+            return;
+        }
+
+        const pageIndex = firstViewable.index;
 
         if (pageIndex !== this.state._currentPage) {
             this.setState({ _currentPage: pageIndex });
