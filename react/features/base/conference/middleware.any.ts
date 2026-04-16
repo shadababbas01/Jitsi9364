@@ -30,6 +30,7 @@ import { CONNECTION_ESTABLISHED, CONNECTION_FAILED, CONNECTION_WILL_CONNECT } fr
 import { connect, connectionDisconnected, disconnect, setPreferVisitor } from '../connection/actions';
 import { validateJwt } from '../jwt/functions';
 import { JitsiConferenceErrors, JitsiConferenceEvents, JitsiConnectionErrors } from '../lib-jitsi-meet';
+import { setAudioMuted } from '../media/actions';
 import { MEDIA_TYPE } from '../media/constants';
 import { PARTICIPANT_UPDATED, PIN_PARTICIPANT } from '../participants/actionTypes';
 import { PARTICIPANT_ROLE } from '../participants/constants';
@@ -41,6 +42,7 @@ import {
 import MiddlewareRegistry from '../redux/MiddlewareRegistry';
 import StateListenerRegistry from '../redux/StateListenerRegistry';
 import { TRACK_ADDED, TRACK_REMOVED } from '../tracks/actionTypes';
+import { getLocalTrack } from '../tracks/functions.any';
 import { parseURIString } from '../util/uri';
 
 import {
@@ -371,7 +373,25 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
         }));
     }
 
+    _maybeRestoreExpectedLocalAudio({ dispatch, getState });
+
     return result;
+}
+
+function _maybeRestoreExpectedLocalAudio({ dispatch, getState }: Pick<IStore, 'dispatch' | 'getState'>) {
+    const state = getState();
+    const { startSilent } = state['features/base/config'];
+    const { audio } = state['features/base/media'];
+
+    if (startSilent || audio.muted || audio.unmuteBlocked || !audio.available) {
+        return;
+    }
+
+    const localAudioTrack = getLocalTrack(state['features/base/tracks'], MEDIA_TYPE.AUDIO, true);
+
+    if (!localAudioTrack?.jitsiTrack || localAudioTrack.muted || localAudioTrack.jitsiTrack.isMuted()) {
+        dispatch(setAudioMuted(false, true));
+    }
 }
 
 /**

@@ -65,9 +65,11 @@ const Prejoin: React.FC<IPrejoinProps> = ({ navigation }: IPrejoinProps) => {
     const { showHangUp: showHangUpLobby = true } = useSelector((state: IReduxState) => getLobbyConfig(state));
     const { showHangUp: showHangUpPrejoin = true } = useSelector((state: IReduxState) => state['features/base/config'].prejoinConfig || {});
     const { knocking } = useSelector((state: IReduxState) => state['features/lobby']);
+    const isConnecting = useSelector((state: IReduxState) => Boolean(state['features/base/connection'].connecting));
     const participantName = localParticipant?.name;
     const [ displayName, setDisplayName ]
         = useState(participantName || '');
+    const [ joining, setJoining ] = useState(false);
     const isDisplayNameMissing = useMemo(
         () => !displayName && isDisplayNameMandatory, [ displayName, isDisplayNameMandatory ]);
     const showDisplayNameError = useMemo(
@@ -86,9 +88,14 @@ const Prejoin: React.FC<IPrejoinProps> = ({ navigation }: IPrejoinProps) => {
     }, [ displayName ]);
 
     const onJoin = useCallback(() => {
+        if (joining || isConnecting) {
+            return;
+        }
+
+        setJoining(true);
         dispatch(connect());
         navigateRoot(screen.conference.root);
-    }, [ dispatch ]);
+    }, [ dispatch, isConnecting, joining ]);
 
     const maybeJoin = useCallback(() => {
         if (isDisplayNameMissing) {
@@ -212,14 +219,14 @@ const Prejoin: React.FC<IPrejoinProps> = ({ navigation }: IPrejoinProps) => {
                 }
                 <Button
                     accessibilityLabel = 'prejoin.joinMeeting'
-                    disabled = { showDisplayNameError }
+                    disabled = { showDisplayNameError || joining || isConnecting }
                     labelKey = 'prejoin.joinMeeting'
                     onClick = { maybeJoin }
                     style = { styles.joinButton }
                     type = { PRIMARY } />
                 <Button
                     accessibilityLabel = 'prejoin.joinMeetingInLowBandwidthMode'
-                    disabled = { showDisplayNameError }
+                    disabled = { showDisplayNameError || joining || isConnecting }
                     labelKey = 'prejoin.joinMeetingInLowBandwidthMode'
                     onClick = { onJoinLowBandwidth }
                     style = { styles.joinButton }
