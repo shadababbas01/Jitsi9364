@@ -111,7 +111,7 @@ export default function CurrentVisitorsList({ searchString }: IProps) {
     }
 
     const filtered = visitors.filter(v => {
-        const displayName = v.name || defaultRemoteDisplayName || 'Fellow Jitster';
+        const displayName = v.name || defaultRemoteDisplayName || ' ';
 
         return normalizeAccents(displayName).toLowerCase().includes(normalizeAccents(searchString).toLowerCase());
     });
@@ -128,7 +128,7 @@ export default function CurrentVisitorsList({ searchString }: IProps) {
                 <ParticipantItem
                     actionsTrigger = { ACTION_TRIGGER.HOVER }
                     audioMediaState = { MEDIA_STATE.NONE }
-                    displayName = { v.name || defaultRemoteDisplayName || 'Fellow Jitster' }
+                    displayName = { v.name || defaultRemoteDisplayName || '' }
                     participantID = { v.id }
                     videoMediaState = { MEDIA_STATE.NONE } />
             </div>

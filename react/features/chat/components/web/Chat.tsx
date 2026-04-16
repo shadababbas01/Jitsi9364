@@ -255,7 +255,7 @@ const Chat = ({
         state['features/chat'].notifyPrivateRecipientsChangedTimestamp
     );
     const {
-        defaultRemoteDisplayName = 'Fellow Jitster'
+        defaultRemoteDisplayName = ' '
     } = useSelector((state: IReduxState) => state['features/base/config']);
     const privateMessageRecipient = useSelector((state: IReduxState) => state['features/chat'].privateMessageRecipient);
     const participants = useSelector(getRemoteParticipants);

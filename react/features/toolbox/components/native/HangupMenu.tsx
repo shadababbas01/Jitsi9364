@@ -80,7 +80,7 @@ function HangupMenu() {
             type={SECONDARY}
         />
     )}
-</View>
+            </View>
         </BottomSheet>
     );
 }
