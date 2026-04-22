@@ -53,6 +53,7 @@ import {
 import { isConnecting } from '../functions.native';
 
 import AlwaysOnLabels from './AlwaysOnLabels';
+// import ConnectionStatusLabel from './ConnectionStatusLabel';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
@@ -554,6 +555,11 @@ class Conference extends AbstractConference<IProps, State> {
                         (_toolboxVisible
                             ? styles.titleBarSafeViewColor
                             : styles.titleBarSafeViewTransparent) as ViewStyle }>
+                    {/* <View
+                        pointerEvents = 'none'
+                        style = { styles.connectionStatusOverlay as ViewStyle }>
+                        <ConnectionStatusLabel />
+                    </View> */}
                     <TitleBar _createOnPress = { this._createOnPress } />
                 </SafeAreaView>
                 <SafeAreaView
@@ -595,6 +601,17 @@ class Conference extends AbstractConference<IProps, State> {
         return (
             <>
                 <LargeVideo onClick = { this._onClick } />
+
+                {/* <SafeAreaView
+                    edges = { [ 'left', 'right', 'top' ] }
+                    pointerEvents = 'box-none'
+                    style = { styles.titleBarSafeViewTransparent as ViewStyle }>
+                    <View
+                        pointerEvents = 'none'
+                        style = { styles.connectionStatusOverlay as ViewStyle }>
+                        <ConnectionStatusLabel />
+                    </View>
+                </SafeAreaView> */}
 
                 {
                     _connecting

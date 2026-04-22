@@ -53,6 +53,11 @@ export default {
         marginTop: BaseTheme.spacing[1]
     },
 
+    connectionStatusOverlay: {
+        alignItems: 'center',
+        paddingTop: BaseTheme.spacing[2]
+    },
+
     connectionStatusText: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
