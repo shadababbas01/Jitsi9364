@@ -36,8 +36,8 @@
         "car": "Car Audio",
         "headphones": "Headphones",
         "none": "No audio devices available",
-        "phone": "Speaker Off",
-        "speaker": "Speaker On"
+        "phone": "Phone",
+        "speaker": "Speaker"
     },
     "audioOnly": {
         "audioOnly": "Low bandwidth"

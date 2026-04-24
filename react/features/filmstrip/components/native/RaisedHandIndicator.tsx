@@ -3,9 +3,11 @@ import { View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import Icon from '../../../base/icons/components/Icon';
 import { IconRaiseHand } from '../../../base/icons/svg';
 import { getParticipantById, hasRaisedHand } from '../../../base/participants/functions';
 import BaseIndicator from '../../../base/react/components/native/BaseIndicator';
+import conferenceStyles from '../../../conference/components/native/styles';
 
 import styles from './styles';
 
@@ -21,6 +23,11 @@ export interface IProps {
      * for.
      */
     participantId: string;
+
+    /**
+     * Whether the indicator is rendered inside a tile view thumbnail.
+     */
+    tileView?: boolean;
 }
 
 
@@ -50,6 +57,18 @@ class RaisedHandIndicator extends Component<IProps> {
      * @returns {React$Element<*>}
      */
     _renderIndicator() {
+        if (this.props.tileView) {
+            return (
+                <View style = { conferenceStyles.raiseHandIndicator as ViewStyle }>
+                    <View style = { conferenceStyles.ThumbnailButtonRaiseHand.style as ViewStyle }>
+                        <Icon
+                            src = { IconRaiseHand }
+                            style = { conferenceStyles.ThumbnailButtonRaiseHand.iconStyle } />
+                    </View>
+                </View>
+            );
+        }
+
         return (
             <View style = { styles.raisedHandIndicator as ViewStyle }>
                 <BaseIndicator

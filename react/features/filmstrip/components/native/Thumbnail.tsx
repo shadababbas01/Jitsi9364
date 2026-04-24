@@ -178,6 +178,28 @@ interface IProps {
      */
     disableDominantSpeakerIndicator?: boolean;
 
+    /**
+     * Whether tile-view margin should be disabled for custom containers such
+     * as the floating local thumbnail.
+     */
+    disableTileViewMargin?: boolean;
+
+    /**
+     * Optional border radius override for the thumbnail and its video clip.
+     */
+    borderRadius?: number;
+
+    /**
+     * Optional border width override.
+     */
+    borderWidth?: number;
+
+    /**
+     * Optional background color override for the thumbnail shell and video
+     * clip container.
+     */
+    backgroundColor?: string;
+
       /**
      * The width of the thumnail.
      */
@@ -325,7 +347,7 @@ class Thumbnail extends PureComponent<IProps> {
                 key = 'top-left-indicators'
                 style = { styles.thumbnailTopLeftIndicatorContainer as ViewStyle }>
                 { !_isVirtualScreenshare && <ConnectionIndicator participantId = { participantId } /> }
-                { !_isVirtualScreenshare && <RaisedHandIndicator participantId = { participantId } /> }
+                { !_isVirtualScreenshare && <RaisedHandIndicator participantId = { participantId } tileView = { tileView } /> }
                 { tileView && (isScreenShare || _isVirtualScreenshare) && (
                     <View style = { styles.screenShareIndicatorContainer as ViewStyle }>
                         <ScreenShareIndicator />
@@ -454,6 +476,10 @@ class Thumbnail extends PureComponent<IProps> {
             _raisedHand,
             _renderDominantSpeakerIndicator,
             _videoTrack,
+            backgroundColor,
+            borderRadius,
+            borderWidth,
+            disableTileViewMargin,
             height,
             hideAudioIndicatorWhenVideoOn,
             showAudioIndicator,
@@ -462,10 +488,12 @@ class Thumbnail extends PureComponent<IProps> {
         } = this.props;
         const styleOverrides = tileView ? {
             aspectRatio: width/height,
+            backgroundColor,
+            borderRadius,
             flex: 0,
-            borderWidth: 2,
+            borderWidth: borderWidth ?? 2,
             height,
-            margin: 2,
+            margin: disableTileViewMargin ? 0 : 2,
             maxHeight: height,
             maxWidth: null,
             width: width
@@ -495,13 +523,19 @@ class Thumbnail extends PureComponent<IProps> {
                     source = {{ uri: _gifSrc }}
                     style = { styles.thumbnailGif as ImageStyle } />
                     : <>
-                        <View style = { styles.thumbnailVideoClip as ViewStyle }>
+                        <View
+                            style = { [
+                                styles.thumbnailVideoClip,
+                                backgroundColor ? { backgroundColor } : null,
+                                borderRadius ? { borderRadius } : null
+                            ] as ViewStyle[] }>
                             <ParticipantView
                                 avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
                                 disableVideo = { disableVideo }
                                 participantId = { participantId }
                                 showAudioIndicator = { shouldShowAudioIndicator }
                                 showStatusLabel = { Boolean(tileView) }
+                                videoBorderRadius = { borderRadius }
                                 zOrder = { 1 } />
                                 
                         </View>

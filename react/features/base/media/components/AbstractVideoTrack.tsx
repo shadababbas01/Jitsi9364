@@ -23,6 +23,11 @@ export interface IProps {
     onPress?: Function;
 
     /**
+     * Optional border radius to apply to the native video surface.
+     */
+    borderRadius?: number;
+
+    /**
      * The Redux representation of the participant's video track.
      */
     videoTrack?: any;
@@ -116,6 +121,7 @@ export default class AbstractVideoTrack<P extends IProps> extends Component<P> {
 
         return (
             <Video
+                borderRadius = { this.props.borderRadius }
                 mirror = { videoTrack?.mirror }
                 onPlaying = { this._onVideoPlaying }
 

@@ -52,7 +52,7 @@ export default {
         left: 0,
         position: 'absolute',
         right: 0,
-        top: 16
+        top: 80
     },
 
     /**

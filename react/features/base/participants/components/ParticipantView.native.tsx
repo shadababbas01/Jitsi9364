@@ -128,6 +128,11 @@ interface IProps {
     showStatusLabel?: boolean;
 
     /**
+     * Optional border radius to apply to the live video renderer.
+     */
+    videoBorderRadius?: number;
+
+    /**
      * Optional style overrides for the audio indicator container.
      */
     audioIndicatorStyle?: ViewStyle;
@@ -296,6 +301,7 @@ class ParticipantView extends Component<IProps> {
 
                 {renderVideo
                     && <VideoTrack
+                        borderRadius = { this.props.videoBorderRadius }
                         objectFit = { objectFit }
                         onPress={onPress}
                         videoTrack={videoTrack}
@@ -400,20 +406,7 @@ function shouldRenderParticipantVideo(stateful: IStateful, id: string) {
         return false;
     }
 
-    /* Then check if audio-only mode is not active. */
-    const audioOnly = state['features/base/audio-only'].enabled;
-
-    if (!audioOnly) {
-        return true;
-    }
-
-    /* Last, check if the participant is sharing their screen and they are on stage. */
-    const remoteScreenShares = state['features/video-layout'].remoteScreenShares || [];
-    const largeVideoParticipantId = state['features/large-video'].participantId;
-    const participantIsInLargeVideoWithScreen
-        = participant.id === largeVideoParticipantId && remoteScreenShares.includes(participant.id);
-
-    return participantIsInLargeVideoWithScreen;
+    return true;
 }
 
 export default translate(connect(_mapStateToProps)(ParticipantView));

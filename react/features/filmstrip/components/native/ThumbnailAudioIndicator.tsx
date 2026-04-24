@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Dimensions, View, ViewStyle } from 'react-native';
 
 import JitsiMeetJS from '../../../base/lib-jitsi-meet/_';
 import { ITrack } from '../../../base/tracks/types';
@@ -8,56 +8,85 @@ import styles from './styles';
 
 const JitsiTrackEvents = JitsiMeetJS.events.track;
 
-const BAR_COUNT = 9;
-const CENTER_INDEX = Math.floor(BAR_COUNT / 2);
-const MIN_HEIGHT = 4;
-const MAX_HEIGHT = 18;
+const BAR_COUNT = 24;
+const MIN_H = 2;
+const MAX_H = 70;
 const ACTIVE_AUDIO_LEVEL = 0.02;
-const IDLE_TICK_MS = 120;
-const IDLE_PHASE_STEP = 0.35;
+const ANIMATE_TICK_MS = 24;
+const BAR_GAP = 5;
 
-let idleTickValue = 0;
-let idleTickerId: ReturnType<typeof setInterval> | undefined;
-let idleTickerRefCount = 0;
-const idleTickListeners = new Set<(tick: number) => void>();
+const BASE_TICK_SPEED = 0.05;
+const VOLUME_SPEED_MULTIPLIER = 0.8;
 
-function _startIdleTicker() {
-    if (idleTickerId) {
+const BAR_FREQS = Array.from({ length: BAR_COUNT }, () => ({
+    f1: 1.4 + Math.random() * 1.2,
+    f2: 2.6 + Math.random() * 1.8,
+    f3: 4.0 + Math.random() * 1.4,
+    p1: Math.random() * Math.PI * 2,
+    p2: Math.random() * Math.PI * 2,
+    p3: Math.random() * Math.PI * 2,
+    a1: 20 + Math.random() * 18,
+    a2: 10 + Math.random() * 14,
+    a3: 5 + Math.random() * 9,
+}));
+
+const BASE_HEIGHTS = [
+    14, 22, 34, 26, 44, 58, 50, 36,
+    54, 68, 60, 46, 62, 52, 32, 56,
+    42, 48, 64, 38, 26, 52, 34, 56,
+];
+
+function easeHeight(h: number): number {
+    return Math.pow(h / MAX_H, 0.60) * MAX_H;
+}
+
+// ---------- shared ticker ----------
+
+let tickValue = 0;
+let tickerId: ReturnType<typeof setInterval> | undefined;
+let tickerRefCount = 0;
+
+const tickListeners = new Set<(t: number) => void>();
+
+function _startTicker() {
+    if (tickerId) {
         return;
     }
 
-    idleTickerId = setInterval(() => {
-        idleTickValue = (idleTickValue + 1) % 1000;
-        idleTickListeners.forEach(listener => listener(idleTickValue));
-    }, IDLE_TICK_MS);
+    tickerId = setInterval(() => {
+        tickValue += BASE_TICK_SPEED;
+        tickListeners.forEach(listener => listener(tickValue));
+    }, ANIMATE_TICK_MS);
 }
 
-function _stopIdleTicker() {
-    if (idleTickerId) {
-        clearInterval(idleTickerId);
-        idleTickerId = undefined;
+function _stopTicker() {
+    if (tickerId) {
+        clearInterval(tickerId);
+        tickerId = undefined;
     }
 }
 
-function _subscribeIdleTick(listener: (tick: number) => void) {
-    idleTickListeners.add(listener);
-    idleTickerRefCount += 1;
+function _subscribeTick(listener: (t: number) => void) {
+    tickListeners.add(listener);
+    tickerRefCount += 1;
 
-    if (idleTickerRefCount === 1) {
-        _startIdleTicker();
+    if (tickerRefCount === 1) {
+        _startTicker();
     }
 
-    listener(idleTickValue);
+    listener(tickValue);
 
     return () => {
-        idleTickListeners.delete(listener);
-        idleTickerRefCount = Math.max(0, idleTickerRefCount - 1);
+        tickListeners.delete(listener);
+        tickerRefCount = Math.max(0, tickerRefCount - 1);
 
-        if (idleTickerRefCount === 0) {
-            _stopIdleTicker();
+        if (tickerRefCount === 0) {
+            _stopTicker();
         }
     };
 }
+
+// ---------- component ----------
 
 interface IProps {
     _audioTrack?: ITrack;
@@ -66,7 +95,15 @@ interface IProps {
 
 export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }: IProps) {
     const [ audioLevel, setAudioLevel ] = useState(0);
-    const [ idleTick, setIdleTick ] = useState(idleTickValue);
+
+    const barAnims = useMemo(
+        () =>
+            Array.from({ length: BAR_COUNT }, () => ({
+                topH: new Animated.Value(MIN_H),
+                botH: new Animated.Value(MIN_H),
+            })),
+        []
+    );
 
     useEffect(() => {
         setAudioLevel(0);
@@ -87,70 +124,148 @@ export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }:
     const isMuted = _audioTrack?.muted ?? true;
     const hasActiveAudio = !isMuted && audioLevel >= ACTIVE_AUDIO_LEVEL;
 
+    const audioLevelRef = useRef(audioLevel);
+    const hasActiveAudioRef = useRef(hasActiveAudio);
+
+    useEffect(() => {
+        audioLevelRef.current = audioLevel;
+        hasActiveAudioRef.current = hasActiveAudio;
+    }, [ audioLevel, hasActiveAudio ]);
+
     useEffect(() => {
         if (isMuted) {
+            barAnims.forEach(({ topH, botH }) => {
+                topH.setValue(MIN_H);
+                botH.setValue(MIN_H);
+            });
+
             return;
         }
 
-        return _subscribeIdleTick(setIdleTick);
-    }, [ isMuted ]);
+        return _subscribeTick(t => {
+            const amplitude = Math.min(audioLevelRef.current * 2.5, 1);
+            const volumeSpeedBoost = 1 + amplitude * VOLUME_SPEED_MULTIPLIER;
+            const animatedTime = t * volumeSpeedBoost;
+            const active = hasActiveAudioRef.current;
 
-    const bars = useMemo(() => new Array(BAR_COUNT).fill(0), []);
+            barAnims.forEach(({ topH, botH }, i) => {
+                const f = BAR_FREQS[i];
+                let h: number;
+
+                if (active) {
+                    const wave =
+                        f.a1 * Math.sin(f.f1 * animatedTime + f.p1 + i * 0.38)
+                        + f.a2 * Math.sin(f.f2 * animatedTime + f.p2 + i * 0.22)
+                        + f.a3 * Math.sin(f.f3 * animatedTime + f.p3 + i * 0.15);
+
+                    const voiceBoost = amplitude * MAX_H * 1.05;
+
+                    h = Math.min(
+                        MAX_H,
+                        Math.max(MIN_H, BASE_HEIGHTS[i] * 0.45 + wave + voiceBoost)
+                    );
+                } else {
+                    const idleWave =
+                        f.a1 * 0.32 * Math.sin(f.f1 * 0.6 * animatedTime + f.p1 + i * 0.38)
+                        + f.a2 * 0.18 * Math.sin(f.f2 * 0.4 * animatedTime + f.p2 + i * 0.22);
+
+                    h = Math.min(
+                        MAX_H * 0.4,
+                        Math.max(MIN_H, BASE_HEIGHTS[i] * 0.18 + idleWave)
+                    );
+                }
+
+                h = Math.round(easeHeight(h));
+
+                topH.setValue(h);
+                botH.setValue(h);
+            });
+        });
+    }, [ isMuted, barAnims ]);
 
     if (isMuted) {
         return null;
     }
 
-    const amplitude = Math.min(audioLevel * 1.6, 1);
-    const idlePhase = idleTick * IDLE_PHASE_STEP;
+    const screenWidth = Dimensions.get('window').width;
+    const containerWidth = screenWidth * 0.5;
+    const horizontalOffset = (screenWidth - containerWidth) / 2;
 
     return (
-        <View style = { [ styles.voiceIndicatorContainer, containerStyle ] as ViewStyle[] }>
-            <View style = { styles.voiceIndicatorRow as ViewStyle }>
-                {bars.map((_, index) => {
-                    const distance = Math.abs(index - CENTER_INDEX);
-const falloff = Math.max(0, 1 - distance * 0.18);
+        <View
+            style = { [
+                styles.voiceIndicatorContainer,
+                containerStyle,
+                {
+                    width: containerWidth,
+                    marginLeft: horizontalOffset,
+                    marginRight: horizontalOffset,
+                },
+            ] as ViewStyle[] }>
 
-// Idle motion when no voice
-const idleWave =
-  0.22 +
-  0.18 * Math.sin(idlePhase + index * 0.7) +
-  0.08 * Math.sin(idlePhase * 1.7 + index * 1.3);
+            <View
+                pointerEvents = 'none'
+                style = { {
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: '50%',
+                    height: 1,
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                } as ViewStyle } />
 
-// Per-bar random movement
-const randomJitter =
-  hasActiveAudio
-    ? 0.15 * (0.5 + Math.sin(time * 0.012 + index * 2.1)) * Math.random()
-    : 0.03 * Math.random();
+            <View
+                style = { [
+                    styles.voiceIndicatorRow,
+                    {
+                        position: 'relative',
+                        height: MAX_H * 2,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    },
+                ] as ViewStyle[] }>
 
-// Occasional taller spikes like real voice peaks
-const spikeChance = hasActiveAudio ? 0.12 : 0;
-const spikeBoost = Math.random() < spikeChance ? 0.25 + Math.random() * 0.45 : 0;
+                {barAnims.map(({ topH, botH }, index) => (
+                    <View
+                        key = { index }
+                        style = { {
+                            width: 3,
+                            height: MAX_H * 2,
+                            marginHorizontal: BAR_GAP / 2,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        } }>
 
-// Slight center emphasis so middle bars feel more “mic-like”
-const centerBoost = 1 + Math.max(0, 1 - distance * 0.25) * 0.35;
-
-// Base level
-const baseLevel = hasActiveAudio ? amplitude : idleWave;
-
-// Final level
-const level = Math.max(
-  0,
-  (baseLevel + randomJitter + spikeBoost) * falloff * centerBoost
-);
-
-const height = 10 + level * 100;
-const opacity = 1;
-
-                    return (
-                        <View
-                            key = { index }
+                        <Animated.View
                             style = { [
                                 styles.voiceLine,
-                                { height, opacity }
+                                {
+                                    position: 'absolute',
+                                    bottom: MAX_H,
+                                    width: 3,
+                                    height: topH,
+                                    borderRadius: 2,
+                                    backgroundColor: '#ffffff',
+                                    opacity: 1,
+                                },
                             ] } />
-                    );
-                })}
+
+                        <Animated.View
+                            style = { [
+                                styles.voiceLine,
+                                {
+                                    position: 'absolute',
+                                    top: MAX_H,
+                                    width: 3,
+                                    height: botH,
+                                    borderRadius: 2,
+                                    backgroundColor: '#ffffff',
+                                    opacity: 0.5,
+                                },
+                            ] } />
+                    </View>
+                ))}
             </View>
         </View>
     );

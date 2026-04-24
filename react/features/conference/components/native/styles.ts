@@ -265,7 +265,17 @@ export default {
     sideToolbarButtonWrapper: {
         marginBottom: BaseTheme.spacing[3],
     },
-
+    raiseHandIndicator: {
+        alignItems: 'center',
+        backgroundColor: '#16253a',
+        borderColor: '#4c8dff',
+        borderRadius: 24,
+        borderWidth: 2,
+        height: 28,
+        justifyContent: 'center',
+        position: 'relative',
+        width: 40
+    },
     sideToolbarButtonBadgeWrapper: {
         alignItems: 'center',
         backgroundColor: '#16253a',
@@ -307,6 +317,25 @@ export default {
             justifyContent: 'center',
             left: 0,
             paddingLeft: 7,
+            position: 'absolute',
+            right: 0,
+            top: 0
+        },
+        underlayColor: 'transparent'
+    },
+    ThumbnailButtonRaiseHand: {
+        iconStyle: {
+            color: '#8bc1ff',
+            fontSize: 22
+        },
+        style: {
+            alignItems: 'flex-start',
+            backgroundColor: 'transparent',
+            borderRadius: 24,
+            bottom: 0,
+            justifyContent: 'center',
+            left: 0,
+            paddingLeft: 5,
             position: 'absolute',
             right: 0,
             top: 0

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent, Platform, View } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { connect } from 'react-redux';
 
@@ -16,6 +16,7 @@ import styles from './styles';
  */
 interface IProps {
     aspectRatio?: Symbol;
+    borderRadius?: number;
     cameraFacingMode?: string;
     mirror: boolean;
 
@@ -90,11 +91,19 @@ class Video extends Component<IProps> {
      * @returns {ReactElement|null}
      */
     override render() {
-        const { aspectRatio, cameraFacingMode, onPress, stream, zoomEnabled, objectFit } = this.props;
+        const { aspectRatio, borderRadius, cameraFacingMode, onPress, stream, zoomEnabled, objectFit } = this.props;
 
         if (stream) {
             // RTCView
-            const style = styles.video;
+            const useClippedTextureView = Platform.OS === 'android' && Boolean(borderRadius);
+            const style = [
+                styles.video,
+                borderRadius ? { borderRadius } : null
+            ];
+            const clipStyle = [
+                styles.video,
+                borderRadius ? { borderRadius, overflow: 'hidden' } : null
+            ];
             const videoTrack = stream.getVideoTracks?.()[0];
             const facingMode
                 = cameraFacingMode
