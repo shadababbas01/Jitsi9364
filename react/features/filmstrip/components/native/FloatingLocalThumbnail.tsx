@@ -20,6 +20,7 @@ import Thumbnail from './Thumbnail';
 const FLOATING_WIDTH = 140;
 const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
+const FLOATING_END_MARGIN = 0;
 const FLOATING_RADIUS = 0;
 const TAP_SLOP = 4;
 const { width, height } = Dimensions.get('window');
@@ -44,7 +45,7 @@ export default function FloatingLocalThumbnail() {
 
     const minX = insets.left + FLOATING_MARGIN;
     const minY = insets.top + FLOATING_MARGIN;
-    const maxX = Math.max(minX, screenWidth - FLOATING_WIDTH - FLOATING_MARGIN - insets.right);
+    const maxX = Math.max(minX, screenWidth - FLOATING_WIDTH - FLOATING_END_MARGIN - insets.right);
     const maxY = Math.max(minY, screenHeight - FLOATING_HEIGHT - FLOATING_MARGIN - insets.bottom);
     const defaultY = clamp(
         maxY - (FILMSTRIP_SIZE + FLOATING_MARGIN + 150),
@@ -96,9 +97,12 @@ export default function FloatingLocalThumbnail() {
     }, [ minX, minY, maxX, maxY, position ]);
 
     useEffect(() => {
+        const wasLandscape
+            = previousWindowSize.current.width > previousWindowSize.current.height;
         const dimensionsChanged
             = previousWindowSize.current.width !== screenWidth
                 || previousWindowSize.current.height !== screenHeight;
+        const isPortrait = screenHeight >= screenWidth;
 
         previousWindowSize.current = {
             height: screenHeight,
@@ -109,9 +113,13 @@ export default function FloatingLocalThumbnail() {
             return;
         }
 
-        lastPosition.current = defaultPosition;
-        position.setValue(defaultPosition);
-    }, [ defaultPosition, position, screenHeight, screenWidth ]);
+        const nextPosition = wasLandscape && isPortrait
+            ? { x: maxX + 65, y: maxY -250 }
+            : defaultPosition;
+
+        lastPosition.current = nextPosition;
+        position.setValue(nextPosition);
+    }, [ defaultPosition, maxX, maxY, position, screenHeight, screenWidth ]);
 
     const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: evt => {

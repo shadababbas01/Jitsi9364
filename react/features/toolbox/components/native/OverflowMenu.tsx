@@ -386,7 +386,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <ZoomButton { ...rowProps } />
                     <D />
                     {/* <SharedDocumentButton { ...rowProps } /> */}
-                    { this._renderOverflowMenuButtons(topRowProps, [ 'desktop', 'tileview', 'raisehand', 'polls' ]) }
+                    { this._renderOverflowMenuButtons(topRowProps, [ 'chat', 'desktop', 'tileview', 'raisehand', 'polls' ]) }
                     <D />
                     {/* <ChatButton { ...rowProps } /> */}
                 </View>

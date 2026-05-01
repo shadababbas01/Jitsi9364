@@ -188,8 +188,8 @@ export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }:
     }
 
     const screenWidth = Dimensions.get('window').width;
-    const containerWidth = screenWidth * 0.5;
-    const horizontalOffset = (screenWidth - containerWidth) / 2;
+    const containerWidth = screenWidth ;
+    const horizontalOffset = ( containerWidth) / 400;
 
     return (
         <View
@@ -198,8 +198,7 @@ export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }:
                 containerStyle,
                 {
                     width: containerWidth,
-                    marginLeft: horizontalOffset,
-                    marginRight: horizontalOffset,
+                    alignSelf: 'center',
                 },
             ] as ViewStyle[] }>
 
@@ -211,7 +210,7 @@ export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }:
                     right: 0,
                     top: '50%',
                     height: 1,
-                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    backgroundColor: 'rgba(59, 46, 46, 0.14)',
                 } as ViewStyle } />
 
             <View
@@ -261,7 +260,7 @@ export default function ThumbnailAudioIndicator({ _audioTrack, containerStyle }:
                                     height: botH,
                                     borderRadius: 2,
                                     backgroundColor: '#ffffff',
-                                    opacity: 0.5,
+                                    opacity: 0.6,
                                 },
                             ] } />
                     </View>
