@@ -10,7 +10,48 @@ export default {
      */
     avatarContainer: {
         alignItems: 'center',
+        flex: 1,
         justifyContent: 'center'
+    },
+
+    avatarShell: {
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        justifyContent: 'center',
+        overflow: 'visible',
+        shadowColor: 'rgba(0, 0, 0, 0.4)',
+        shadowOffset: {
+            height: 8,
+            width: 0
+        },
+        shadowOpacity: 0.35,
+        shadowRadius: 16
+    },
+
+    avatarGlow: {
+        shadowColor: 'rgba(255, 255, 255, 0.4)',
+        shadowOffset: {
+            height: 0,
+            width: 0
+        },
+        shadowOpacity: 0.4,
+        shadowRadius: 20
+    },
+
+    speakerWaveContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: 22,
+        justifyContent: 'center',
+        marginTop: BoxModel.margin,
+        paddingHorizontal: 6
+    },
+
+    speakerWaveBar: {
+        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        borderRadius: 99,
+        height: 4,
+        width: 4
     },
 
     /**

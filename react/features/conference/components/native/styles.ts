@@ -2,7 +2,7 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
 export const INSECURE_ROOM_NAME_LABEL_COLOR = BaseTheme.palette.actionDanger;
 
-const TITLE_BAR_BUTTON_SIZE = 24;
+const TITLE_BAR_BUTTON_SIZE = 20;
 const ROUND_BUTTON_SIZE = 48;
 
 
@@ -111,7 +111,7 @@ export default {
     pipButton: {
         iconStyle: {
             color: BaseTheme.palette.icon01,
-            padding: 12,
+            padding: 10,
             fontSize: TITLE_BAR_BUTTON_SIZE
         },
         underlayColor: 'transparent'
@@ -291,15 +291,15 @@ export default {
     sideToolbarButton: {
         iconStyle: {
             color: BaseTheme.palette.icon01,
-            fontSize: TITLE_BAR_BUTTON_SIZE
+            fontSize: 20
         },
         style: {
             alignItems: 'center',
             backgroundColor: '#494949ff',
             borderRadius: 60 / 2,
-            height: 60,
+            height: 56,
             justifyContent: 'center',
-            width: 60
+            width: 56
         },
         underlayColor: 'transparent'
     },

@@ -367,7 +367,9 @@ function _mapStateToProps(state: IReduxState) {
     const showRemoteVideos = shouldRemoteVideosBeVisible(state);
     const responsiveUI = state['features/base/responsive-ui'];
     const participantCount = getParticipantCountWithFake(state);
-    const showFilmstrip = participantCount > 2;
+    const hasRemoteScreenshare = Boolean(state['features/base/participants']
+        ?.sortedRemoteVirtualScreenshareParticipants?.size);
+    const showFilmstrip = participantCount > 1 || hasRemoteScreenshare;
 
     return {
         _aspectRatio: responsiveUI.aspectRatio,

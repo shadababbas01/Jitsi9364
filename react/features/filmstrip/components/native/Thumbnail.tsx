@@ -534,6 +534,7 @@ class Thumbnail extends PureComponent<IProps> {
                                 disableVideo = { disableVideo }
                                 participantId = { participantId }
                                 showAudioIndicator = { shouldShowAudioIndicator }
+                                showSpeakerWave = { Boolean(tileView) }
                                 showStatusLabel = { Boolean(tileView) }
                                 videoBorderRadius = { borderRadius }
                                 zOrder = { 1 } />

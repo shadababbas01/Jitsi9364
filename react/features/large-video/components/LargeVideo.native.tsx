@@ -301,6 +301,7 @@ class LargeVideo extends PureComponent<IProps, IState> {
                     onPress = { this._onPress }
                     participantId = { _participantId }
                     showAudioIndicator = { true }
+                    showSpeakerWave = { true }
                     testHintId = 'org.jitsi.meet.LargeVideo'
                     useConnectivityInfoLabel = { useConnectivityInfoLabel }
                     zOrder = { 0 }

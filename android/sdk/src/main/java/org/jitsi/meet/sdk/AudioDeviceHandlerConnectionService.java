@@ -130,9 +130,12 @@ class AudioDeviceHandlerConnectionService implements
                     JitsiMeetLogger.i(TAG + " Available audio devices: " + devices.toString());
                 }
 
-                if (audioRouteChanged || audioDevicesChanged) {
+                if (audioDevicesChanged) {
                     module.resetSelectedDevice();
                     module.updateAudioRoute();
+                } else if (audioRouteChanged) {
+                    // Keep user selection intact and force-route back to the selected device.
+                    module.resetAudioRoute();
                 }
             }
         });

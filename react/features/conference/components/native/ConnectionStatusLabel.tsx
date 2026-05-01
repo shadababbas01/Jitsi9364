@@ -61,20 +61,6 @@ export default function ConnectionStatusLabel() {
     }, [ shouldForceConnected, forcedConnectedTimestamp ]);
 
     useEffect(() => {
-        if (!connectionStatus && !connectedTimestamp) {
-            return;
-        }
-
-        console.log('[connectionStatus] redux:', {
-            connectionStatus,
-            normalizedStatus,
-            connectedTimestamp,
-            participantCount,
-            shouldForceConnected
-        });
-    }, [ connectionStatus, normalizedStatus, connectedTimestamp, participantCount, shouldForceConnected ]);
-
-    useEffect(() => {
         if (effectiveStatus !== 'connected' || !effectiveConnectedTimestamp) {
             return;
         }
