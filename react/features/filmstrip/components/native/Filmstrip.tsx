@@ -1,34 +1,31 @@
 import React, { PureComponent } from 'react';
-import { Animated, Easing, FlatList, ViewStyle, ViewToken } from 'react-native';
-import { SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, ViewToken } from 'react-native';
+import { Edge, SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
-import { getLocalParticipant, getParticipantCountWithFake } from '../../../base/participants/functions';
+import { getLocalParticipant, getParticipantCount } from '../../../base/participants/functions';
 import Platform from '../../../base/react/Platform.native';
 import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 import { setVisibleRemoteParticipants } from '../../actions.native';
+import { TOOLBAR_HEIGHT_MOBILE } from '../../constants';
 import {
     getFilmstripDimensions,
     isFilmstripVisible,
-    shouldDisplayFloatingLocalThumbnail,
     shouldDisplayLocalThumbnailSeparately,
     shouldRemoteVideosBeVisible
 } from '../../functions.native';
 
-import LocalThumbnail from './LocalThumbnail';
 import Thumbnail from './Thumbnail';
 import styles from './styles';
 
 
 // Immutable reference to avoid re-renders.
 const NO_REMOTE_VIDEOS: any[] = [];
-const TOOLBOX_HEIGHT = 50 + (BaseTheme.spacing[2] * 2);
-const TOOLBOX_MARGIN = BaseTheme.spacing[3];
-const TOOLBOX_SHIFT = TOOLBOX_HEIGHT + TOOLBOX_MARGIN;
+const FILMSTRIP_TOOLBAR_OFFSET = 0;
 
 /**
  * Filmstrip component's property types.
@@ -48,6 +45,11 @@ interface IProps {
      * Whether or not to hide the self view.
      */
     _disableSelfView: boolean;
+
+    /**
+     * True when there are only up to 2 participants (local + remote).
+     */
+    _isOneToOne: boolean;
 
     _localParticipantId: string;
 
@@ -96,11 +98,6 @@ class Filmstrip extends PureComponent<IProps> {
     _viewabilityConfig: Object;
 
     /**
-     * Animated shift used when toolbox visibility changes.
-     */
-    _toolboxShift: Animated.Value;
-
-    /**
      * Constructor of the component.
      *
      * @inheritdoc
@@ -132,40 +129,10 @@ class Filmstrip extends PureComponent<IProps> {
             minimumViewTime: 500
         };
 
-        this._toolboxShift = new Animated.Value(0);
-
         this._keyExtractor = this._keyExtractor.bind(this);
         this._getItemLayout = this._getItemLayout.bind(this);
         this._onViewableItemsChanged = this._onViewableItemsChanged.bind(this);
         this._renderThumbnail = this._renderThumbnail.bind(this);
-    }
-
-    /**
-     * Implements {@code Component#componentDidUpdate}.
-     *
-     * @inheritdoc
-     */
-    override componentDidUpdate(prevProps: IProps) {
-        if (prevProps._toolboxVisible !== this.props._toolboxVisible) {
-            if (this.props._toolboxVisible) {
-                this._toolboxShift.setValue(TOOLBOX_SHIFT);
-                Animated.timing(this._toolboxShift, {
-                    toValue: 0,
-                    duration: 200,
-                    easing: Easing.out(Easing.cubic),
-                    useNativeDriver: true
-                }).start();
-            } else {
-                Animated.timing(this._toolboxShift, {
-                    toValue: TOOLBOX_SHIFT,
-                    duration: 200,
-                    easing: Easing.out(Easing.cubic),
-                    useNativeDriver: true
-                }).start(() => {
-                    this._toolboxShift.setValue(0);
-                });
-            }
-        }
     }
 
     /**
@@ -192,9 +159,7 @@ class Filmstrip extends PureComponent<IProps> {
             _localParticipantId,
             insets
         } = this.props;
-        const localParticipantVisible = Boolean(_localParticipantId)
-            && !_disableSelfView
-            && !shouldDisplayFloatingLocalThumbnail();
+        const localParticipantVisible = Boolean(_localParticipantId) && !_disableSelfView;
 
         return getFilmstripDimensions({
             aspectRatio: _aspectRatio,
@@ -265,10 +230,9 @@ class Filmstrip extends PureComponent<IProps> {
     _renderThumbnail({ item }: { item: string; }) {
         return (
             <Thumbnail
-                key={item}
-                participantID={item}
-                showAudioIndicator={false} />)
-            ;
+                key = { item }
+                participantID = { item } />)
+        ;
     }
 
     /**
@@ -277,16 +241,16 @@ class Filmstrip extends PureComponent<IProps> {
      * @inheritdoc
      * @returns {ReactElement}
      */
-    render() {
+    override render() {
         const {
             _aspectRatio,
             _disableSelfView,
+            _isOneToOne,
             _toolboxVisible,
             _localParticipantId,
             _participants,
             _visible
         } = this.props;
-        const floatingLocalThumbnail = shouldDisplayFloatingLocalThumbnail();
 
         if (!_visible) {
             return null;
@@ -294,62 +258,57 @@ class Filmstrip extends PureComponent<IProps> {
 
         const bottomEdge = Platform.OS === 'ios' && !_toolboxVisible;
         const isNarrowAspectRatio = _aspectRatio === ASPECT_RATIO_NARROW;
-        const filmstripStyle = isNarrowAspectRatio ? styles.filmstripNarrow : styles.filmstripWide;
+        const shouldMoveWideFilmstripToLeft = Platform.OS === 'ios' && !isNarrowAspectRatio;
+        const filmstripBottomOffset = isNarrowAspectRatio && _toolboxVisible
+            ? FILMSTRIP_TOOLBAR_OFFSET
+            : undefined;
+        const filmstripStyle = isNarrowAspectRatio
+            ? [ styles.filmstripNarrow, filmstripBottomOffset !== undefined && { bottom: filmstripBottomOffset } ]
+            : [ styles.filmstripWide, shouldMoveWideFilmstripToLeft && styles.filmstripWideLeft ];
         const { height, width } = this._getDimensions();
         const { height: thumbnailHeight, width: thumbnailWidth, margin } = styles.thumbnail;
-        const initialNumToRender = Math.ceil(isNarrowAspectRatio
-            ? width / (thumbnailWidth + (2 * margin))
-            : height / (thumbnailHeight + (2 * margin))
+        const initialNumToRender = Math.max(
+            0,
+            Math.ceil(
+                isNarrowAspectRatio
+                    ? width / (thumbnailWidth + (2 * margin))
+                    : height / (thumbnailHeight + (2 * margin))
+            )
         );
         let participants;
 
-        if (floatingLocalThumbnail || this._separateLocalThumbnail || _disableSelfView) {
+        if (_isOneToOne && this._separateLocalThumbnail && !_disableSelfView) {
+            participants = [];
+        } else if (this._separateLocalThumbnail || _disableSelfView) {
             participants = _participants;
         } else if (isNarrowAspectRatio) {
-            participants = [..._participants, _localParticipantId];
+            participants = [ ..._participants, _localParticipantId ];
         } else {
-            participants = [_localParticipantId, ..._participants];
+            participants = [ _localParticipantId, ..._participants ];
         }
 
         return (
-            <Animated.View
-                style = { { transform: [ { translateY: this._toolboxShift } ] } }>
-                <SafeAreaView
-                    edges={[bottomEdge && 'bottom', 'left', 'right'].filter(Boolean)}
-                    style={[filmstripStyle, { marginTop: this.props.marginTop || 0, marginRight: 6 }]}>
-                {
-                    !floatingLocalThumbnail
-                    && this._separateLocalThumbnail
-                    && !isNarrowAspectRatio
-                    && !_disableSelfView
-                    && <LocalThumbnail />
-                }
+            <SafeAreaView
+                edges = { [ bottomEdge && 'bottom', 'left', 'right' ].filter(Boolean) as Edge[] }
+                style = { filmstripStyle as any }>
                 <FlatList
-                    bounces={false}
-                    data={participants}
+                    bounces = { false }
+                    data = { participants }
 
                     /* @ts-ignore */
-                    getItemLayout={this._getItemLayout}
-                    horizontal={isNarrowAspectRatio}
-                    initialNumToRender={initialNumToRender}
-                    key={isNarrowAspectRatio ? 'narrow' : 'wide'}
-                    keyExtractor={this._keyExtractor}
-                    onViewableItemsChanged={this._onViewableItemsChanged}
-                    renderItem={this._renderThumbnail}
-                    showsHorizontalScrollIndicator={false}
-                    showsVerticalScrollIndicator={false}
-                    style={styles.flatListStageView}
-                    viewabilityConfig={this._viewabilityConfig}
-                    windowSize={2} />
-                {
-                    !floatingLocalThumbnail
-                    && this._separateLocalThumbnail
-                    && isNarrowAspectRatio
-                    && !_disableSelfView
-                    && <LocalThumbnail />
-                }
-                </SafeAreaView>
-            </Animated.View>
+                    getItemLayout = { this._getItemLayout }
+                    horizontal = { isNarrowAspectRatio }
+                    initialNumToRender = { initialNumToRender }
+                    key = { isNarrowAspectRatio ? 'narrow' : 'wide' }
+                    keyExtractor = { this._keyExtractor }
+                    onViewableItemsChanged = { this._onViewableItemsChanged }
+                    renderItem = { this._renderThumbnail }
+                    showsHorizontalScrollIndicator = { false }
+                    showsVerticalScrollIndicator = { false }
+                    style = { styles.flatListStageView }
+                    viewabilityConfig = { this._viewabilityConfig }
+                    windowSize = { 2 } />
+            </SafeAreaView>
         );
     }
 }
@@ -366,20 +325,17 @@ function _mapStateToProps(state: IReduxState) {
     const disableSelfView = getHideSelfView(state);
     const showRemoteVideos = shouldRemoteVideosBeVisible(state);
     const responsiveUI = state['features/base/responsive-ui'];
-    const participantCount = getParticipantCountWithFake(state);
-    const hasRemoteScreenshare = Boolean(state['features/base/participants']
-        ?.sortedRemoteVirtualScreenshareParticipants?.size);
-    const showFilmstrip = participantCount > 1 || hasRemoteScreenshare;
 
     return {
         _aspectRatio: responsiveUI.aspectRatio,
         _clientHeight: responsiveUI.clientHeight,
         _clientWidth: responsiveUI.clientWidth,
         _disableSelfView: disableSelfView,
+        _isOneToOne: getParticipantCount(state) <= 2,
         _localParticipantId: getLocalParticipant(state)?.id ?? '',
         _participants: showRemoteVideos ? remoteParticipants : NO_REMOTE_VIDEOS,
         _toolboxVisible: isToolboxVisible(state),
-        _visible: enabled && isFilmstripVisible(state) && showFilmstrip
+        _visible: enabled && isFilmstripVisible(state)
     };
 }
 

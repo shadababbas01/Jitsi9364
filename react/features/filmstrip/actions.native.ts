@@ -2,9 +2,12 @@ import { IStore } from '../app/types';
 import conferenceStyles from '../conference/components/native/styles';
 
 import { SET_TILE_VIEW_DIMENSIONS } from './actionTypes';
-import styles from './components/native/styles';
-import { SQUARE_TILE_ASPECT_RATIO, TILE_MARGIN } from './constants';
-import { getColumnCount, getTileViewParticipantCount } from './functions.native';
+import { TILE_HORIZONTAL_MARGIN, TILE_MARGIN, TILE_VERTICAL_MARGIN } from './constants';
+import {
+    getColumnCount,
+    getMaxVisibleRows,
+    getTileViewParticipantCount
+} from './functions.native';
 
 export * from './actions.any';
 
@@ -28,31 +31,22 @@ export function setTileViewDimensions() {
         const { left = 0, right = 0, top = 0, bottom = 0 } = safeAreaInsets;
         const columns = getColumnCount(state);
         const rows = Math.ceil(participantCount / columns); // @ts-ignore
+        const visibleRows = Math.min(rows, getMaxVisibleRows(state));
         const conferenceBorder = conferenceStyles.conference.borderWidth || 0;
         const heightToUse = height - top - bottom - (2 * conferenceBorder);
         const widthToUse = width - (TILE_MARGIN * 2) - left - right - (2 * conferenceBorder);
-        let tileWidth;
-
-        // If there is going to be at least two rows, ensure that at least two
-        // rows display fully on screen.
-        if (participantCount / columns > 1) {
-            tileWidth = Math.min(widthToUse / columns, heightToUse / 2);
-        } else {
-            tileWidth = Math.min(widthToUse / columns, heightToUse);
-        }
-
-        const tileHeight = Math.floor(tileWidth / SQUARE_TILE_ASPECT_RATIO);
-
-        tileWidth = Math.floor(tileWidth);
-
-        // Adding safeAreaInsets.bottom to the total height of all thumbnails because we add it as a padding to the
-        // thumbnails container.
-        const hasScroll = heightToUse < ((tileHeight + (2 * styles.thumbnail.margin)) * rows) + bottom;
+        const tileWidth = Math.max(1, Math.floor(widthToUse / columns) - (TILE_HORIZONTAL_MARGIN * 2));
+        const tileHeight = Math.max(1, Math.floor(heightToUse / visibleRows) - (TILE_VERTICAL_MARGIN * 2));
+        const hasScroll = rows > visibleRows;
 
         dispatch({
             type: SET_TILE_VIEW_DIMENSIONS,
             dimensions: {
                 columns,
+                gridDimensions: {
+                    columns,
+                    rows: visibleRows
+                },
                 thumbnailSize: {
                     height: tileHeight,
                     width: tileWidth

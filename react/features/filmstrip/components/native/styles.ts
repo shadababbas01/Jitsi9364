@@ -26,9 +26,9 @@ export default {
      * The FlatList content container styles.
      */
     contentContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 0
+        alignItems: 'stretch',
+        flexGrow: 1,
+        justifyContent: 'flex-start'
     },
 
     /**
@@ -75,10 +75,7 @@ export default {
      * The styles for the FlatList container.
      */
     flatListContainer: {
-        flexGrow: 1,
-        flexShrink: 1,
-        flex: 0,
-        marginBottom: 16
+        flex: 1
     },
 
     /**
@@ -92,14 +89,14 @@ export default {
      * The styles for the FlatList component in tile view.
      */
     flatListTileView: {
-        flex: 0
+        flex: 1
     },
 
     tileGridContainer: {
         flex: 1,
         flexDirection: 'column',
         alignItems: 'stretch',
-        justifyContent: 'center'
+        justifyContent: 'flex-start'
     },
 
     tileRow: {
@@ -110,7 +107,7 @@ export default {
 
     pageIndicatorContainer: {
         position: 'absolute',
-        bottom: -12,
+        bottom: 12,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',

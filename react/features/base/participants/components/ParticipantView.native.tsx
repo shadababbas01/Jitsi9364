@@ -518,10 +518,10 @@ class ParticipantView extends Component<IProps> {
                         <View
                             key={label}
                             style={(isTileStatus ? styles.statusLabelPillSmall : styles.statusLabelPill) as ViewStyle}>
-                            <Text
+                            {/* <Text
                                 style={(isTileStatus ? styles.statusLabelTextSmall : styles.statusLabelText) as TextStyle}>
                                 {label}
-                            </Text>
+                            </Text> */}
                         </View>
                     ))}
                 </View>

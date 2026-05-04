@@ -127,11 +127,11 @@ export default {
      * Status label pill.
      */
     statusLabelPill: {
-        backgroundColor: ColorPalette.darkGrey,
-        borderRadius: 12,
-        marginBottom: 20,
-        paddingHorizontal: 10,
-        paddingVertical: 4
+        backgroundColor: ColorPalette.red,
+        // borderRadius: 12,
+        // marginBottom: 20,
+        // paddingHorizontal: 10,
+        // paddingVertical: 4
     },
 
     /**

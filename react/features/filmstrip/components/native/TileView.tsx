@@ -106,8 +106,8 @@ interface IState {
  * This will prevent unnecessary re-renders.
  */
 const EMPTY_ARRAY: any[] = [];
-const GRID_PADDING_TOP = 12;
-const GRID_PADDING_BOTTOM = 24;
+const GRID_PADDING_TOP = 0;
+const GRID_PADDING_BOTTOM = 0;
 
 /**
  * Implements a React {@link PureComponent} which displays thumbnails in a two
@@ -335,7 +335,7 @@ class TileView extends PureComponent<IProps, IState> {
     }
 
     _renderGrid(participants: Array<string>) {
-        const { _height, _width, _safeAreaBottom } = this.props;
+        const { _height, _width } = this.props;
         const { columns, rows, tileHeight, tileWidth, tileMargin } = this._getGridDimensions(participants.length);
 
         return (
@@ -345,7 +345,7 @@ class TileView extends PureComponent<IProps, IState> {
                     {
                         height: _height,
                         paddingTop: GRID_PADDING_TOP,
-                        paddingBottom: GRID_PADDING_BOTTOM + _safeAreaBottom,
+                        paddingBottom: GRID_PADDING_BOTTOM,
                         width: _width,
                     }
                 ] }>
@@ -383,8 +383,8 @@ class TileView extends PureComponent<IProps, IState> {
     }
 
     _getGridDimensions(count: number) {
-        const { _height, _width, _safeAreaTop, _safeAreaBottom, _aspectRatio } = this.props;
-        const availableHeight = _height - _safeAreaTop - _safeAreaBottom - GRID_PADDING_TOP - GRID_PADDING_BOTTOM;
+        const { _height, _width, _aspectRatio } = this.props;
+        const availableHeight = _height - GRID_PADDING_TOP - GRID_PADDING_BOTTOM;
         const availableWidth = _width;
         const tileMargin = 2;
 

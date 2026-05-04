@@ -4,16 +4,19 @@ import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 import BreakoutRooms
 // @ts-ignore
     from '../../../../../breakout-rooms/components/native/BreakoutRooms';
 // @ts-ignore
+import Chat from '../../../../../chat/components/native/Chat';
 // @ts-ignore
 import Conference from '../../../../../conference/components/native/Conference';
 // @ts-ignore
 import CarMode from '../../../../../conference/components/native/carmode/CarMode';
 // @ts-ignore
+import { arePollsDisabled } from '../../../../../conference/functions';
 // @ts-ignore
 import SharedDocument from '../../../../../etherpad/components/native/SharedDocument';
 // @ts-ignore
@@ -80,11 +83,21 @@ const ConferenceStack = createStackNavigator();
 
 
 const ConferenceNavigationContainer = () => {
+    const isPollsDisabled = useSelector(arePollsDisabled);
     const { t } = useTranslation();
 
-    const ChatScreen = ChatNavigator;
-    const chatScreenName = screen.conference.chatTabs.main;
-    const chatTitle = t('chat.tabs.polls');
+    let ChatScreen;
+    let chatScreenName;
+
+    if (isPollsDisabled) {
+        ChatScreen = Chat;
+        chatScreenName = screen.conference.chat;
+    } else {
+        ChatScreen = ChatNavigator;
+        chatScreenName = screen.conference.chatTabs.main;
+    }
+
+    const chatTitle = isPollsDisabled ? t('chat.title') : t('chat.tabs.polls');
 
     return (
         <NavigationContainer

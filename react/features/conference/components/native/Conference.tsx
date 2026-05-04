@@ -1,21 +1,25 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
+    Animated,
     BackHandler,
     DeviceEventEmitter,
+    NativeEventEmitter,
     NativeModules,
+    Platform,
+    Text,
     View,
     ViewStyle
 } from 'react-native';
+import Orientation from 'react-native-orientation-locker';
 import { Edge, EdgeInsets, SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
-import { setConnectionStatus } from '../../../base/conference/actions';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
-import { isDisplayNameVisible } from '../../../base/config/functions.native';
-import { getLocalParticipant, getParticipantCountRemoteOnly } from '../../../base/participants/functions';
+import { MEDIA_TYPE } from '../../../base/media/constants';
+import { getParticipantById, getRemoteParticipants, isScreenShareParticipant } from '../../../base/participants/functions';
 import Container from '../../../base/react/components/native/Container';
 import LoadingIndicator from '../../../base/react/components/native/LoadingIndicator';
 import TintedView from '../../../base/react/components/native/TintedView';
@@ -23,16 +27,19 @@ import {
     ASPECT_RATIO_NARROW,
     ASPECT_RATIO_WIDE
 } from '../../../base/responsive-ui/constants';
+import { updateSettings } from '../../../base/settings/actions';
+import { getHideSelfView } from '../../../base/settings/functions.any';
 import { StyleType } from '../../../base/styles/functions.any';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
+import { getTrackByMediaTypeAndParticipant } from '../../../base/tracks/functions.native';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
-import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
 import Filmstrip from '../../../filmstrip/components/native/Filmstrip';
 import FloatingLocalThumbnail from '../../../filmstrip/components/native/FloatingLocalThumbnail';
 import TileView from '../../../filmstrip/components/native/TileView';
 import { FILMSTRIP_SIZE } from '../../../filmstrip/constants';
 import { isFilmstripVisible } from '../../../filmstrip/functions.native';
+import { setCalleeInfoVisible } from '../../../invite/actions.any';
 import CalleeInfoContainer from '../../../invite/components/callee-info/CalleeInfoContainer';
 import LargeVideo from '../../../large-video/components/LargeVideo.native';
 import { getIsLobbyVisible } from '../../../lobby/functions';
@@ -43,8 +50,7 @@ import Captions from '../../../subtitles/components/native/Captions';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
-import { getCurrentRoomId, getRoomsInfo, isInBreakoutRoom } from '../../../breakout-rooms/functions';
-import EventLogPanel from '../../../debug-event-log/components/native/EventLogPanel';
+import { setTileView } from '../../../video-layout/actions.any';
 import {
     AbstractConference,
     type AbstractProps,
@@ -55,10 +61,78 @@ import { isConnecting } from '../functions.native';
 import AlwaysOnLabels from './AlwaysOnLabels';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
-import TitleBar from './TitleBar';
 import SideToolbar from './SideToolbar';
+import TitleBar from './TitleBar';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
+
+const { JSCommunicateComponent, OpenMelpModule } = NativeModules;
+const DOUBLE_PRESS_DELAY = 300;
+
+// Full-width absolutely-positioned row that centres the pill
+const remoteMutedBannerRow: ViewStyle = {
+    alignItems: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0
+};
+
+// The actual pill — sized to its content
+const remoteMutedBannerPill: ViewStyle = {
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 18,
+    borderWidth: 0.5,
+    paddingHorizontal: 18,
+    paddingVertical: 7
+};
+
+const remoteMutedTextStyle = {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500' as const
+};
+
+/**
+ * WhatsApp-style "Muted" pill that appears at the bottom-center of the large
+ * video when the remote participant has their mic off.
+ *
+ * @returns {ReactElement | null}
+ */
+function RemoteMutedBanner({ participantId, topOffset = 120 }: { participantId: string; topOffset?: number; }) {
+    const tracks = useSelector((state: IReduxState) => state['features/base/tracks']);
+    const participant = useSelector((state: IReduxState) => getParticipantById(state, participantId));
+    const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participantId);
+    const isMuted: boolean = audioTrack?.muted ?? false;
+    const isRemote = Boolean(participant && !participant.local);
+    const displayName: string = participant?.name ?? 'User';
+
+    const opacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(opacity, {
+            toValue: (isMuted && isRemote) ? 1 : 0,
+            duration: 300,
+            useNativeDriver: true
+        }).start();
+    }, [ isMuted, isRemote, opacity ]);
+
+    if (!isRemote) {
+        return null;
+    }
+
+    return (
+        <Animated.View
+            pointerEvents = 'none'
+            style = { [ remoteMutedBannerRow, { opacity, top: topOffset } ] }>
+            <View style = { remoteMutedBannerPill }>
+                <Text style = { remoteMutedTextStyle }>
+                    { `${displayName} is mute` }
+                </Text>
+            </View>
+        </Animated.View>
+    );
+}
 
 /**
  * The type of the React {@code Component} props of {@link Conference}.
@@ -86,6 +160,11 @@ interface IProps extends AbstractProps {
     _calendarEnabled: boolean;
 
     /**
+     * Whether the callee overlay is currently visible.
+     */
+    _calleeInfoVisible: boolean;
+
+    /**
      * The indicator which determines that we are still connecting to the
      * conference which includes establishing the XMPP connection and then
      * joining the room. If truthy, then an activity/loading indicator will be
@@ -94,14 +173,24 @@ interface IProps extends AbstractProps {
     _connecting: boolean;
 
     /**
+     * Whether the local self-view should be hidden.
+     */
+    _disableSelfView: boolean;
+
+    /**
      * Set to {@code true} when the filmstrip is currently visible.
      */
     _filmstripVisible: boolean;
 
     /**
-     * The indicator which determines if the display name is visible.
+     * Whether a non-screenshare remote participant has joined.
      */
-    _isDisplayNameVisible: boolean;
+    _hasConnectedRemoteParticipant: boolean;
+
+    /**
+     * Whether the Melp chat panel is currently open.
+     */
+    _isMelpChatOpen: boolean;
 
     /**
      * The indicator which determines if the participants pane is open.
@@ -119,6 +208,11 @@ interface IProps extends AbstractProps {
     _localParticipantDisplayName: string;
 
     /**
+     * Native call status mirrored from iOS.
+     */
+    _nativeCallStatus: string;
+
+    /**
      * Whether Picture-in-Picture is enabled.
      */
     _pictureInPictureEnabled: boolean;
@@ -128,16 +222,6 @@ interface IProps extends AbstractProps {
      * smaller display areas).
      */
     _reducedUI: boolean;
-
-    /**
-     * Total users count for native event.
-     */
-    _totalUsersCount?: number;
-
-    /**
-     * Whether the user is currently in a breakout room.
-     */
-    _isInBreakoutRoom?: boolean;
 
     /**
      * Indicates whether the lobby screen should be visible.
@@ -191,21 +275,13 @@ class Conference extends AbstractConference<IProps, State> {
      * Initializes hardwareBackPress subscription.
      */
     _hardwareBackPressSubscription: any;
-
-    /**
-     * Subscription to host app connection status updates.
-     */
+    _inCallMessageSubscription: any;
     _connectionStatusSubscription: any;
 
     /**
-     * Last sent total users count to native.
+     * Last tap timestamp used for double tap detection.
      */
-    _lastTotalUsers?: number;
-
-    /**
-     * Last sent breakout room status to native.
-     */
-    _lastBreakoutStatus?: boolean;
+    lastClickTime: number;
 
     /**
      * Initializes a new Conference instance.
@@ -225,9 +301,23 @@ class Conference extends AbstractConference<IProps, State> {
         // Bind event handlers so they are only bound once per instance.
         this._onClick = this._onClick.bind(this);
         this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
-        this._onConnectionStatus = this._onConnectionStatus.bind(this);
         this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
+        this.lastClickTime = 0;
+    }
+
+    _syncOrientationMode() {
+        const { _audioOnlyEnabled } = this.props;
+
+        OpenMelpModule?.isAudioMode?.(_audioOnlyEnabled);
+
+        if (_audioOnlyEnabled) {
+            Orientation.lockToPortrait();
+            OpenMelpModule?.IsRotateMode?.(false);
+        } else {
+            Orientation.unlockAllOrientations();
+            OpenMelpModule?.IsRotateMode?.(true);
+        }
     }
 
     /**
@@ -240,23 +330,38 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidMount() {
         const {
             _audioOnlyEnabled,
-            _isInBreakoutRoom,
-            _totalUsersCount,
             _startCarMode,
             navigation
         } = this.props;
+        const connectionStatusEmitter
+            = Platform.OS === 'ios' && JSCommunicateComponent
+                ? new NativeEventEmitter(JSCommunicateComponent)
+                : DeviceEventEmitter;
 
+        this.props.dispatch(updateSettings({
+            hasInCallMessage: false,
+            isMelpChatOpen: false,
+            nativeCallStatus: ''
+        }));
         this._hardwareBackPressSubscription = BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
-        this._connectionStatusSubscription = DeviceEventEmitter.addListener(
-            'connectionStatus',
-            this._onConnectionStatus);
+        this._connectionStatusSubscription = connectionStatusEmitter.addListener(
+            'connectionStatus', (event: { status?: string; } | string) => {
+                const status = typeof event === 'object' ? event.status : event;
+
+                this.props.dispatch(updateSettings({ nativeCallStatus: status || '' }));
+            });
+        this._inCallMessageSubscription = connectionStatusEmitter.addListener(
+            'setInCallMessage', () => {
+                if (!this.props._isMelpChatOpen) {
+                    this.props.dispatch(updateSettings({ hasInCallMessage: true }));
+                }
+            });
+        this._syncOrientationMode();
+        this._dismissConnectedCalleeInfoIfNeeded();
 
         if (_audioOnlyEnabled && _startCarMode) {
             navigation.navigate(screen.conference.carmode);
         }
-
-        this._maybeSendTotalUsers(_totalUsersCount);
-        this._maybeSendBreakoutStatus(_isInBreakoutRoom);
     }
 
     /**
@@ -267,8 +372,6 @@ class Conference extends AbstractConference<IProps, State> {
     override componentDidUpdate(prevProps: IProps) {
         const {
             _audioOnlyEnabled,
-            _isInBreakoutRoom,
-            _totalUsersCount,
             _showLobby,
             _startCarMode
         } = this.props;
@@ -285,13 +388,11 @@ class Conference extends AbstractConference<IProps, State> {
             navigate(screen.conference.main);
         }
 
-        if (prevProps._totalUsersCount !== _totalUsersCount) {
-            this._maybeSendTotalUsers(_totalUsersCount);
+        if (prevProps._audioOnlyEnabled !== _audioOnlyEnabled) {
+            this._syncOrientationMode();
         }
 
-        if (prevProps._isInBreakoutRoom !== _isInBreakoutRoom) {
-            this._maybeSendBreakoutStatus(_isInBreakoutRoom);
-        }
+        this._dismissConnectedCalleeInfoIfNeeded();
     }
 
     /**
@@ -305,50 +406,21 @@ class Conference extends AbstractConference<IProps, State> {
     override componentWillUnmount() {
         // Tear handling any hardware button presses for back navigation down.
         this._hardwareBackPressSubscription?.remove();
+        this._inCallMessageSubscription?.remove();
         this._connectionStatusSubscription?.remove();
+        this.props.dispatch(updateSettings({
+            callingType: undefined,
+            hasInCallMessage: false,
+            isIncomingCall: false,
+            isMelpChatOpen: false,
+            nativeCallStatus: '',
+            nativeHoldEnabled: false,
+            nativeHoldPreviousAudioMuted: undefined
+        }));
+        Orientation.unlockAllOrientations();
+        OpenMelpModule?.IsRotateMode?.(false);
 
         clearTimeout(this._expandedLabelTimeout.current ?? 0);
-        this._lastTotalUsers = undefined;
-        this._lastBreakoutStatus = undefined;
-        this._maybeSendBreakoutStatus(false);
-    }
-
-    /**
-     * Sends total users count to native only on change.
-     *
-     * @param {number | undefined} count - Remote participants count.
-     * @returns {void}
-     */
-    _maybeSendTotalUsers(count?: number) {
-        if (typeof count !== 'number') {
-            return;
-        }
-
-        if (this._lastTotalUsers === count) {
-            return;
-        }
-
-        this._lastTotalUsers = count;
-        NativeModules?.NativeCallsNew?.totalUsers?.(count+1);
-    }
-
-    /**
-     * Sends breakout room status to native only on change.
-     *
-     * @param {boolean | undefined} inBreakout - Whether user is in breakout room.
-     * @returns {void}
-     */
-    _maybeSendBreakoutStatus(inBreakout?: boolean) {
-        if (typeof inBreakout !== 'boolean') {
-            return;
-        }
-
-        if (this._lastBreakoutStatus === inBreakout) {
-            return;
-        }
-
-        this._lastBreakoutStatus = inBreakout;
-        NativeModules?.NativeCallsNew?.setInBreakoutRoom?.(inBreakout);
     }
 
     /**
@@ -382,7 +454,19 @@ class Conference extends AbstractConference<IProps, State> {
      * @returns {void}
      */
     _onClick() {
-        this._setToolboxVisible(!this.props._toolboxVisible);
+        const now = Date.now();
+        const isDoubleTap = now - this.lastClickTime < DOUBLE_PRESS_DELAY;
+
+        if (isDoubleTap && !this.props._shouldDisplayTileView) {
+            // Double-tap in large video → go back to tile view
+           
+            this.props.dispatch(setTileView(true));
+        } else if (!isDoubleTap) {
+            
+            this._setToolboxVisible(!this.props._toolboxVisible);
+        }
+
+        this.lastClickTime = now;
     }
 
     /**
@@ -407,20 +491,6 @@ class Conference extends AbstractConference<IProps, State> {
         });
 
         return true;
-    }
-
-    /**
-     * Handles connection status events coming from the host app.
-     *
-     * @param {Object|string} event - The event payload.
-     * @returns {void}
-     */
-    _onConnectionStatus(event: { status?: string } | string) {
-        const status = typeof event === 'string' ? event : event?.status;
-
-        if (typeof status === 'string') {
-            this.props.dispatch(setConnectionStatus(status));
-        }
     }
 
     /**
@@ -462,10 +532,9 @@ class Conference extends AbstractConference<IProps, State> {
     _renderContent() {
         const {
             _aspectRatio,
+            _audioOnlyEnabled,
             _connecting,
             _filmstripVisible,
-            _isDisplayNameVisible,
-            _largeVideoParticipantId,
             _reducedUI,
             _shouldDisplayTileView,
             _toolboxVisible
@@ -519,33 +588,20 @@ class Conference extends AbstractConference<IProps, State> {
 
                     <Captions onPress = { this._onClick } />
                     <SideToolbar />
-                    <FloatingLocalThumbnail />
-                    { typeof __DEV__ !== 'undefined' && __DEV__ && <EventLogPanel /> }
-
-                    {
-                        !_shouldDisplayTileView && _isDisplayNameVisible && (
-                            <Container style = { styles.displayNameContainer }>
-                                <DisplayNameLabel
-                                    participantId = { _largeVideoParticipantId } />
-                            </Container>
-                        )
-                    }
 
                     { !_shouldDisplayTileView && <LonelyMeetingExperience /> }
 
                     {
                         _shouldDisplayTileView
-                            ? <>
-                                { this._renderNotificationsContainer() }
-                                <Toolbox />
-                            </>
-                            : <>
-                                <Filmstrip />
-                                { this._renderNotificationsContainer() }
-                                <Toolbox />
-                            </>
+                        || <>
+                            <Filmstrip />
+                            { this._renderNotificationsContainer() }
+                            <Toolbox />
+                        </>
                     }
                 </View>
+
+                <FloatingLocalThumbnail />
 
                 <SafeAreaView
                     edges = { [ 'left', 'right', 'top' ] }
@@ -556,14 +612,16 @@ class Conference extends AbstractConference<IProps, State> {
                             : styles.titleBarSafeViewTransparent) as ViewStyle }>
                     <TitleBar _createOnPress = { this._createOnPress } />
                 </SafeAreaView>
+
+                { !_shouldDisplayTileView && (
+                    <RemoteMutedBanner
+                        participantId = { this.props._largeVideoParticipantId }
+                        topOffset = { this.props.insets.top + 112 } />
+                ) }
                 <SafeAreaView
                     edges = { [ 'bottom', 'left', 'right', !_toolboxVisible && 'top' ].filter(Boolean) as Edge[] }
                     pointerEvents = 'box-none'
-                    style = {
-                        (_toolboxVisible
-                            ? [ styles.titleBarSafeViewTransparent, { top: this.props.insets.top + 50 } ]
-                            : styles.titleBarSafeViewTransparent) as ViewStyle
-                    }>
+                    style = { styles.titleBarSafeViewTransparent as ViewStyle }>
                     <View
                         pointerEvents = 'box-none'
                         style = { styles.expandedLabelWrapper }>
@@ -579,6 +637,13 @@ class Conference extends AbstractConference<IProps, State> {
 
                 <TestConnectionInfo />
 
+                {
+                    _shouldDisplayTileView
+                    && <>
+                        { this._renderNotificationsContainer() }
+                        <Toolbox />
+                    </>
+                }
             </>
         );
     }
@@ -627,9 +692,14 @@ class Conference extends AbstractConference<IProps, State> {
         // size was explicit 'width' value which is not better than the margin
         // added here.
         const { _aspectRatio, _filmstripVisible } = this.props;
+        const isWideIosFilmstripOnLeft = Platform.OS === 'ios' && _aspectRatio !== ASPECT_RATIO_NARROW;
 
         if (_filmstripVisible && _aspectRatio !== ASPECT_RATIO_NARROW) {
-            notificationsStyle.marginRight = FILMSTRIP_SIZE;
+            if (isWideIosFilmstripOnLeft) {
+                notificationsStyle.marginLeft = FILMSTRIP_SIZE;
+            } else {
+                notificationsStyle.marginRight = FILMSTRIP_SIZE;
+            }
         }
 
         return super.renderNotificationsContainer(
@@ -639,6 +709,21 @@ class Conference extends AbstractConference<IProps, State> {
                 toolboxVisible: this.props._toolboxVisible
             }
         );
+    }
+
+    _dismissConnectedCalleeInfoIfNeeded() {
+        const {
+            _calleeInfoVisible,
+            _hasConnectedRemoteParticipant,
+            _nativeCallStatus,
+            dispatch
+        } = this.props;
+
+        if (_calleeInfoVisible
+            && !_hasConnectedRemoteParticipant
+            && _nativeCallStatus === 'Connected') {
+            dispatch(setCalleeInfoVisible(false));
+        }
     }
 
     /**
@@ -666,50 +751,33 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
     const { isOpen } = state['features/participants-pane'];
     const { aspectRatio, reducedUI } = state['features/base/responsive-ui'];
     const { backgroundColor } = state['features/dynamic-branding'];
-    const { startCarMode } = state['features/base/settings'];
+    const settings: any = state['features/base/settings'];
+    const { startCarMode } = settings;
     const { enabled: audioOnlyEnabled } = state['features/base/audio-only'];
+    const remoteParticipants = getRemoteParticipants(state);
     const brandingStyles = backgroundColor ? {
         background: backgroundColor
     } : undefined;
+    const hasConnectedRemoteParticipant
+        = Array.from(remoteParticipants.values()).some(participant => !isScreenShareParticipant(participant));
 
     return {
         ...abstractMapStateToProps(state),
         _aspectRatio: aspectRatio,
         _audioOnlyEnabled: Boolean(audioOnlyEnabled),
         _brandingStyles: brandingStyles,
+        _calleeInfoVisible: Boolean(state['features/invite'].calleeInfoVisible),
         _calendarEnabled: isCalendarEnabled(state),
         _connecting: isConnecting(state),
+        _disableSelfView: getHideSelfView(state),
         _filmstripVisible: isFilmstripVisible(state),
-        _isDisplayNameVisible: isDisplayNameVisible(state),
-        _isInBreakoutRoom: isInBreakoutRoom(state),
+        _hasConnectedRemoteParticipant: hasConnectedRemoteParticipant,
+        _isMelpChatOpen: Boolean(settings?.isMelpChatOpen),
         _isParticipantsPaneOpen: isOpen,
         _largeVideoParticipantId: state['features/large-video'].participantId,
+        _nativeCallStatus: settings?.nativeCallStatus || '',
         _pictureInPictureEnabled: isPipEnabled(state),
         _reducedUI: reducedUI,
-        _totalUsersCount: (() => {
-            const remoteCount = getParticipantCountRemoteOnly(state);
-            const localParticipant = getLocalParticipant(state);
-            const inBreakoutRoom = isInBreakoutRoom(state);
-
-            if (!inBreakoutRoom) {
-                return remoteCount;
-            }
-
-            const roomsInfo = getRoomsInfo(state);
-            const currentRoomId = getCurrentRoomId(state);
-            const currentRoom = roomsInfo?.rooms?.find(room =>
-                room.id === currentRoomId || room.jid === currentRoomId);
-            const participantIds = currentRoom?.participants
-                ?.map(p => p?.id)
-                .filter(Boolean) ?? [];
-            let count = participantIds.length;
-
-            if (localParticipant?.id && !participantIds.includes(localParticipant.id)) {
-                count += 1;
-            }
-
-            return count || (localParticipant ? 1 : 0);
-        })(),
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
         _toolboxVisible: isToolboxVisible(state)
