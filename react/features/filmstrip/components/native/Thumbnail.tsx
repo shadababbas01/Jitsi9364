@@ -486,10 +486,14 @@ class Thumbnail extends PureComponent<IProps> {
             tileView,
             width
         } = this.props;
+        const effectiveTileBorderRadius = tileView ? (borderRadius ?? 15) : borderRadius;
+        const disableVideo = !tileView && (isScreenShare || _fakeParticipant);
+        const isVideoOn = Boolean(_videoTrack) && !disableVideo && shouldRenderVideoTrack(_videoTrack, false);
+        const tileBackgroundColor = tileView && !isVideoOn ? '#000000a4' : backgroundColor;
         const styleOverrides = tileView ? {
             aspectRatio: width/height,
-            backgroundColor,
-            borderRadius,
+            backgroundColor: tileBackgroundColor,
+            borderRadius: effectiveTileBorderRadius,
             flex: 0,
             borderWidth: borderWidth ?? 2,
             height,
@@ -501,8 +505,6 @@ class Thumbnail extends PureComponent<IProps> {
         const indicatorStyle: ViewStyle = {
             bottom: tileView ? 10 : 6
         };
-        const disableVideo = !tileView && (isScreenShare || _fakeParticipant);
-        const isVideoOn = Boolean(_videoTrack) && !disableVideo && shouldRenderVideoTrack(_videoTrack, false);
         const shouldShowAudioIndicator = (showAudioIndicator ?? true)
             && !(hideAudioIndicatorWhenVideoOn && isVideoOn);
 
@@ -526,8 +528,8 @@ class Thumbnail extends PureComponent<IProps> {
                         <View
                             style = { [
                                 styles.thumbnailVideoClip,
-                                backgroundColor ? { backgroundColor } : null,
-                                borderRadius ? { borderRadius } : null
+                                tileBackgroundColor ? { backgroundColor: tileBackgroundColor } : null,
+                                effectiveTileBorderRadius ? { borderRadius: effectiveTileBorderRadius } : null
                             ] as ViewStyle[] }>
                             <ParticipantView
                                 avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
@@ -536,7 +538,7 @@ class Thumbnail extends PureComponent<IProps> {
                                 showAudioIndicator = { shouldShowAudioIndicator }
                                 showSpeakerWave = { Boolean(tileView) }
                                 showStatusLabel = { Boolean(tileView) }
-                                videoBorderRadius = { borderRadius }
+                                videoBorderRadius = { effectiveTileBorderRadius }
                                 zOrder = { 1 } />
                                 
                         </View>

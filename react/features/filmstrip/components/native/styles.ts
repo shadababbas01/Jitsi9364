@@ -202,16 +202,24 @@ export default {
 
     raisedHandIndicator: {
         ...indicatorContainer,
-       backgroundColor: '#000000'
+        alignItems: 'center',
+        backgroundColor: '#16253a',
+        borderColor: '#4c8dff',
+        borderRadius: 24,
+        borderWidth: 2,
+        height: 28,
+        justifyContent: 'center',
+        width: 40
     },
 
     raisedHandIcon: {
-        color: '#9c9696'
+        color: '#8bc1ff',
+        fontSize: 22
     },
 
     thumbnailRaisedHand: {
         borderWidth: 2,
-        borderColor: '#9c9696'
+        borderColor: '#4c8dff'
     },
 
     thumbnailDominantSpeaker: {
