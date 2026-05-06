@@ -6,6 +6,12 @@ let ConnectionService = NativeModules.ConnectionService;
 // the many methods of the latter to the former, add the one additional
 // method that we need to ConnectionService.
 if (ConnectionService) {
+    if (typeof ConnectionService.addListener !== 'function') {
+        ConnectionService.addListener = () => {};
+    }
+    if (typeof ConnectionService.removeListeners !== 'function') {
+        ConnectionService.removeListeners = () => {};
+    }
     const eventEmitter = new NativeEventEmitter(ConnectionService);
 
     ConnectionService = {

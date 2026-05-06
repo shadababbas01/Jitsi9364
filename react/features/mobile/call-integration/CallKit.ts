@@ -30,6 +30,12 @@ let CallKit = NativeModules.RNCallKit;
 // methods of the latter to the former, add the one additional method that we
 // need to RNCallKit.
 if (CallKit) {
+    if (typeof CallKit.addListener !== 'function') {
+        CallKit.addListener = () => {};
+    }
+    if (typeof CallKit.removeListeners !== 'function') {
+        CallKit.removeListeners = () => {};
+    }
     const eventEmitter = new NativeEventEmitter(CallKit);
 
     CallKit = {

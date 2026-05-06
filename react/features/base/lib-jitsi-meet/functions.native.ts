@@ -19,7 +19,14 @@ const { JavaScriptSandbox } = NativeModules;
 export async function loadConfig(url: string): Promise<Object> {
     try {
         const configTxt = await loadScript(url, 10 * 1000 /* Timeout in ms */, true /* skipeval */);
-        const configJson = await JavaScriptSandbox.evaluate(`${configTxt}\nJSON.stringify(config);`);
+        // meet.jit.si started serving websocket URL as a template literal:
+        // websocket: `wss://...${subdomain}`
+        // The JS sandbox used by this app version may fail to parse that syntax.
+        // Normalize it to string concatenation before evaluation.
+        const normalizedConfigTxt = configTxt.replace(
+            /websocket:\s*`([^`$]*)\$\{subdomain\}([^`]*)`/g,
+            "websocket: '$1' + subdomain + '$2'");
+        const configJson = await JavaScriptSandbox.evaluate(`${normalizedConfigTxt}\nJSON.stringify(config);`);
         const config = safeJsonParse(configJson);
 
         if (typeof config !== 'object') {

@@ -80,7 +80,8 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.1'
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.13'
+    // Disabled: LeakCanary adds a launcher activity that can hijack app startup in debug.
+    // debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.13'
 
     if (!rootProject.ext.libreBuild) {
         // Sync with react-native-google-signin

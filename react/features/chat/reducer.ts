@@ -20,6 +20,7 @@ import {
     SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
     SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
+import { SET_REQUESTING_SUBTITLES } from '../subtitles/actionTypes';
 import { IMessage } from './types';
 
 const DEFAULT_STATE = {

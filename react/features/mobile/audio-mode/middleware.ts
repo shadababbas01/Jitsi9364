@@ -18,6 +18,14 @@ import { _SET_AUDIOMODE_DEVICES, _SET_AUDIOMODE_SUBSCRIPTIONS } from './actionTy
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
+if (AudioMode) {
+    if (typeof AudioMode.addListener !== 'function') {
+        AudioMode.addListener = () => {};
+    }
+    if (typeof AudioMode.removeListeners !== 'function') {
+        AudioMode.removeListeners = () => {};
+    }
+}
 const AudioModeEmitter = new NativeEventEmitter(AudioMode);
 
 /**

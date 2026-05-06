@@ -112,6 +112,12 @@ let eventEmitter: any;
 const { ExternalAPI } = NativeModules;
 
 if (externalAPIEnabled) {
+    if (typeof ExternalAPI?.addListener !== 'function') {
+        ExternalAPI.addListener = () => {};
+    }
+    if (typeof ExternalAPI?.removeListeners !== 'function') {
+        ExternalAPI.removeListeners = () => {};
+    }
     eventEmitter = new NativeEventEmitter(ExternalAPI);
 }
 
