@@ -4,6 +4,7 @@ import { AnyAction } from 'redux';
 import { IStore } from '../../app/types';
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app/actionTypes';
 import { SET_AUDIO_ONLY } from '../../base/audio-only/actionTypes';
+import { SET_VIDEO_MUTED } from '../../base/media/actionTypes';
 import {
     CONFERENCE_FAILED,
     CONFERENCE_JOINED,
@@ -156,6 +157,9 @@ function _setSubscriptions({ getState }: IStore) {
  * @returns {*} The value returned by {@code next(action)}.
  */
 function _updateAudioMode({ getState }: IStore, next: Function, action: AnyAction) {
+    const prevState = getState();
+    const prevAudioOnly = prevState['features/base/audio-only']?.enabled;
+    const prevSelectedDevice = prevState['features/mobile/audio-mode']?.devices?.find(device => device.selected);
     const result = next(action);
     const state = getState();
     const conference = getCurrentConference(state);
@@ -171,6 +175,26 @@ function _updateAudioMode({ getState }: IStore, next: Function, action: AnyActio
     }
 
     AudioMode.setMode(mode).catch((err: any) => logger.error(`Failed to set audio mode ${String(mode)}: ${err}`));
+
+    if (action.type === SET_AUDIO_ONLY && conference) {
+        const currentAudioOnly = state['features/base/audio-only']?.enabled;
+
+        if (prevAudioOnly && !currentAudioOnly && (!prevSelectedDevice || prevSelectedDevice.type === 'EARPIECE')) {
+            AudioMode.setAudioDevice?.('SPEAKER');
+        } else if (!prevAudioOnly && currentAudioOnly && (!prevSelectedDevice || prevSelectedDevice.type === 'SPEAKER')) {
+            AudioMode.setAudioDevice?.('EARPIECE');
+        }
+    }
+
+    if (action.type === SET_VIDEO_MUTED && conference) {
+        const isVideoMuted = Boolean(action.muted);
+
+        if (!isVideoMuted && (!prevSelectedDevice || prevSelectedDevice.type === 'EARPIECE')) {
+            AudioMode.setAudioDevice?.('SPEAKER');
+        } else if (isVideoMuted && (!prevSelectedDevice || prevSelectedDevice.type === 'SPEAKER')) {
+            AudioMode.setAudioDevice?.('EARPIECE');
+        }
+    }
 
     return result;
 }

@@ -71,6 +71,11 @@ export default {
         top: BaseTheme.spacing[0]
     },
 
+    filmstripWideLeft: {
+        left: BaseTheme.spacing[0],
+        right: undefined
+    },
+
     /**
      * The styles for the FlatList container.
      */

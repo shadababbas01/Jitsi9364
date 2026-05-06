@@ -290,11 +290,11 @@ class Thumbnail extends PureComponent<IProps> {
             clearTimeout(this._doubleTapTimeout);
             this._doubleTapTimeout = undefined;
         }
-        const { _fakeParticipant, _participantId, _local, _localVideoOwner, dispatch } = this.props;
+        const { _fakeParticipant, _participantId, _local, _localVideoOwner, dispatch, tileView } = this.props;
 
         if (!_fakeParticipant) {
             if (!_local) {
-                dispatch(showContextMenuDetails(_participantId));
+                dispatch(showContextMenuDetails(_participantId, false, { compact: Boolean(tileView) }));
              }
             }
         // if (_fakeParticipant && _localVideoOwner) {

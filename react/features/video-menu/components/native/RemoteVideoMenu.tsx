@@ -45,6 +45,7 @@ import styles from './styles';
 const AVATAR_SIZE = 24;
 
 interface IProps {
+    _compact: boolean;
 
     /**
      * The id of the current room.
@@ -162,6 +163,7 @@ class RemoteVideoMenu extends PureComponent<IProps> {
             _rooms,
             _showDemote,
             _currentRoomId,
+            _compact,
             participantId,
             t
         } = this.props;
@@ -269,6 +271,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const raisedHand = hasRaisedHand(participant);
 
     return {
+        _compact: Boolean(ownProps.compact),
         _currentRoomId,
         _disableKick: Boolean(shouldDisableKick),
         _disableRemoteMute: Boolean(disableRemoteMute),

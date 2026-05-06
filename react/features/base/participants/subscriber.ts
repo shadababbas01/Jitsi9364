@@ -162,13 +162,5 @@ function _updateScreenshareParticipantsBasedOnPresence(store: IStore): void {
 function _notifyNextSpeakerInRaisedHandQueue(store: IStore): void {
     const { dispatch } = store;
 
-    batch(() => {
-        dispatch(showNotification({
-            titleKey: 'notify.nextToSpeak',
-            maxLines: 2
-        }, NOTIFICATION_TIMEOUT_TYPE.MEDIUM));
-        dispatch({
-            type: NOTIFIED_TO_SPEAK
-        });
-    });
+    
 }

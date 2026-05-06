@@ -18,6 +18,7 @@ import { connect, useDispatch, useSelector } from 'react-redux';
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
+import { setConnectionStatus } from '../../../base/conference/actions.any';
 import { MEDIA_TYPE } from '../../../base/media/constants';
 import { getParticipantById, getRemoteParticipants, isScreenShareParticipant } from '../../../base/participants/functions';
 import Container from '../../../base/react/components/native/Container';
@@ -347,8 +348,16 @@ class Conference extends AbstractConference<IProps, State> {
         this._connectionStatusSubscription = connectionStatusEmitter.addListener(
             'connectionStatus', (event: { status?: string; } | string) => {
                 const status = typeof event === 'object' ? event.status : event;
+                const normalizedStatus = String(status || '').trim().toLowerCase();
+                const acceptedStatuses = new Set([ 'calling', 'ringing', 'connected', 'connecting', 'reconnecting' ]);
 
                 this.props.dispatch(updateSettings({ nativeCallStatus: status || '' }));
+
+                if (acceptedStatuses.has(normalizedStatus)) {
+                    this.props.dispatch(setConnectionStatus(normalizedStatus));
+                } else if (!normalizedStatus) {
+                    this.props.dispatch(setConnectionStatus('clear'));
+                }
             });
         this._inCallMessageSubscription = connectionStatusEmitter.addListener(
             'setInCallMessage', () => {
