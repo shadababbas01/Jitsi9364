@@ -348,7 +348,7 @@ class Conference extends AbstractConference<IProps, State> {
         this._connectionStatusSubscription = connectionStatusEmitter.addListener(
             'connectionStatus', (event: { status?: string; } | string) => {
                 const status = typeof event === 'object' ? event.status : event;
-                const normalizedStatus = String(status || '').trim().toLowerCase();
+                const normalizedStatus = String(status || '').trim().replace(/\.+$/, '').toLowerCase();
                 const acceptedStatuses = new Set([ 'calling', 'ringing', 'connected', 'connecting', 'reconnecting' ]);
 
                 this.props.dispatch(updateSettings({ nativeCallStatus: status || '' }));
