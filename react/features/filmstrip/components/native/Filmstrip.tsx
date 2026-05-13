@@ -250,6 +250,10 @@ class Filmstrip extends PureComponent<IProps> {
         );
         const participants = _isOneToOne && this._separateLocalThumbnail ? [] : _participants;
 
+        if (participants.length <= 1) {
+            return null;
+        }
+
         return (
             <SafeAreaView
                 edges = { [ bottomEdge && 'bottom', 'left', 'right' ].filter(Boolean) as Edge[] }

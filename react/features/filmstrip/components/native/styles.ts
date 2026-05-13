@@ -155,7 +155,7 @@ export default {
         alignItems: 'stretch',
         backgroundColor: BaseTheme.palette.ui02,
         borderColor: BaseTheme.palette.ui03,
-        borderRadius: 16,
+        borderRadius: 6,
         borderStyle: 'solid',
         borderWidth: 1,
         flex: 1,

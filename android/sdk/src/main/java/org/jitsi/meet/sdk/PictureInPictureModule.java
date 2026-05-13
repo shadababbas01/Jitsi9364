@@ -82,6 +82,10 @@ class PictureInPictureModule extends ReactContextBaseJavaModule {
      * screen is locked or if the user has an activity pinned.
      */
     public void enterPictureInPicture() {
+        enterPictureInPictureInternal(0, 0);
+    }
+
+    private void enterPictureInPictureInternal(int requestedWidth, int requestedHeight) {
         if (!isEnabled) {
             return;
         }
@@ -123,6 +127,16 @@ class PictureInPictureModule extends ReactContextBaseJavaModule {
     public void enterPictureInPicture(Promise promise) {
         try {
             enterPictureInPicture();
+            promise.resolve(null);
+        } catch (RuntimeException re) {
+            promise.reject(re);
+        }
+    }
+
+    @ReactMethod
+    public void enterPictureInPictureWithAspect(double width, double height, Promise promise) {
+        try {
+            enterPictureInPictureInternal((int) width, (int) height);
             promise.resolve(null);
         } catch (RuntimeException re) {
             promise.reject(re);

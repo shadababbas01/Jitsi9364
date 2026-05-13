@@ -17,10 +17,16 @@ import { connect, useDispatch, useSelector } from 'react-redux';
 
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
+import Avatar from '../../../base/avatar/components/Avatar';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { setConnectionStatus } from '../../../base/conference/actions.any';
 import { MEDIA_TYPE } from '../../../base/media/constants';
-import { getParticipantById, getRemoteParticipants, isScreenShareParticipant } from '../../../base/participants/functions';
+import {
+    getLocalParticipant,
+    getParticipantById,
+    getRemoteParticipants,
+    isScreenShareParticipant
+} from '../../../base/participants/functions';
 import Container from '../../../base/react/components/native/Container';
 import LoadingIndicator from '../../../base/react/components/native/LoadingIndicator';
 import TintedView from '../../../base/react/components/native/TintedView';
@@ -199,9 +205,19 @@ interface IProps extends AbstractProps {
     _isParticipantsPaneOpen: boolean;
 
     /**
+     * Whether app is currently in native PiP mode.
+     */
+    _isNativePipMode: boolean;
+
+    /**
      * The ID of the participant currently on stage (if any).
      */
     _largeVideoParticipantId: string;
+
+    /**
+     * Local participant id.
+     */
+    _localParticipantId?: string;
 
     /**
      * Local participant's display name.
@@ -278,6 +294,7 @@ class Conference extends AbstractConference<IProps, State> {
     _hardwareBackPressSubscription: any;
     _inCallMessageSubscription: any;
     _connectionStatusSubscription: any;
+    _pipModeSubscription: any;
 
     /**
      * Last tap timestamp used for double tap detection.
@@ -342,6 +359,7 @@ class Conference extends AbstractConference<IProps, State> {
         this.props.dispatch(updateSettings({
             hasInCallMessage: false,
             isMelpChatOpen: false,
+            isNativePipMode: false,
             nativeCallStatus: ''
         }));
         this._hardwareBackPressSubscription = BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
@@ -364,6 +382,15 @@ class Conference extends AbstractConference<IProps, State> {
                 if (!this.props._isMelpChatOpen) {
                     this.props.dispatch(updateSettings({ hasInCallMessage: true }));
                 }
+            });
+        this._pipModeSubscription = connectionStatusEmitter.addListener(
+            'pictureInPictureModeChanged', (event: { isInPictureInPictureMode?: boolean; } | boolean) => {
+                const isInPictureInPictureMode
+                    = typeof event === 'boolean'
+                        ? event
+                        : Boolean(event?.isInPictureInPictureMode);
+
+                this.props.dispatch(updateSettings({ isNativePipMode: isInPictureInPictureMode }));
             });
         this._syncOrientationMode();
         this._dismissConnectedCalleeInfoIfNeeded();
@@ -417,11 +444,13 @@ class Conference extends AbstractConference<IProps, State> {
         this._hardwareBackPressSubscription?.remove();
         this._inCallMessageSubscription?.remove();
         this._connectionStatusSubscription?.remove();
+        this._pipModeSubscription?.remove();
         this.props.dispatch(updateSettings({
             callingType: undefined,
             hasInCallMessage: false,
             isIncomingCall: false,
             isMelpChatOpen: false,
+            isNativePipMode: false,
             nativeCallStatus: '',
             nativeHoldEnabled: false,
             nativeHoldPreviousAudioMuted: undefined
@@ -544,6 +573,8 @@ class Conference extends AbstractConference<IProps, State> {
             _audioOnlyEnabled,
             _connecting,
             _filmstripVisible,
+            _isNativePipMode,
+            _localParticipantId,
             _reducedUI,
             _shouldDisplayTileView,
             _toolboxVisible
@@ -553,6 +584,23 @@ class Conference extends AbstractConference<IProps, State> {
 
         if (_reducedUI) {
             return this._renderContentForReducedUi();
+        }
+
+        if (_isNativePipMode) {
+            return (
+                <View style = { styles.pipAvatarContainer as ViewStyle }>
+                    <Avatar
+                        participantId = { _localParticipantId }
+                        size = { 120 }
+                        style = { styles.pipAvatar as ViewStyle } />
+                    {
+                        _connecting
+                            && <TintedView>
+                                <LoadingIndicator />
+                            </TintedView>
+                    }
+                </View>
+            );
         }
 
         if (_aspectRatio === ASPECT_RATIO_WIDE) {
@@ -763,6 +811,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
     const settings: any = state['features/base/settings'];
     const { startCarMode } = settings;
     const { enabled: audioOnlyEnabled } = state['features/base/audio-only'];
+    const localParticipant = getLocalParticipant(state);
     const remoteParticipants = getRemoteParticipants(state);
     const brandingStyles = backgroundColor ? {
         background: backgroundColor
@@ -782,8 +831,10 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _filmstripVisible: isFilmstripVisible(state),
         _hasConnectedRemoteParticipant: hasConnectedRemoteParticipant,
         _isMelpChatOpen: Boolean(settings?.isMelpChatOpen),
+        _isNativePipMode: Boolean(settings?.isNativePipMode),
         _isParticipantsPaneOpen: isOpen,
         _largeVideoParticipantId: state['features/large-video'].participantId,
+        _localParticipantId: localParticipant?.id,
         _nativeCallStatus: settings?.nativeCallStatus || '',
         _pictureInPictureEnabled: isPipEnabled(state),
         _reducedUI: reducedUI,

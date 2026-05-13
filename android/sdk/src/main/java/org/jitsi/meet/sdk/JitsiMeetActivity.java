@@ -357,6 +357,12 @@ public class JitsiMeetActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        ReactInstanceManagerHolder.emitEvent("pictureInPictureModeChanged", isInPictureInPictureMode);
+    }
+
     // JitsiMeetActivityInterface
     //
 

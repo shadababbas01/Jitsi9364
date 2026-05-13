@@ -13,6 +13,9 @@ const STATUS_DISPLAY_TEXT: Record<string, string> = {
     reconnecting: 'Reconnecting...',
     ringing: 'Ringing...'
 };
+const CONNECTED_PHASE_CONNECTED_MS = 1000;
+const CONNECTED_PHASE_ENCRYPTED_MS = 2000;
+const CONNECTED_ENCRYPTED_TEXT = 'End to end encrypted';
 
 function normalizeStatus(rawStatus?: string) {
     if (!rawStatus) {
@@ -36,7 +39,7 @@ export default function ConnectionStatusLabel() {
 
         const intervalId = setInterval(() => {
             setNow(Date.now());
-        }, 1000);
+        }, 250);
 
         return () => clearInterval(intervalId);
     }, [ effectiveStatus, effectiveConnectedTimestamp ]);
@@ -52,6 +55,13 @@ export default function ConnectionStatusLabel() {
     let statusText = STATUS_DISPLAY_TEXT[effectiveStatus] || effectiveStatus;
 
     if (effectiveStatus === 'connected' && effectiveConnectedTimestamp) {
+        const elapsedMs = Math.max(0, now - effectiveConnectedTimestamp);
+
+        if (elapsedMs < CONNECTED_PHASE_CONNECTED_MS) {
+            statusText = STATUS_DISPLAY_TEXT.connected;
+        } else if (elapsedMs < CONNECTED_PHASE_ENCRYPTED_MS) {
+            statusText = CONNECTED_ENCRYPTED_TEXT;
+        } else {
         const totalSeconds = Math.max(0, Math.floor((now - effectiveConnectedTimestamp) / 1000));
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -60,6 +70,7 @@ export default function ConnectionStatusLabel() {
         statusText = hours > 0
             ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
             : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
     }
 
     return (

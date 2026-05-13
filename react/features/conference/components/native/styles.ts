@@ -44,6 +44,16 @@ export default {
         flex: 1
     },
 
+    pipAvatarContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center'
+    },
+
+    pipAvatar: {
+        opacity: 0.98
+    },
+
     displayNameContainer: {
         margin: BaseTheme.spacing[3]
     },

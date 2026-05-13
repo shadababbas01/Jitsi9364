@@ -24,10 +24,15 @@ export function enterPictureInPicture() {
         // fine to enter PiP mode.
         if (isPipEnabled(getState())) {
             const { PictureInPicture } = NativeModules;
+            const { clientHeight, clientWidth } = getState()['features/base/responsive-ui'];
+            const hasViewportSize = Number.isFinite(clientWidth) && clientWidth > 0
+                && Number.isFinite(clientHeight) && clientHeight > 0;
             const p
                 = Platform.OS === 'android'
                     ? PictureInPicture
-                        ? PictureInPicture.enterPictureInPicture()
+                        ? hasViewportSize && typeof PictureInPicture.enterPictureInPictureWithAspect === 'function'
+                            ? PictureInPicture.enterPictureInPictureWithAspect(clientWidth, clientHeight)
+                            : PictureInPicture.enterPictureInPicture()
                         : Promise.reject(
                             new Error('Picture-in-Picture not supported'))
                     : Promise.resolve();
