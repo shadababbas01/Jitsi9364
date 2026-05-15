@@ -5,6 +5,7 @@ import {
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
+    SET_SUBTITLES_LANGUAGE,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -135,5 +136,18 @@ export function setSubtitlesError(hasError: boolean) {
     return {
         type: SET_SUBTITLES_ERROR,
         hasError
+    };
+}
+
+/**
+ * Sets the selected captions translation language.
+ *
+ * @param {string | null} language - The selected translation language.
+ * @returns {Object}
+ */
+export function setSubtitlesLanguage(language: string | null) {
+    return {
+        type: SET_SUBTITLES_LANGUAGE,
+        language
     };
 }

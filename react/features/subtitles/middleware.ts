@@ -6,6 +6,7 @@ import { MEET_FEATURES } from '../base/jwt/constants';
 import { isJwtFeatureEnabled } from '../base/jwt/functions';
 import JitsiMeetJS from '../base/lib-jitsi-meet';
 import { TRANSCRIBER_ID } from '../base/participants/constants';
+import { isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { showErrorNotification } from '../notifications/actions';
 import { RECORDING_METADATA_ID } from '../recording/constants';
@@ -13,6 +14,7 @@ import { TRANSCRIBER_JOINED } from '../transcribing/actionTypes';
 
 import {
     SET_REQUESTING_SUBTITLES,
+    SET_SUBTITLES_LANGUAGE,
     TOGGLE_REQUESTING_SUBTITLES
 } from './actionTypes';
 import {
@@ -100,6 +102,15 @@ MiddlewareRegistry.register(store => next => action => {
     case SET_REQUESTING_SUBTITLES:
         _requestingSubtitlesChange(store, action.enabled, action.language, action.forceBackendRecordingOn);
         break;
+
+    case SET_SUBTITLES_LANGUAGE: {
+        const { conference } = store.getState()['features/base/conference'];
+
+        conference?.setLocalParticipantProperty(
+            P_NAME_TRANSLATION_LANGUAGE,
+            action.language ? action.language.replace('translation-languages:', '') : '');
+        break;
+    }
     }
 
     return next(action);
@@ -167,13 +178,15 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
 
         if (isCCTabEnabled(state)) {
             dispatch(storeSubtitle({
-                participantId,
-                text: translation,
-                language: json.language,
-                interim: false,
+                id: transcriptMessageID,
+                interim: Boolean(json.is_interim),
                 isTranscription: false,
-                timestamp,
-                id: transcriptMessageID
+                language: json.language,
+                participantAvatarUrl: avatarUrl,
+                participantId,
+                participantName: name,
+                text: translation,
+                timestamp
             }));
 
             return next(action);
@@ -245,6 +258,8 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
         const subtitle: ISubtitle = {
             id: transcriptMessageID,
             participantId,
+            participantName: name,
+            participantAvatarUrl: avatarUrl,
             language: json.language,
             text,
             interim: isInterim,
@@ -363,7 +378,8 @@ function _requestingSubtitlesChange(
         enabled);
 
     if (enabled && conference?.getTranscriptionStatus() === JitsiMeetJS.constants.transcriptionStatus.OFF
-        && isJwtFeatureEnabled(getState(), MEET_FEATURES.TRANSCRIPTION, false)) {
+        && (isJwtFeatureEnabled(getState(), MEET_FEATURES.TRANSCRIPTION, false)
+            || isLocalParticipantModerator(getState()))) {
 
         if (!backendRecordingOn) {
             conference?.dial(TRANSCRIBER_DIAL_NUMBER)
@@ -387,10 +403,10 @@ function _requestingSubtitlesChange(
         }
     }
 
-    if (enabled && language) {
+    if (enabled) {
         conference?.setLocalParticipantProperty(
             P_NAME_TRANSLATION_LANGUAGE,
-            language.replace('translation-languages:', ''));
+            language ? language.replace('translation-languages:', '') : '');
     }
 
     if (!enabled && (backendRecordingOn || forceBackendRecordingOn)

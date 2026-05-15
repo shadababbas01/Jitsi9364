@@ -1,12 +1,19 @@
-import React, { ComponentType, useCallback } from 'react';
+import React, { ComponentType, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState, IStore } from '../../app/types';
 import { openDialog } from '../../base/dialog/actions';
 import { StartRecordingDialog } from '../../recording/components/Recording/index';
-import { setRequestingSubtitles } from '../actions.any';
+import { isTranscribing } from '../../transcribing/functions';
+import { setRequestingSubtitles, setSubtitlesLanguage } from '../actions.any';
 import { getAvailableSubtitlesLanguages } from '../functions.any';
+import {
+    ILiveCaptionsLanguage,
+    fetchLiveCaptionsLanguages,
+    normalizeSubtitlesLanguage,
+    toSubtitlesLanguageValue
+} from '../languages';
 
 export interface IAbstractLanguageSelectorDialogProps {
     dispatch: IStore['dispatch'];
@@ -29,37 +36,76 @@ const AbstractLanguageSelectorDialog = (Component: ComponentType<IAbstractLangua
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const language = useSelector((state: IReduxState) => state['features/subtitles']._language);
+    const _isTranscribing = useSelector(isTranscribing);
+    const transcriberJID = useSelector((state: IReduxState) => state['features/transcribing'].transcriberJID);
+    const effectiveIsTranscribing = Boolean(_isTranscribing || transcriberJID);
 
     // The value for the selected language contains "translation-languages:" prefix.
-    const selectedLanguage = language?.replace('translation-languages:', '');
+    const selectedLanguage = normalizeSubtitlesLanguage(language) || (effectiveIsTranscribing ? 'en' : null);
     const languageCodes = useSelector((state: IReduxState) => getAvailableSubtitlesLanguages(state, selectedLanguage));
+    const [ apiLanguages, setApiLanguages ] = useState<ILiveCaptionsLanguage[]>([]);
+    const languageCodesKey = languageCodes.join('|');
+
+    useEffect(() => {
+        let cancelled = false;
+
+        fetchLiveCaptionsLanguages(languageCodes).then(languages => {
+            if (!cancelled) {
+                setApiLanguages(languages);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [ languageCodesKey ]);
 
     const noLanguageLabel = 'transcribing.subtitlesOff';
-    const selected = language ?? noLanguageLabel;
-    const items = [ noLanguageLabel, ...languageCodes.map((lang: string) => `translation-languages:${lang}`) ];
-    const listItems = items
+    const selected = selectedLanguage ? toSubtitlesLanguageValue(selectedLanguage) : noLanguageLabel;
+    const languageItems = useMemo(() => {
+        const fromApi = apiLanguages.length
+            ? apiLanguages
+            : languageCodes.map((code: string) => ({
+                code,
+                label: t(toSubtitlesLanguageValue(code)),
+                value: toSubtitlesLanguageValue(code)
+            }));
+
+        return [
+            ...(!effectiveIsTranscribing ? [ {
+                code: '',
+                label: t(noLanguageLabel),
+                value: noLanguageLabel
+            } ] : []),
+            ...fromApi
+        ];
+    }, [ apiLanguages, effectiveIsTranscribing, languageCodes, t ]);
+    const listItems = languageItems
         .map((lang, index) => {
             return {
-                id: lang + index,
-                lang,
-                selected: lang === selected
+                id: lang.value + index,
+                label: lang.label,
+                lang: lang.value,
+                selected: lang.value === selected
             };
         });
     const { conference } = useSelector((state: IReduxState) => state['features/base/conference']);
 
     const onLanguageSelected = useCallback((value: string) => {
         const _selectedLanguage = value === noLanguageLabel ? null : value;
-        const enabled = Boolean(_selectedLanguage);
-        const displaySubtitles = enabled;
+        const enabled = effectiveIsTranscribing || Boolean(_selectedLanguage);
+        const displaySubtitles = Boolean(_selectedLanguage);
 
-        if (conference?.getMetadataHandler()?.getMetadata()?.asyncTranscription) {
+        if (conference?.getMetadataHandler()?.getMetadata()?.asyncTranscription && !effectiveIsTranscribing) {
             dispatch(openDialog('StartRecordingDialog', StartRecordingDialog, {
                 recordAudioAndVideo: false
             }));
+        } else if (effectiveIsTranscribing) {
+            dispatch(setSubtitlesLanguage(_selectedLanguage));
         } else {
             dispatch(setRequestingSubtitles(enabled, displaySubtitles, _selectedLanguage));
         }
-    }, [ conference, language ]);
+    }, [ conference, dispatch, effectiveIsTranscribing ]);
 
     return (
         <Component

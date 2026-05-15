@@ -2,6 +2,7 @@ import { UPDATE_CONFERENCE_METADATA } from '../base/conference/actionTypes';
 import { ILocalParticipant, IParticipant } from '../base/participants/types';
 import ReducerRegistry from '../base/redux/ReducerRegistry';
 import { ADD_FILE, _FILE_LIST_RECEIVED } from '../file-sharing/actionTypes';
+import { SET_REQUESTING_SUBTITLES } from '../subtitles/actionTypes';
 import { IVisitorChatParticipant } from '../visitors/types';
 
 import {
@@ -9,6 +10,7 @@ import {
     ADD_MESSAGE_REACTION,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
     OPEN_CHAT,
@@ -19,7 +21,9 @@ import {
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
     SET_PRIVATE_MESSAGE_RECIPIENT,
-    SET_USER_CHAT_WIDTH
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SET_USER_CHAT_WIDTH,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { CHAT_SIZE, ChatTabs } from './constants';
 import { IMessage } from './types';
@@ -37,6 +41,11 @@ const DEFAULT_STATE = {
     isLobbyChatActive: false,
     focusedTab: undefined,
     isResizing: false,
+    showTranscriptionConsent: false,
+    transcriptionModeratorName: null,
+    transcriptionStartedByCurrentUser: false,
+    transcriptionStarterId: null,
+    consentDismissedForSession: false,
     width: {
         current: CHAT_SIZE,
         userSet: null
@@ -44,6 +53,7 @@ const DEFAULT_STATE = {
 };
 
 export interface IChatState {
+    consentDismissedForSession: boolean;
     focusedTab?: ChatTabs;
     groupChatWithPermissions: boolean;
     isLobbyChatActive: boolean;
@@ -57,6 +67,10 @@ export interface IChatState {
     messages: IMessage[];
     notifyPrivateRecipientsChangedTimestamp?: number;
     privateMessageRecipient?: IParticipant | IVisitorChatParticipant;
+    showTranscriptionConsent: boolean;
+    transcriptionModeratorName: string | null;
+    transcriptionStartedByCurrentUser: boolean;
+    transcriptionStarterId?: string | null;
     unreadFilesCount: number;
     unreadMessagesCount: number;
     width: {
@@ -276,6 +290,47 @@ ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, ac
             ...state,
             notifyPrivateRecipientsChangedTimestamp: action.payload
         };
+
+    case SHOW_TRANSCRIPTION_CONSENT:
+        if (state.consentDismissedForSession || state.transcriptionStartedByCurrentUser) {
+            return state;
+        }
+
+        return {
+            ...state,
+            showTranscriptionConsent: true,
+            transcriptionModeratorName: action.moderatorName,
+            transcriptionStarterId: action.transcriptionStarterId
+        };
+
+    case DISMISS_TRANSCRIPTION_CONSENT:
+        return {
+            ...state,
+            consentDismissedForSession: true,
+            showTranscriptionConsent: false,
+            transcriptionModeratorName: null,
+            transcriptionStarterId: null
+        };
+
+    case SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER:
+        return {
+            ...state,
+            transcriptionStartedByCurrentUser: action.startedByCurrentUser
+        };
+
+    case SET_REQUESTING_SUBTITLES:
+        if (!action.enabled) {
+            return {
+                ...state,
+                consentDismissedForSession: false,
+                showTranscriptionConsent: false,
+                transcriptionModeratorName: null,
+                transcriptionStartedByCurrentUser: false,
+                transcriptionStarterId: null
+            };
+        }
+
+        return state;
 
     case ADD_FILE:
         return {

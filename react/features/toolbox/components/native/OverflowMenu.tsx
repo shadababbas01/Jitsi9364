@@ -11,31 +11,21 @@ import {
 import { connect, useSelector } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
-import { hideSheet, openSheet } from '../../../base/dialog/actions';
+import { hideSheet } from '../../../base/dialog/actions';
 import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
 import { translate } from '../../../base/i18n/functions';
-import { IconImage, IconInfo, IconUsers } from '../../../base/icons/svg';
+import { IconInfo, IconUsers } from '../../../base/icons/svg';
 import { IParticipantsState } from '../../../base/participants/reducer';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import BreakoutRoomsButton
     from '../../../breakout-rooms/components/native/BreakoutRoomsButton';
-import ChatButton from '../../../chat/components/native/ChatButton';
-import { openPollsPanel } from '../../../chat/actions.any';
-import SharedDocumentButton from '../../../etherpad/components/SharedDocumentButton.native';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
-import LiveStreamButton from '../../../recording/components/LiveStream/native/LiveStreamButton';
-import RecordButton from '../../../recording/components/Recording/native/RecordButton';
-import SharedVideoButton from '../../../shared-video/components/native/SharedVideoButton';
-import { isSharedVideoEnabled } from '../../../shared-video/functions';
-import { isSpeakerStatsDisabled } from '../../../speaker-stats/functions';
+import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
-// import VirtualBackgroundMenu from '../../../virtual-background/components/VirtualBackgroundMenu.native';
-// import { checkBlurSupport, checkVirtualBackgroundEnabled } from '../../../virtual-background/functions.native';
 import { iAmVisitor } from '../../../visitors/functions';
-import WhiteboardButton from '../../../whiteboard/components/native/WhiteboardButton';
 import { customButtonPressed } from '../../actions.native';
 import { getVisibleNativeButtons } from '../../functions.native';
 import { useNativeToolboxButtons } from '../../hooks.native';
@@ -48,21 +38,6 @@ import ScreenSharingButton from './ScreenSharingButton';
 import ZoomButton from './ZoomButton';
 
 const { NativeCallsNew, OpenMelpChat } = NativeModules;
-
-class OverflowPollsButton extends AbstractButton<AbstractButtonProps> {
-    override accessibilityLabel = 'chat.tabs.polls';
-    override icon = IconInfo;
-    override label = 'chat.tabs.polls';
-
-    override _handleClick() {
-        const { dispatch } = this.props;
-
-        dispatch(openPollsPanel());
-        navigate(screen.conference.chatTabs.main, {
-            screen: screen.conference.chatTabs.tab.polls
-        });
-    }
-}
 
 interface IOverflowParticipantsButtonProps extends AbstractButtonProps {
     _participants: IParticipantsState;
@@ -89,11 +64,13 @@ class OverflowAttendeesButton extends AbstractButton<IOverflowParticipantsButton
 
         if (OpenMelpChat?.showAttendees) {
             OpenMelpChat.showAttendees(attendees);
+
             return;
         }
 
         if (NativeCallsNew?.showAttendees) {
             NativeCallsNew.showAttendees(attendees);
+
             return;
         }
 
@@ -101,27 +78,62 @@ class OverflowAttendeesButton extends AbstractButton<IOverflowParticipantsButton
     }
 }
 
-interface IOverflowVirtualBackgroundButtonProps extends AbstractButtonProps {
-    _isBackgroundEnabled: boolean;
+interface ILiveCaptionsOverflowButtonProps extends AbstractButtonProps {
+    _isLiveCaptionsActive: boolean;
 }
 
-class OverflowVirtualBackgroundButton extends AbstractButton<IOverflowVirtualBackgroundButtonProps> {
-    override accessibilityLabel = 'toolbar.accessibilityLabel.selectBackground';
-    override icon = IconImage;
-    override label = 'toolbar.selectBackground';
+const liveCaptionsActiveStyles = {
+    rowStatus: {
+        alignItems: 'center' as const,
+        flexDirection: 'row' as const,
+        marginLeft: 'auto' as const
+    },
+    statusDot: {
+        backgroundColor: '#7CE39B',
+        borderRadius: 999,
+        height: 8,
+        marginRight: 8,
+        width: 8
+    },
+    statusText: {
+        color: '#7CE39B',
+        fontSize: 12
+    }
+};
 
-    // override _handleClick() {
-    //     this.props.dispatch(openSheet(VirtualBackgroundMenu));
-    // }
+class LiveCaptionsOverflowButton extends AbstractButton<ILiveCaptionsOverflowButtonProps> {
+    override accessibilityLabel = 'liveCaptionsPanel.title';
+    override icon = IconInfo;
+    override label = 'liveCaptionsPanel.title';
+
+    override _handleClick() {
+        navigate(screen.conference.liveCaptions);
+    }
+
+    override _getElementAfter() {
+        if (!this.props._isLiveCaptionsActive) {
+            return null;
+        }
+
+        return (
+            <View style = { liveCaptionsActiveStyles.rowStatus }>
+                <View style = { liveCaptionsActiveStyles.statusDot } />
+                <Text style = { liveCaptionsActiveStyles.statusText }>
+                    Live
+                </Text>
+            </View>
+        );
+    }
 
     override _isToggled() {
-        return this.props._isBackgroundEnabled;
+        return this.props._isLiveCaptionsActive;
     }
 }
 
-const TranslatedOverflowPollsButton = translate(OverflowPollsButton);
 const TranslatedOverflowAttendeesButton = translate(OverflowAttendeesButton);
-const TranslatedOverflowVirtualBackgroundButton = translate(OverflowVirtualBackgroundButton);
+const TranslatedLiveCaptionsOverflowButton = translate(connect((state: IReduxState) => ({
+    _isLiveCaptionsActive: isLiveCaptionsActive(state)
+}))(LiveCaptionsOverflowButton));
 
 // iOS 26 Liquid Glass — list row style
 // Icon left, label right, hairline dividers, floating frosted card
@@ -216,34 +228,14 @@ const overflowMenuStyles = {
 interface IProps {
 
     /**
-     * Whether the conference is currently in audio-only mode.
-     */
-    _isAudioOnly: boolean;
-
-    /**
-     * True if virtual background effect is currently active.
-     */
-    _isBackgroundEnabled: boolean;
-
-    /**
      * True if breakout rooms feature is available, false otherwise.
      */
     _isBreakoutRoomsSupported?: boolean;
 
     /**
-     * True if the overflow menu is currently visible, false otherwise.
+     * True if live captions are enabled by config.
      */
-    _isOpen: boolean;
-
-    /**
-     * Whether the shared video is enabled or not.
-     */
-    _isSharedVideoEnabled: boolean;
-
-    /**
-     * Whether or not speaker stats is disable.
-     */
-    _isSpeakerStatsDisabled?: boolean;
+    _isClosedCaptionsEnabled: boolean;
 
     /**
      * Toolbar buttons.
@@ -256,11 +248,6 @@ interface IProps {
     _overflowMenuButtons?: Array<IToolboxNativeButton>;
 
     /**
-     * Whether the recoding button should be enabled or not.
-    */
-    _recordingEnabled: boolean;
-
-    /**
      * Participants state for attendee list payloads.
      */
     _participants: IParticipantsState;
@@ -269,16 +256,6 @@ interface IProps {
     * Whether or not any reactions buttons should be displayed.
     */
     _shouldDisplayReactionsButtons: boolean;
-
-    /**
-    * Whether polls button should be shown.
-    */
-    _showPolls: boolean;
-
-    /**
-     * Whether virtual background button should be shown.
-     */
-    // _showVirtualBackground: boolean;
 
     /**
      * Used for hiding the dialog when the selection was completed.
@@ -325,12 +302,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
      */
     override render() {
         const {
-            _isAudioOnly,
-            _isBackgroundEnabled,
             _isBreakoutRoomsSupported,
-            _isSharedVideoEnabled,
-            _showPolls,
-            // _showVirtualBackground,
+            _isClosedCaptionsEnabled,
             dispatch
         } = this.props;
 
@@ -346,10 +319,6 @@ class OverflowMenu extends PureComponent<IProps, IState> {
             styles: listRowButtonStyles,
             _participants: this.props._participants
         };
-        const videoBackgroundRowProps = {
-            ...topRowProps,
-            afterClick: undefined
-        };
         const D = () => <View style = { overflowMenuStyles.divider as ViewStyle } />;
 
         return (
@@ -359,36 +328,22 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 style = { overflowSheetStyle }>
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
+                    {_isClosedCaptionsEnabled && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
                     <D />
                     <AudioOnlyButton { ...rowProps } />
                     { this._renderRaiseHandButton(rowProps) }
                     {_isBreakoutRoomsSupported && <><D /><BreakoutRoomsButton { ...rowProps } /></>}
                     <D />
-                    {/* <RecordButton { ...rowProps } /> */}
-                    {/* {!_isAudioOnly && <><D /><LiveStreamButton { ...rowProps } /></>} */}
-                    {/* <WhiteboardButton { ...rowProps } /> */}
                     {(Boolean(OpenMelpChat?.showAttendees) || Boolean(NativeCallsNew?.showAttendees) || Boolean(NativeCallsNew?.showAttendeeeees))
                         && <><D /><TranslatedOverflowAttendeesButton { ...topRowProps } /></>}
-                    {/* {!_isAudioOnly && _isSharedVideoEnabled && <><D /><SharedVideoButton { ...rowProps } /></>} */}
-                    {/* { _showPolls && <><D /><TranslatedOverflowPollsButton { ...topRowProps } /></> } */}
-                    {/* {_showVirtualBackground && (
-                        <>
-                            <D />
-                            <TranslatedOverflowVirtualBackgroundButton
-                                { ...videoBackgroundRowProps }
-                                _isBackgroundEnabled = { _isBackgroundEnabled } />
-                        </>
-                    )} */}
                     <D />
                     <ScreenSharingButton { ...rowProps } />
                     <TileViewButton { ...rowProps } />
                     <D />
                     <ZoomButton { ...rowProps } />
                     <D />
-                    {/* <SharedDocumentButton { ...rowProps } /> */}
                     { this._renderOverflowMenuButtons(topRowProps, [ 'chat', 'desktop', 'tileview', 'raisehand', 'polls' ]) }
                     <D />
-                    {/* <ChatButton { ...rowProps } /> */}
                 </View>
             </BottomSheet>
         );
@@ -503,18 +458,12 @@ class OverflowMenu extends PureComponent<IProps, IState> {
  */
 function _mapStateToProps(state: IReduxState) {
     const { conference } = state['features/base/conference'];
-    const { enabled: audioOnly } = state['features/base/audio-only'];
 
     return {
-        _isAudioOnly: Boolean(audioOnly),
-        _isBackgroundEnabled: Boolean(state['features/virtual-background']?.backgroundEffectEnabled),
         _isBreakoutRoomsSupported: conference?.getBreakoutRooms()?.isSupported(),
-        _isSharedVideoEnabled: isSharedVideoEnabled(state),
-        _isSpeakerStatsDisabled: isSpeakerStatsDisabled(state),
-        _showPolls: !Boolean(state['features/base/config']?.disablePolls) && !iAmVisitor(state),
+        _isClosedCaptionsEnabled: areClosedCaptionsEnabled(state),
         _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state),
         _participants: state['features/base/participants']
-        // _showVirtualBackground: checkBlurSupport() && checkVirtualBackgroundEnabled(state)
     };
 }
 

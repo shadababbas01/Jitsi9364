@@ -13,6 +13,11 @@ import styles from './styles';
 interface ILanguageListItemProps extends WithTranslation {
 
     /**
+     * Display label. API-backed language names can arrive outside i18n.
+     */
+    label?: string;
+
+    /**
      * Language string.
      */
     lang: string;
@@ -34,7 +39,7 @@ interface ILanguageListItemProps extends WithTranslation {
  * @returns {React$Element<any>}
  */
 
-const LanguageListItem = ({ t, lang, selected, onLanguageSelected
+const LanguageListItem = ({ t, label, lang, selected, onLanguageSelected
 }: ILanguageListItemProps) => {
 
     const onLanguageSelectedWrapper
@@ -57,7 +62,7 @@ const LanguageListItem = ({ t, lang, selected, onLanguageSelected
                     style = { [
                         styles.languageItemText,
                         selected && styles.activeLanguageItemText ] }>
-                    { t(lang) }
+                    { label || t(lang) }
                 </Text>
             </TouchableHighlight>
         </View>

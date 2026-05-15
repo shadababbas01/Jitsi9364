@@ -15,6 +15,16 @@ export function canStartSubtitles(state: IReduxState) {
 }
 
 /**
+ * Returns whether live captions/transcription is active in the meeting.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isLiveCaptionsActive(state: IReduxState) {
+    return isTranscribing(state) || Boolean(state['features/transcribing'].transcriberJID);
+}
+
+/**
  * Retrieves the list of available subtitles languages. The list consists of head languages (fixed items that stay on
  * top) followed by the rest of available translation languages.
  *

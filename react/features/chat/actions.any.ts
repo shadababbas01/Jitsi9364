@@ -9,8 +9,10 @@ import {
     ADD_MESSAGE_REACTION,
     CLEAR_MESSAGES,
     CLOSE_CHAT,
+    DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
+    NOTIFY_TRANSCRIPTION_STARTED,
     OPEN_CHAT,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
     SEND_MESSAGE,
@@ -18,7 +20,9 @@ import {
     SET_FOCUSED_TAB,
     SET_LOBBY_CHAT_ACTIVE_STATE,
     SET_LOBBY_CHAT_RECIPIENT,
-    SET_PRIVATE_MESSAGE_RECIPIENT
+    SET_PRIVATE_MESSAGE_RECIPIENT,
+    SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { ChatTabs } from './constants';
 
@@ -313,6 +317,58 @@ export function notifyPrivateRecipientsChanged() {
             type: NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
             payload: timestamp
         });
+    };
+}
+
+/**
+ * Sends a live captions consent event to the rest of the conference.
+ *
+ * @param {string} moderatorName - Display name of the user that started live captions.
+ * @returns {Object}
+ */
+export function notifyTranscriptionStarted(moderatorName: string) {
+    return {
+        type: NOTIFY_TRANSCRIPTION_STARTED,
+        moderatorName
+    };
+}
+
+/**
+ * Tracks whether this client started the current live captions session.
+ *
+ * @param {boolean} startedByCurrentUser - Whether this client started captions.
+ * @returns {Object}
+ */
+export function setTranscriptionStartedByCurrentUser(startedByCurrentUser: boolean) {
+    return {
+        type: SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+        startedByCurrentUser
+    };
+}
+
+/**
+ * Shows the live captions consent notice.
+ *
+ * @param {string} moderatorName - Name of the user that started captions.
+ * @param {string} transcriptionStarterId - Participant id of the starter.
+ * @returns {Object}
+ */
+export function showTranscriptionConsent(moderatorName: string, transcriptionStarterId?: string) {
+    return {
+        type: SHOW_TRANSCRIPTION_CONSENT,
+        moderatorName,
+        transcriptionStarterId
+    };
+}
+
+/**
+ * Dismisses the live captions consent notice for this session.
+ *
+ * @returns {Object}
+ */
+export function dismissTranscriptionConsent() {
+    return {
+        type: DISMISS_TRANSCRIPTION_CONSENT
     };
 }
 

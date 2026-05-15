@@ -148,7 +148,11 @@
         "emptyState": "The live captions content will be available once a moderator starts it",
         "startClosedCaptionsButton": "Start live captions",
         "closeLiveCaptionButton": "Turn Off Live Captions",
-        "historyTitle": "Live caption history"
+        "historyTitle": "Live caption history",
+        "noMessages": "No live captions yet. Captions will appear here once speech is detected."
+    },
+    "liveCaptionsPanel": {
+        "title": "Live Captions"
     },
     "connectingOverlay": {
         "joiningRoom": "Connecting..."

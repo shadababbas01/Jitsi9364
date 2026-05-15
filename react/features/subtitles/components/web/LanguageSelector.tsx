@@ -1,12 +1,18 @@
-import React, { ChangeEvent, useCallback } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
 
 import { IReduxState } from '../../../app/types';
 import Select from '../../../base/ui/components/web/Select';
-import { setRequestingSubtitles } from '../../actions.any';
+import { setSubtitlesLanguage } from '../../actions.any';
 import { getAvailableSubtitlesLanguages } from '../../functions.any';
+import {
+    ILiveCaptionsLanguage,
+    fetchLiveCaptionsLanguages,
+    normalizeSubtitlesLanguage,
+    toSubtitlesLanguageValue
+} from '../../languages';
 
 /**
  * The styles for the LanguageSelector component.
@@ -46,50 +52,67 @@ function LanguageSelector() {
     const { classes } = useStyles();
     const dispatch = useDispatch();
     const selectedLanguage = useSelector((state: IReduxState) => state['features/subtitles']._language);
+    const selectedCode = normalizeSubtitlesLanguage(selectedLanguage);
     const languageCodes = useSelector((state: IReduxState) => getAvailableSubtitlesLanguages(
         state,
-        selectedLanguage?.replace('translation-languages:', '')
+        selectedCode
     ));
+    const [ apiLanguages, setApiLanguages ] = useState<ILiveCaptionsLanguage[]>([]);
+    const languageCodesKey = languageCodes.join('|');
     const isAsyncTranscriptionEnabled = useSelector((state: IReduxState) =>
         state['features/base/conference'].conference?.getMetadataHandler()?.getMetadata()?.asyncTranscription);
 
-    // Hide the "Translate to" option when asyncTranscription is enabled
-    if (isAsyncTranscriptionEnabled) {
-        return null;
-    }
+    useEffect(() => {
+        let cancelled = false;
+
+        fetchLiveCaptionsLanguages(languageCodes).then(languages => {
+            if (!cancelled) {
+                setApiLanguages(languages);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [ languageCodesKey ]);
 
     /**
      * Maps available languages to Select component options format.
      *
      * @type {Array<{value: string, label: string}>}
      */
-    const languages = [ 'transcribing.original', ...languageCodes.map(lang => `translation-languages:${lang}`) ]
-        .map(lang => {
-            return {
-                value: lang,
-                label: t(lang)
-            };
-        });
+    const languages = useMemo(() => {
+        const source = apiLanguages.length
+            ? apiLanguages
+            : languageCodes.map(code => ({
+                code,
+                label: t(toSubtitlesLanguageValue(code)),
+                value: toSubtitlesLanguageValue(code)
+            }));
+
+        return source.map(lang => ({
+            value: lang.value,
+            label: lang.label
+        }));
+    }, [ apiLanguages, languageCodes, t ]);
 
     /**
      * Handles language selection changes.
-     * Dispatches the setRequestingSubtitles action with the new language.
+     * Dispatches the setSubtitlesLanguage action with the new language.
      *
      * @param {string} value - The selected language code.
      * @returns {void}
      */
     const onLanguageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-        let { value }: { value?: string | null; } = e.target;
+        const value = e.target.value;
 
-        if (value === 'transcribing.original') {
-            value = null;
-        }
-        dispatch(setRequestingSubtitles(true, true, value));
-
-        if (value !== null) {
-            value = value.replace('translation-languages:', '');
-        }
+        dispatch(setSubtitlesLanguage(value));
     }, [ dispatch ]);
+
+    // Hide the "Translate to" option when asyncTranscription is enabled
+    if (isAsyncTranscriptionEnabled) {
+        return null;
+    }
 
     return (
         <div className = { classes.container }>
@@ -101,7 +124,7 @@ function LanguageSelector() {
                 id = 'subtitles-language-select'
                 onChange = { onLanguageChange }
                 options = { languages }
-                value = { selectedLanguage || 'transcribing.original' } />
+                value = { selectedLanguage || toSubtitlesLanguageValue('en') } />
         </div>
     );
 }

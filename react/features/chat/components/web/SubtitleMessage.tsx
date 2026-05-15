@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { keyframes } from 'tss-react';
 import { makeStyles } from 'tss-react/mui';
 
+import { IReduxState } from '../../../app/types';
 import { getParticipantDisplayName } from '../../../base/participants/functions';
+import { normalizeSubtitlesLanguage, translateLiveCaptionText } from '../../../subtitles/languages';
 import { ISubtitle } from '../../../subtitles/types';
 
 /**
@@ -15,6 +18,17 @@ interface IProps extends ISubtitle {
      */
     showDisplayName: boolean;
 }
+
+const typingBounce = keyframes`
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.4;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+`;
 
 /**
  * The styles for the SubtitleMessage component.
@@ -60,8 +74,27 @@ const useStyles = makeStyles()(theme => {
             marginTop: theme.spacing(1)
         },
 
-        interim: {
-            opacity: 0.7
+        typingDots: {
+            alignItems: 'center',
+            display: 'inline-flex',
+            gap: '4px',
+            padding: '4px 0'
+        },
+
+        typingDot: {
+            animation: `${typingBounce} 1.4s ease-in-out infinite`,
+            backgroundColor: theme.palette.text03,
+            borderRadius: '50%',
+            height: '7px',
+            width: '7px',
+
+            '&:nth-of-type(2)': {
+                animationDelay: '0.2s'
+            },
+
+            '&:nth-of-type(3)': {
+                animationDelay: '0.4s'
+            }
         }
     };
 });
@@ -73,23 +106,85 @@ const useStyles = makeStyles()(theme => {
  * @param {IProps} props - The component props.
  * @returns {JSX.Element} - The rendered subtitle message.
  */
-export default function SubtitleMessage({ participantId, text, timestamp, interim, showDisplayName }: IProps) {
+export default function SubtitleMessage({
+    id,
+    isTranscription,
+    language,
+    participantId,
+    participantName,
+    text,
+    timestamp,
+    interim,
+    showDisplayName
+}: IProps) {
     const { classes } = useStyles();
-    const participantName = useSelector((state: any) =>
+    const participantNameFromState = useSelector((state: any) =>
         getParticipantDisplayName(state, participantId));
+    const displayName = participantNameFromState || participantName;
+    const selectedLanguage = useSelector((state: IReduxState) =>
+        normalizeSubtitlesLanguage(state['features/subtitles']._language));
+    const jwt = useSelector((state: IReduxState) => state['features/base/jwt'].jwt);
+    const [ displayText, setDisplayText ] = useState(text);
+    const requestId = useRef(0);
+
+    useEffect(() => {
+        const targetLanguage = normalizeSubtitlesLanguage(selectedLanguage);
+        const messageLanguage = normalizeSubtitlesLanguage(language);
+        const currentRequestId = ++requestId.current;
+
+        setDisplayText(text);
+
+        if (
+            interim
+            || !text
+            || !targetLanguage
+            || targetLanguage.toLowerCase().startsWith('en')
+            || (!isTranscription && messageLanguage?.toLowerCase() === targetLanguage.toLowerCase())
+        ) {
+            return;
+        }
+
+        let cancelled = false;
+
+        translateLiveCaptionText(text, targetLanguage, jwt)
+            .then(translatedText => {
+                if (!cancelled && requestId.current === currentRequestId) {
+                    setDisplayText(translatedText);
+                }
+            })
+            .catch(() => {
+                if (!cancelled && requestId.current === currentRequestId) {
+                    setDisplayText(text);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [ id, interim, isTranscription, jwt, language, selectedLanguage, text ]);
 
     return (
-        <div className = { `${classes.messageContainer} ${interim ? classes.interim : ''}` }>
+        <div className = { classes.messageContainer }>
             <div className = { classes.messageContent }>
                 {showDisplayName && (
                     <div className = { classes.messageHeader }>
-                        {participantName}
+                        {displayName}
                     </div>
                 )}
-                <div className = { classes.messageText }>{text}</div>
-                <div className = { classes.timestamp }>
-                    {new Date(timestamp).toLocaleTimeString()}
-                </div>
+                {interim ? (
+                    <div className = { classes.typingDots }>
+                        <span className = { classes.typingDot } />
+                        <span className = { classes.typingDot } />
+                        <span className = { classes.typingDot } />
+                    </div>
+                ) : (
+                    <>
+                        <div className = { classes.messageText }>{displayText}</div>
+                        <div className = { classes.timestamp }>
+                            {new Date(timestamp).toLocaleTimeString()}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

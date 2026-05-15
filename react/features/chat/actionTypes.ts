@@ -171,4 +171,24 @@ export const SET_CHAT_IS_RESIZING = 'SET_CHAT_IS_RESIZING';
   *     type: NOTIFY_PRIVATE_RECIPIENTS_CHANGED
   * }
   */
- export const NOTIFY_PRIVATE_RECIPIENTS_CHANGED = 'NOTIFY_PRIVATE_RECIPIENTS_CHANGED';
+export const NOTIFY_PRIVATE_RECIPIENTS_CHANGED = 'NOTIFY_PRIVATE_RECIPIENTS_CHANGED';
+
+/**
+ * The type of action that sends live captions consent notices to remote participants.
+ */
+export const NOTIFY_TRANSCRIPTION_STARTED = 'NOTIFY_TRANSCRIPTION_STARTED';
+
+/**
+ * The type of action that tracks whether this client started live captions.
+ */
+export const SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER = 'SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER';
+
+/**
+ * The type of action that shows the live captions consent notice.
+ */
+export const SHOW_TRANSCRIPTION_CONSENT = 'SHOW_TRANSCRIPTION_CONSENT';
+
+/**
+ * The type of action that dismisses the live captions consent notice.
+ */
+export const DISMISS_TRANSCRIPTION_CONSENT = 'DISMISS_TRANSCRIPTION_CONSENT';
