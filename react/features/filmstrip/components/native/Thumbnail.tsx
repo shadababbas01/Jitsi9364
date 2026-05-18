@@ -30,6 +30,7 @@ import { ITrack } from '../../../base/tracks/types';
 import ConnectionIndicator from '../../../connection-indicator/components/native/ConnectionIndicator';
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import { getGifDisplayMode, getGifForParticipant } from '../../../gifs/functions.native';
+import { selectParticipantInLargeVideo } from '../../../large-video/actions.any';
 import {
     showConnectionStatus,
     showContextMenuDetails,
@@ -38,6 +39,7 @@ import {
 import { toggleToolboxVisible } from '../../../toolbox/actions.native';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
 import { setTileView } from '../../../video-layout/actions.native';
+import VoiceTranslationTileIndicators from '../../../voice-translation/components/native/VoiceTranslationTileIndicators';
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
 
 import AudioMutedIndicator from './AudioMutedIndicator';
@@ -275,6 +277,7 @@ class Thumbnail extends PureComponent<IProps> {
         if (_participantId) {
             batch(() => {
                 dispatch(pinParticipant(_participantId));
+                dispatch(selectParticipantInLargeVideo(_participantId));
                 dispatch(setTileView(false));
             });
         }
@@ -546,6 +549,9 @@ class Thumbnail extends PureComponent<IProps> {
                         {
                             this._renderIndicators()
                         }
+                        { tileView && !isScreenShare && !_isVirtualScreenshare && (
+                            <VoiceTranslationTileIndicators participantId = { participantId } />
+                        ) }
                     </>
                 }
             </Container>

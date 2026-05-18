@@ -29,8 +29,8 @@ import styles, { LOCAL_THUMBNAIL_BOTTOM_OFFSET } from './styles';
 const THUMB_SMALL_W = 120;
 const THUMB_SMALL_H = 160;
 // Full (expanded) dimensions — when toolbar is showing
-const THUMB_BIG_W = 200;
-const THUMB_BIG_H = 340;
+const THUMB_BIG_W = 160;
+const THUMB_BIG_H = 270;
 
 // How far from either edge the thumbnail snaps to
 const EDGE_SNAP_MARGIN = BaseTheme.spacing[2];

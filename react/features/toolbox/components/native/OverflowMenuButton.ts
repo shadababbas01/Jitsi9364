@@ -10,11 +10,13 @@ import { translate } from '../../../base/i18n/functions';
 import { IconDotsHorizontal } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { isLiveCaptionsActive } from '../../../subtitles/functions.any';
+import { isVoiceTranslationEnabled } from '../../../voice-translation/functions';
 
 import OverflowMenu from './OverflowMenu';
 
 interface IProps extends AbstractButtonProps {
     _isLiveCaptionsActive: boolean;
+    _isVoiceTranslationActive: boolean;
 }
 
 const activeWaveStyle: ViewStyle = {
@@ -38,17 +40,20 @@ class OverflowMenuButton extends AbstractButton<IProps> {
     _waveProgress = new Animated.Value(0);
 
     override componentDidMount() {
-        if (this.props._isLiveCaptionsActive) {
+        if (this._hasActiveFeature()) {
             this._startWave();
         }
     }
 
     override componentDidUpdate(prevProps: IProps) {
-        if (prevProps._isLiveCaptionsActive === this.props._isLiveCaptionsActive) {
+        const hadActiveFeature = prevProps._isLiveCaptionsActive || prevProps._isVoiceTranslationActive;
+        const hasActiveFeature = this._hasActiveFeature();
+
+        if (hadActiveFeature === hasActiveFeature) {
             return;
         }
 
-        if (this.props._isLiveCaptionsActive) {
+        if (hasActiveFeature) {
             this._startWave();
         } else {
             this._stopWave();
@@ -74,7 +79,7 @@ class OverflowMenuButton extends AbstractButton<IProps> {
     override _getStyles() {
         const { styles } = this.props;
 
-        if (!this.props._isLiveCaptionsActive || !styles) {
+        if (!this._hasActiveFeature() || !styles) {
             return styles;
         }
 
@@ -88,7 +93,7 @@ class OverflowMenuButton extends AbstractButton<IProps> {
     }
 
     override _getElementAfter() {
-        if (!this.props._isLiveCaptionsActive) {
+        if (!this._hasActiveFeature()) {
             return null;
         }
 
@@ -113,7 +118,11 @@ class OverflowMenuButton extends AbstractButton<IProps> {
     }
 
     override _isToggled() {
-        return this.props._isLiveCaptionsActive;
+        return this._hasActiveFeature();
+    }
+
+    _hasActiveFeature() {
+        return this.props._isLiveCaptionsActive || this.props._isVoiceTranslationActive;
     }
 
     _startWave() {
@@ -157,6 +166,7 @@ function _mapStateToProps(state: IReduxState) {
 
     return {
         _isLiveCaptionsActive: isLiveCaptionsActive(state),
+        _isVoiceTranslationActive: isVoiceTranslationEnabled(state),
         visible: enabledFlag
     };
 }

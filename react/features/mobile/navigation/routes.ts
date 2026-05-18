@@ -25,6 +25,7 @@ export const screen = {
         sharedDocument: 'Shared document',
         speakerStats: 'Speaker Stats',
         subtitles: 'Subtitles',
+        voiceTranslation: 'Voice Translation',
         whiteboard: 'Whiteboard'
     },
     connecting: 'Connecting',

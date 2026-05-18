@@ -55,4 +55,5 @@ import '../video-layout/reducer';
 import '../video-quality/reducer';
 import '../videosipgw/reducer';
 import '../visitors/reducer';
+import '../voice-translation/reducer';
 import '../whiteboard/reducer';

@@ -14,7 +14,8 @@ import { IReduxState, IStore } from '../../../app/types';
 import { hideSheet } from '../../../base/dialog/actions';
 import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
 import { translate } from '../../../base/i18n/functions';
-import { IconInfo, IconUsers } from '../../../base/icons/svg';
+import { IconInfo, IconUsers, IconVolumeUp } from '../../../base/icons/svg';
+import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import { IParticipantsState } from '../../../base/participants/reducer';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import BreakoutRoomsButton
@@ -26,6 +27,7 @@ import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any'
 import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../../../visitors/functions';
+import { isVoiceTranslationAvailable, isVoiceTranslationEnabled } from '../../../voice-translation/functions';
 import { customButtonPressed } from '../../actions.native';
 import { getVisibleNativeButtons } from '../../functions.native';
 import { useNativeToolboxButtons } from '../../hooks.native';
@@ -119,7 +121,7 @@ class LiveCaptionsOverflowButton extends AbstractButton<ILiveCaptionsOverflowBut
             <View style = { liveCaptionsActiveStyles.rowStatus }>
                 <View style = { liveCaptionsActiveStyles.statusDot } />
                 <Text style = { liveCaptionsActiveStyles.statusText }>
-                    Live
+                    { this.props.t('voiceTranslation.active') }
                 </Text>
             </View>
         );
@@ -134,6 +136,45 @@ const TranslatedOverflowAttendeesButton = translate(OverflowAttendeesButton);
 const TranslatedLiveCaptionsOverflowButton = translate(connect((state: IReduxState) => ({
     _isLiveCaptionsActive: isLiveCaptionsActive(state)
 }))(LiveCaptionsOverflowButton));
+
+interface IVoiceTranslationOverflowButtonProps extends AbstractButtonProps {
+    _isVoiceTranslationActive: boolean;
+}
+
+class VoiceTranslationOverflowButton extends AbstractButton<IVoiceTranslationOverflowButtonProps> {
+    override accessibilityLabel = 'voiceTranslation.enableVoiceTranslation';
+    override icon = IconVolumeUp;
+    override label = 'voiceTranslation.enableVoiceTranslation';
+
+    override _handleClick() {
+        navigate(screen.conference.voiceTranslation);
+    }
+
+    override _getElementAfter() {
+        if (!this.props._isVoiceTranslationActive) {
+            return null;
+        }
+
+        return (
+            <View style = { liveCaptionsActiveStyles.rowStatus }>
+                <View style = { liveCaptionsActiveStyles.statusDot } />
+                <Text style = { liveCaptionsActiveStyles.statusText }>
+                    { this.props.t('voiceTranslation.active') }
+                </Text>
+            </View>
+        );
+    }
+
+    override _isToggled() {
+        return this.props._isVoiceTranslationActive;
+    }
+}
+
+const TranslatedVoiceTranslationOverflowButton = translate(connect((state: IReduxState) => ({
+    _isVoiceTranslationActive: isVoiceTranslationEnabled(state),
+    visible: isVoiceTranslationEnabled(state)
+        || (isVoiceTranslationAvailable(state) && isLocalParticipantModerator(state))
+}))(VoiceTranslationOverflowButton));
 
 // iOS 26 Liquid Glass — list row style
 // Icon left, label right, hairline dividers, floating frosted card
@@ -238,6 +279,11 @@ interface IProps {
     _isClosedCaptionsEnabled: boolean;
 
     /**
+     * Whether the voice translation overflow row should be visible.
+     */
+    _isVoiceTranslationButtonVisible: boolean;
+
+    /**
      * Toolbar buttons.
      */
     _mainMenuButtons?: Array<IToolboxNativeButton>;
@@ -304,6 +350,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
         const {
             _isBreakoutRoomsSupported,
             _isClosedCaptionsEnabled,
+            _isVoiceTranslationButtonVisible,
             dispatch
         } = this.props;
 
@@ -329,6 +376,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
                     {_isClosedCaptionsEnabled && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
+                    {_isVoiceTranslationButtonVisible && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />
                     <AudioOnlyButton { ...rowProps } />
                     { this._renderRaiseHandButton(rowProps) }
@@ -462,6 +510,8 @@ function _mapStateToProps(state: IReduxState) {
     return {
         _isBreakoutRoomsSupported: conference?.getBreakoutRooms()?.isSupported(),
         _isClosedCaptionsEnabled: areClosedCaptionsEnabled(state),
+        _isVoiceTranslationButtonVisible: isVoiceTranslationEnabled(state)
+            || (isVoiceTranslationAvailable(state) && isLocalParticipantModerator(state)),
         _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state),
         _participants: state['features/base/participants']
     };
