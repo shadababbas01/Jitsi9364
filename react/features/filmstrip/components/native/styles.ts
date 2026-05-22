@@ -26,9 +26,9 @@ export default {
      * The FlatList content container styles.
      */
     contentContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 0
+        alignItems: 'stretch',
+        flexGrow: 1,
+        justifyContent: 'flex-start'
     },
 
     /**
@@ -71,14 +71,16 @@ export default {
         top: BaseTheme.spacing[0]
     },
 
+    filmstripWideLeft: {
+        left: BaseTheme.spacing[0],
+        right: undefined
+    },
+
     /**
      * The styles for the FlatList container.
      */
     flatListContainer: {
-        flexGrow: 1,
-        flexShrink: 1,
-        flex: 0,
-        marginBottom: 16
+        flex: 1
     },
 
     /**
@@ -92,20 +94,46 @@ export default {
      * The styles for the FlatList component in tile view.
      */
     flatListTileView: {
-        flex: 0
+        flex: 1
     },
 
     tileGridContainer: {
         flex: 1,
         flexDirection: 'column',
         alignItems: 'stretch',
-        justifyContent: 'center'
+        justifyContent: 'flex-start'
     },
 
     tileRow: {
         flexDirection: 'row',
         alignItems: 'stretch',
         width: '100%'
+    },
+
+    pageIndicatorContainer: {
+        position: 'absolute',
+        bottom: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: '#494949ff',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 8
+    },
+
+    pageIndicatorDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#ffffff',
+        opacity: 0.35,
+        marginHorizontal: 3
+    },
+
+    pageIndicatorDotActive: {
+        opacity: 1
     },
 
     /**
@@ -127,7 +155,7 @@ export default {
         alignItems: 'stretch',
         backgroundColor: BaseTheme.palette.ui02,
         borderColor: BaseTheme.palette.ui03,
-        borderRadius: 16,
+        borderRadius:6,
         borderStyle: 'solid',
         borderWidth: 1,
         flex: 1,
@@ -179,16 +207,24 @@ export default {
 
     raisedHandIndicator: {
         ...indicatorContainer,
-       backgroundColor: '#000000'
+        alignItems: 'center',
+        backgroundColor: '#16253a',
+        borderColor: '#4c8dff',
+        borderRadius: 24,
+        borderWidth: 2,
+        height: 28,
+        justifyContent: 'center',
+        width: 40
     },
 
     raisedHandIcon: {
-        color: '#9c9696'
+        color: '#8bc1ff',
+        fontSize: 22
     },
 
     thumbnailRaisedHand: {
         borderWidth: 2,
-        borderColor: '#9c9696'
+        borderColor: '#4c8dff'
     },
 
     thumbnailDominantSpeaker: {

@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { GestureResponderEvent, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Animated, Easing, GestureResponderEvent, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import {
     isTrackStreamingStatusActive,
-    isTrackStreamingStatusInactive
+    isTrackStreamingStatusInactive,
+    isTrackStreamingStatusInterrupted
 } from '../../../connection-indicator/functions';
 import SharedVideo from '../../../shared-video/components/native/SharedVideo';
 import { isSharedVideoEnabled } from '../../../shared-video/functions';
@@ -19,7 +20,11 @@ import Container from '../../react/components/native/Container';
 import { toState } from '../../redux/functions';
 import { StyleType } from '../../styles/functions.any';
 import TestHint from '../../testing/components/TestHint';
-import { getTrackByMediaTypeAndParticipant, getVideoTrackByParticipant } from '../../tracks/functions';
+import {
+    getTrackByMediaTypeAndParticipant,
+    getVideoTrackByParticipant,
+    isParticipantAudioMuted
+} from '../../tracks/functions';
 import { ITrack } from '../../tracks/types';
 import { getParticipantById, getParticipantDisplayName, isSharedVideoParticipant } from '../functions';
 
@@ -39,9 +44,34 @@ interface IProps {
     _isConnectionInactive: boolean;
 
     /**
+     * Whether the connection is interrupted or not.
+     */
+    _isConnectionInterrupted: boolean;
+
+    /**
      * Whether the participant is a shared video participant.
      */
     _isSharedVideoParticipant: boolean;
+
+    /**
+     * Whether the participant's audio is muted.
+     */
+    _isAudioMuted: boolean;
+
+    /**
+     * Whether the participant is on hold.
+     */
+    _isOnHold: boolean;
+
+    /**
+     * Whether this participant is currently dominant speaker.
+     */
+    _isDominantSpeaker: boolean;
+
+    /**
+     * Whether the participant is local.
+     */
+    _isLocal: boolean;
 
     /**
      * The name of the participant which this component represents.
@@ -104,6 +134,21 @@ interface IProps {
     showAudioIndicator?: boolean;
 
     /**
+     * Whether to show the speaker wave in avatar-only thumbnails.
+     */
+    showSpeakerWave?: boolean;
+
+    /**
+     * Whether to show status labels (muted/on-hold) for this view.
+     */
+    showStatusLabel?: boolean;
+
+    /**
+     * Optional border radius to apply to the live video renderer.
+     */
+    videoBorderRadius?: number;
+
+    /**
      * Optional style overrides for the audio indicator container.
      */
     audioIndicatorStyle?: ViewStyle;
@@ -147,6 +192,230 @@ interface IProps {
  * @augments Component
  */
 class ParticipantView extends Component<IProps> {
+    _waveBars = [
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0)
+    ];
+
+    _waveLoops: Animated.CompositeAnimation[] = [];
+
+    override componentDidMount() {
+        this._updateSpeakerPulseAnimation();
+    }
+
+    override componentDidUpdate(prevProps: IProps) {
+        if (prevProps._isDominantSpeaker !== this.props._isDominantSpeaker
+            || prevProps._isAudioMuted !== this.props._isAudioMuted
+            || prevProps._isOnHold !== this.props._isOnHold
+            || prevProps._renderVideo !== this.props._renderVideo
+            || prevProps._isSharedVideoParticipant !== this.props._isSharedVideoParticipant) {
+            this._updateSpeakerPulseAnimation();
+        }
+    }
+
+    override componentWillUnmount() {
+        this._stopSpeakerPulseAnimation();
+    }
+
+    _updateSpeakerPulseAnimation() {
+        if (this._shouldAnimateSpeakerPulse()) {
+            if (this._waveLoops.length === 0) {
+                this._waveLoops = this._waveBars.map((bar, idx) =>
+                    Animated.loop(
+                        Animated.sequence([
+                            Animated.delay(idx * 85),
+                            Animated.timing(bar, {
+                                duration: 280 + ((idx % 4) * 55),
+                                easing: Easing.inOut(Easing.sin),
+                                toValue: 1,
+                                useNativeDriver: false
+                            }),
+                            Animated.timing(bar, {
+                                duration: 340 + ((idx % 3) * 45),
+                                easing: Easing.inOut(Easing.sin),
+                                toValue: 0,
+                                useNativeDriver: false
+                            })
+                        ])
+                    ));
+                this._waveLoops.forEach(loop => loop.start());
+            }
+        } else {
+            this._stopSpeakerPulseAnimation();
+        }
+    }
+
+    _stopSpeakerPulseAnimation() {
+        this._waveLoops.forEach(loop => loop.stop());
+        this._waveLoops = [];
+        this._waveBars.forEach(bar => bar.setValue(0));
+    }
+
+    _shouldAnimateSpeakerPulse() {
+        const {
+            _audioTrack,
+            _isAudioMuted,
+            _isOnHold,
+            _isSharedVideoParticipant,
+            _renderVideo
+        } = this.props;
+        const isTrackMuted = _audioTrack?.muted ?? _isAudioMuted;
+
+        return !isTrackMuted
+            && !_isOnHold
+            && !_renderVideo
+            && !_isSharedVideoParticipant;
+    }
+
+    _shouldShowSpeakerWave() {
+        const {
+            _isSharedVideoParticipant,
+            _renderVideo,
+            showSpeakerWave = false
+        } = this.props;
+
+        return showSpeakerWave && !_renderVideo && !_isSharedVideoParticipant;
+    }
+
+    _renderWaveContainerStyle(visualAvatarSize: number): ViewStyle[] {
+        const barWidth = Math.max(3, Math.round(visualAvatarSize * 0.04));
+        const barGap = Math.max(3, Math.round(visualAvatarSize * 0.02));
+        const containerPadding = Math.max(6, Math.round(visualAvatarSize * 0.06));
+        const waveContainerHeight = Math.max(20, Math.round(visualAvatarSize * 0.2));
+        const waveContainerWidth
+            = (barWidth * this._waveBars.length) + (barGap * (this._waveBars.length - 1)) + (containerPadding * 2);
+
+        return [
+            styles.speakerWaveContainer as ViewStyle,
+            {
+                height: waveContainerHeight,
+                paddingHorizontal: containerPadding,
+                width: waveContainerWidth
+            } as ViewStyle
+        ];
+    }
+
+    _renderAvatarWithSpeakerWave() {
+        const {
+            _audioTrack,
+            _isAudioMuted,
+            _isDominantSpeaker,
+            _isLocal,
+            _isOnHold,
+            _renderVideo,
+            avatarSize
+        } = this.props;
+        const showWave = this._shouldShowSpeakerWave();
+        const isTrackMuted = _audioTrack?.muted ?? _isAudioMuted;
+        const shouldDisplayWave = showWave && !isTrackMuted && !_isOnHold;
+        const animateWave = this._shouldAnimateSpeakerPulse();
+        const visualAvatarSize = !_isLocal && !_renderVideo
+            ? Math.round(avatarSize * 1)
+            : avatarSize;
+
+        if (!showWave) {
+            return (
+                <View style = { styles.avatarContainer as ViewStyle }>
+                    <Avatar
+                        participantId = { this.props.participantId }
+                        size = { visualAvatarSize } />
+                </View>
+            );
+        }
+
+        const shellSize = Math.round(visualAvatarSize * 1.5);
+        const barBaseHeight = Math.max(3, Math.round(visualAvatarSize * 0.03));
+        const barWidth = Math.max(3, Math.round(visualAvatarSize * 0.04));
+        const barGap = Math.max(3, Math.round(visualAvatarSize * 0.02));
+        const midBarIndex = (this._waveBars.length - 1) / 2;
+
+        const barMaxHeights = this._waveBars.map((_, idx) => {
+            const distanceFromCenter = Math.abs(idx - midBarIndex);
+            const centerWeight = 1 - (distanceFromCenter / (midBarIndex + 1));
+
+            return Math.max(barBaseHeight + 4, Math.round(visualAvatarSize * (0.08 + centerWeight * 0.14)));
+        });
+
+        return (
+            <View style = { styles.avatarContainer as ViewStyle }>
+                <View
+                    style = { [
+                        styles.avatarShell,
+                        {
+                            borderRadius: shellSize / 2,
+                            height: shellSize,
+                            width: shellSize
+                        }
+                    ] as any[] }>
+                    <View style = { _isDominantSpeaker ? styles.avatarGlow as ViewStyle : undefined }>
+                        <Avatar
+                            participantId = { this.props.participantId }
+                            size = { visualAvatarSize } />
+                    </View>
+                </View>
+                { shouldDisplayWave
+                    ? this._renderWaveBars(
+                        visualAvatarSize,
+                        barBaseHeight,
+                        barWidth,
+                        barGap,
+                        barMaxHeights,
+                        animateWave
+                    )
+                    : null }
+            </View>
+        );
+    }
+
+    _renderWaveBars(
+            visualAvatarSize: number,
+            barBaseHeight: number,
+            barWidth: number,
+            barGap: number,
+            barMaxHeights: number[],
+            animateWave: boolean) {
+        const waveStyles = this._renderWaveContainerStyle(visualAvatarSize);
+
+        return (
+            <View style = { waveStyles as any[] }>
+                { this._waveBars.map((bar, idx) => (
+                    <Animated.View
+                        key = { `wave-bar-${idx}` }
+                        style = { [
+                            styles.speakerWaveBar,
+                            {
+                                marginHorizontal: barGap / 2,
+                                width: barWidth
+                            },
+                            animateWave
+                                ? {
+                                    height: bar.interpolate({
+                                        inputRange: [ 0, 1 ],
+                                        outputRange: [ barBaseHeight, barMaxHeights[idx] ]
+                                    }),
+                                    opacity: bar.interpolate({
+                                        inputRange: [ 0, 1 ],
+                                        outputRange: [ 0.42, 1 ]
+                                    })
+                                }
+                                : {
+                                    height: barBaseHeight,
+                                    opacity: 0.34
+                                }
+                        ] as any[] } />
+                )) }
+            </View>
+        );
+    }
 
     /**
      * Renders the inactive connection status label.
@@ -158,6 +427,7 @@ class ParticipantView extends Component<IProps> {
         const {
             avatarSize,
             _participantName: displayName,
+            _isConnectionInterrupted,
             t
         } = this.props;
 
@@ -170,10 +440,12 @@ class ParticipantView extends Component<IProps> {
 
         return (
             <View
-                pointerEvents='box-none'
-                style={containerStyle as ViewStyle}>
-                <Text style={styles.connectionInfoText as TextStyle}>
-                    {t('connection.LOW_BANDWIDTH', { displayName })}
+                pointerEvents = 'box-none'
+                style = { containerStyle as ViewStyle }>
+                <Text style = { styles.connectionInfoText as TextStyle }>
+                    { _isConnectionInterrupted
+                        ? t('presenceStatus.connecting')
+                        : t('connection.LOW_BANDWIDTH', { displayName }) }
                 </Text>
             </View>
         );
@@ -188,6 +460,10 @@ class ParticipantView extends Component<IProps> {
     override render() {
         const {
             _isConnectionInactive,
+            _isConnectionInterrupted,
+            _isAudioMuted,
+            _isOnHold,
+            _isLocal,
             _isSharedVideoParticipant,
             _renderVideo: renderVideo,
             _sharedVideoEnabled,
@@ -211,8 +487,45 @@ class ParticipantView extends Component<IProps> {
                 }
                 : styles.audioIndicatorStyleSmall);
         const isLargeVideo = this.props.testHintId === 'org.jitsi.meet.LargeVideo';
+        const isTileStatus = Boolean(this.props.showStatusLabel) && !isLargeVideo;
+        const objectFit = isLargeVideo ? 'cover' : (this.props.showStatusLabel ? 'cover' : undefined);
         const shouldShowAudioIndicator = (this.props.showAudioIndicator ?? true)
             && !(isLargeVideo && renderVideo);
+        const shouldShowStatusLabels = isLargeVideo
+            && !_isSharedVideoParticipant
+            && !_isLocal
+            && (_isAudioMuted || _isOnHold);
+        const statusLabels: Array<string> = [];
+
+        if (_isAudioMuted) {
+            statusLabels.push(this.props.t('videothumbnail.participantMuted', {
+                participantName: this.props._participantName
+            }));
+        }
+
+        if (_isOnHold) {
+            statusLabels.push(this.props.t('videothumbnail.onHold'));
+        }
+
+        const statusLabelsView = shouldShowStatusLabels
+            ? (
+                <View
+                    pointerEvents='none'
+                    style={(isAvatarOnly
+                        ? (isTileStatus ? styles.statusLabelsAboveAvatarSmall : styles.statusLabelsAboveAvatar)
+                        : (isTileStatus ? styles.statusLabelsOnThumbnail : styles.statusLabelsOnLargeVideo)) as ViewStyle}>
+                    {statusLabels.map(label => (
+                        <View
+                            key={label}
+                            style={(isTileStatus ? styles.statusLabelPillSmall : styles.statusLabelPill) as ViewStyle}>
+                            {/* <Text
+                                style={(isTileStatus ? styles.statusLabelTextSmall : styles.statusLabelText) as TextStyle}>
+                                {label}
+                            </Text> */}
+                        </View>
+                    ))}
+                </View>
+            ) : null;
 
         return (
             <Container
@@ -232,33 +545,37 @@ class ParticipantView extends Component<IProps> {
 
                 {renderVideo
                     && <VideoTrack
+                        borderRadius = { this.props.videoBorderRadius }
+                        objectFit = { objectFit }
                         onPress={onPress}
                         videoTrack={videoTrack}
                         waitForVideoStarted={false}
                         zOrder={this.props.zOrder}
                         zoomEnabled={this.props.zoomEnabled} />}
 
-                {!renderSharedVideo && !renderVideo
-                    && <View style={styles.avatarContainer as ViewStyle}>
+                {!isAvatarOnly && statusLabelsView}
 
-                        <Avatar
-                            participantId={this.props.participantId}
-                            size={this.props.avatarSize} />
-                        {shouldShowAudioIndicator && (
+                {!renderSharedVideo && !renderVideo
+                    && <>
+
+                        {statusLabelsView}
+
+                        {this._renderAvatarWithSpeakerWave()}
+                        {!this._shouldShowSpeakerWave() && shouldShowAudioIndicator && (
                             <ThumbnailAudioIndicator
-                                _audioTrack={this.props._audioTrack}
-                                containerStyle={{
+                                _audioTrack = { this.props._audioTrack }
+                                containerStyle = {{
                                     ...audioIndicatorContainerStyle,
-                                    marginTop: this.props.avatarSize * 0.6   // 10% of avatar size   // adjust value as needed
+                                    marginTop: this.props.avatarSize * 0.6
                                 }}
                             />
                         )}
-                    </View>}
+                    </>}
 
 
 
 
-                {_isConnectionInactive && this.props.useConnectivityInfoLabel
+                {(_isConnectionInactive || _isConnectionInterrupted) && this.props.useConnectivityInfoLabel
                     && this._renderInactiveConnectionInfo()}
             </Container>
         );
@@ -287,7 +604,12 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
 
     return {
         _audioTrack: audioTrack,
+        _isAudioMuted: participant ? isParticipantAudioMuted(participant, state) : true,
         _isConnectionInactive: isTrackStreamingStatusInactive(videoTrack),
+        _isConnectionInterrupted: isTrackStreamingStatusInterrupted(videoTrack),
+        _isDominantSpeaker: Boolean(participant?.dominantSpeaker),
+        _isLocal: Boolean(participant?.local),
+        _isOnHold: Boolean(participant?.isSilent),
         _isSharedVideoParticipant: isSharedVideoParticipant(participant),
         _participantName: getParticipantDisplayName(state, participantId),
         _renderVideo: shouldRenderParticipantVideo(state, participantId) && !disableVideo,
@@ -328,20 +650,7 @@ function shouldRenderParticipantVideo(stateful: IStateful, id: string) {
         return false;
     }
 
-    /* Then check if audio-only mode is not active. */
-    const audioOnly = state['features/base/audio-only'].enabled;
-
-    if (!audioOnly) {
-        return true;
-    }
-
-    /* Last, check if the participant is sharing their screen and they are on stage. */
-    const remoteScreenShares = state['features/video-layout'].remoteScreenShares || [];
-    const largeVideoParticipantId = state['features/large-video'].participantId;
-    const participantIsInLargeVideoWithScreen
-        = participant.id === largeVideoParticipantId && remoteScreenShares.includes(participant.id);
-
-    return participantIsInLargeVideoWithScreen;
+    return true;
 }
 
 export default translate(connect(_mapStateToProps)(ParticipantView));

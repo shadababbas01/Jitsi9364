@@ -23,6 +23,11 @@ export interface IProps {
     onPress?: Function;
 
     /**
+     * Optional border radius to apply to the native video surface.
+     */
+    borderRadius?: number;
+
+    /**
      * The Redux representation of the participant's video track.
      */
     videoTrack?: any;
@@ -44,6 +49,11 @@ export interface IProps {
      * Indicates whether zooming (pinch to zoom and/or drag) is enabled.
      */
     zoomEnabled?: boolean;
+
+    /**
+     * Object fit mode for the video.
+     */
+    objectFit?: 'cover' | 'contain';
 }
 
 /**
@@ -111,11 +121,13 @@ export default class AbstractVideoTrack<P extends IProps> extends Component<P> {
 
         return (
             <Video
+                borderRadius = { this.props.borderRadius }
                 mirror = { videoTrack?.mirror }
                 onPlaying = { this._onVideoPlaying }
 
                 // @ts-ignore
                 onPress = { this.props.onPress }
+                objectFit = { this.props.objectFit }
                 stream = { stream }
                 zOrder = { this.props.zOrder }
                 zoomEnabled = { zoomEnabled } />

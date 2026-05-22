@@ -486,9 +486,9 @@ var config = {
     // autoCaptionOnRecord: false,
 
     // Transcription options.
-    // transcription: {
-    //     // Whether the feature should be enabled or not.
-    //     enabled: false,
+    transcription: {
+        // Whether the feature should be enabled or not.
+        enabled: true,
 
     //     // Translation languages.
     //     // Available languages can be found in
@@ -521,9 +521,8 @@ var config = {
     //     // Disables everything related to closed captions - the tab in the chat area, the button in the menu,
     //     // subtitles on stage and the "Show subtitles on stage" checkbox in the settings.
     //     // Note: Starting transcriptions from the recording dialog will still work.
-    //     disableClosedCaptions: false,
-
-    // },
+        disableClosedCaptions: false
+    },
 
     // Misc
 

@@ -36,8 +36,8 @@
         "car": "Car Audio",
         "headphones": "Headphones",
         "none": "No audio devices available",
-        "phone": "Speaker Off",
-        "speaker": "Speaker On"
+        "phone": "Phone",
+        "speaker": "Speaker"
     },
     "audioOnly": {
         "audioOnly": "Low bandwidth"
@@ -148,7 +148,11 @@
         "emptyState": "The live captions content will be available once a moderator starts it",
         "startClosedCaptionsButton": "Start live captions",
         "closeLiveCaptionButton": "Turn Off Live Captions",
-        "historyTitle": "Live caption history"
+        "historyTitle": "Live caption history",
+        "noMessages": "No live captions yet. Captions will appear here once speech is detected."
+    },
+    "liveCaptionsPanel": {
+        "title": "Live Captions"
     },
     "connectingOverlay": {
         "joiningRoom": "Connecting..."
@@ -794,6 +798,11 @@
         "oldElectronClientDescription1": "You appear to be using an old version of the Jitsi Meet client which has known security vulnerabilities. Please make sure you update to our ",
         "oldElectronClientDescription2": "latest build",
         "oldElectronClientDescription3": " now!",
+        "voiceTranslationAvailableDescription": "Participant count is back within the limit. You can re-enable voice translation.",
+        "voiceTranslationAvailableTitle": "Voice translation available",
+        "voiceTranslationLimitDescription": "Voice translation supports up to {{max}} participants.",
+        "voiceTranslationLimitTitle": "Voice translation paused",
+        "voiceTranslationReenableAction": "Enable",
         "participantWantsToJoin": "Wants to join the meeting",
         "participantsWantToJoin": "Want to join the meeting",
         "passwordRemovedRemotely": "$t(lockRoomPasswordUppercase) removed by another participant",
@@ -1401,7 +1410,7 @@
         "continue": "Continue",
         "leaveCall": "Leave Call"
     },
-        "summarySetup": {
+    "summarySetup": {
         "title": "AI Meeting Summary",
         "description": "Get an instant AI-generated summary tailored to your meeting type.",
         "enableLabel": "Enable AI Meeting Summary",
@@ -1418,6 +1427,42 @@
         },
         "statusEnabled": "AI summary is active for this meeting.",
         "statusDisabled": "AI summary is paused until you turn it back on."
+    },
+    "voiceTranslation": {
+        "active": "Active",
+        "back": "Back",
+        "disableVoiceTranslation": "Disable",
+        "disableVoiceTranslationConfirm": "Disable",
+        "disableVoiceTranslationDescription": "This will turn off voice translation and live captions.",
+        "disableVoiceTranslationTitle": "Turn off voice translation?",
+        "dontTranslateLabel": "Don't translate for me",
+        "enableVoiceTranslation": "Enable voice translation",
+        "fromLanguageLabel": "I will speak in",
+        "learnMore": "Learn more about speech translation",
+        "notNow": "Not now",
+        "popupTitle": "Live Translator",
+        "preferencesDescription": "Tell us how you speak and what you want to hear.",
+        "preferencesTitle": "Set your voice translation",
+        "privacyNotice": "Melp uses your voice only to produce the translation. No voice data is saved.",
+        "privacyPolicy": "privacy policy",
+        "savePreferences": "Save preferences",
+        "searchLanguages": "Search languages",
+        "selectLanguage": "Select language",
+        "selectParticipantTitle": "Select who should receive voice translation",
+        "skip": "Skip",
+        "skipForNow": "Not now",
+        "socketConnected": "Voice translation audio is ready.",
+        "socketConnecting": "Connecting voice translation audio...",
+        "speakingLanguageLabel": "Speaking Language",
+        "step1Description": "Choose your speaking and listening languages for real-time translation.",
+        "step2Description": "Translate your speech in real time for others in the meeting. By selecting Translate, you enable translation for this and future meetings. You can change this anytime in Settings.",
+        "toLanguageLabel": "I want to hear others in",
+        "translate": "Translate",
+        "translationActiveTooltip": "Voice translation is active for this speaker",
+        "translationLanguageLabel": "Translation Language",
+        "translationVariationNotice": "AI-generated voice translation may vary in accuracy. Translated speech is approximate and may not perfectly convey the original meaning.",
+        "update": "Update",
+        "voiceTranslationActiveClickSettings": "Voice translation is active. Click to open settings."
     },
     "unpinParticipant": "{{participantName}} - Unpin",
     "userMedia": {
@@ -1479,6 +1524,8 @@
         "moderator": "Moderator",
         "mute": "Participant is muted",
         "muted": "Muted",
+        "participantMuted": "{{participantName}} is on mute",
+        "onHold": "On hold",
         "pinToStage": "Pin to stage",
         "remoteControl": "Start / Stop remote control",
         "screenSharing": "Participant is sharing their screen",

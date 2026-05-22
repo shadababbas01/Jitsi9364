@@ -1,6 +1,4 @@
 import { IReduxState, IStore } from '../../app/types';
-import { showNotification } from '../../notifications/actions';
-import { NOTIFICATION_TIMEOUT_TYPE } from '../../notifications/constants';
 import JitsiMeetJS from '../lib-jitsi-meet';
 import { setScreenshareMuted } from '../media/actions';
 
@@ -54,15 +52,6 @@ async function _startScreenSharing(dispatch: IStore['dispatch'], state: IReduxSt
             dispatch(addLocalTrack(track));
         }
 
-        const { enabled: audioOnly } = state['features/base/audio-only'];
-
-        if (audioOnly) {
-            dispatch(showNotification({
-                titleKey: 'notify.screenSharingAudioOnlyTitle',
-                descriptionKey: 'notify.screenSharingAudioOnlyDescription',
-                maxLines: 3
-            }, NOTIFICATION_TIMEOUT_TYPE.LONG));
-        }
     } catch (error: any) {
         logger.error('Error creating screen-sharing stream', error);
     }

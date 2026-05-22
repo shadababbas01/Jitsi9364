@@ -131,6 +131,12 @@ function _addConferenceListeners(conference: IJitsiConference, dispatch: IStore[
             dispatch(conferenceTimestampChanged(0));
             dispatch(conferenceLeft(conference));
         });
+    conference.on(
+        JitsiConferenceEvents.CONNECTION_INTERRUPTED,
+        (..._args: any[]) => dispatch(setConnectionStatus('reconnecting')));
+    conference.on(
+        JitsiConferenceEvents.CONNECTION_RESTORED,
+        (..._args: any[]) => dispatch(setConnectionStatus('connected')));
     conference.on(JitsiConferenceEvents.SUBJECT_CHANGED,
         (subject: string) => dispatch(conferenceSubjectChanged(subject)));
 

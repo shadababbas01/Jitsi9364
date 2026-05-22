@@ -212,7 +212,15 @@ function _setAudioOnly({ dispatch }: IStore, next: Function, action: AnyAction) 
     sendAnalytics(createTrackMutedEvent('video', 'audio-only mode', audioOnly));
 
     // Make sure we mute both the desktop and video tracks.
-    dispatch(setVideoMuted(audioOnly, VIDEO_MUTISM_AUTHORITY.AUDIO_ONLY));
+    if (audioOnly) {
+        dispatch(setVideoMuted(true, VIDEO_MUTISM_AUTHORITY.AUDIO_ONLY));
+    } else {
+        // Leaving audio-only should bring the camera back even if the user had
+        // it muted before entering audio-only mode.
+        dispatch(setVideoMuted(false, VIDEO_MUTISM_AUTHORITY.AUDIO_ONLY, true));
+        dispatch(setVideoMuted(false, VIDEO_MUTISM_AUTHORITY.USER, true));
+    }
+
     dispatch(setScreenshareMuted(audioOnly, SCREENSHARE_MUTISM_AUTHORITY.AUDIO_ONLY));
 
     return next(action);

@@ -51,6 +51,11 @@ import java.util.Collection;
  */
 public class MainActivity extends JitsiMeetActivity {
     /**
+     * True when the current finish was triggered by the SDK's ready-to-close flow
+     * and the task should be removed from Android Recents.
+     */
+    private boolean removeTaskOnFinish;
+    /**
      * The request code identifying requests for the permission to draw on top
      * of other apps. The value must be 16-bit and is arbitrarily chosen here.
      */
@@ -151,15 +156,31 @@ public class MainActivity extends JitsiMeetActivity {
         super.onDestroy();
     }
 
+    @Override
+    protected void onReadyToClose() {
+        removeTaskOnFinish = true;
+        super.onReadyToClose();
+    }
+
+    @Override
+    public void finish() {
+        if (removeTaskOnFinish && isTaskRoot() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            super.finishAndRemoveTask();
+            return;
+        }
+
+        super.finish();
+    }
+
     private void setJitsiMeetConferenceDefaultOptions() {
 
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            .setServerURL(buildURL("https://meetdev.melp.us/"))
-            // .setServerURL(buildURL(defaultURL))
+            // .setServerURL(buildURL("https://meetdev.melp.us/"))
+            .setServerURL(buildURL("https://meet.jit.si/"))
             .setFeatureFlag("welcomepage.enabled", true)
-            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImNvbnRleHQiOnsiY2FsbGVlIjp7Im5hbWUiOiIiLCJpZCI6Ijg4cDh2bWQyIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiU2hhZGFiIEFiYmFzIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6Imh0dHBzOi8vdXMtYXBpLm1lbHAudXMvZG93bmxvYWQvdjAvODhwOHZtYW11azh3Lzg5NDZAdXNlci5qcGVnP3Nlc3Npb25pZD1oYmpHc0xVOVFQdHQxT1ZxN3R4dGxiVE0xcUd2bTBtY1BsWjlxbFVzM0VUUSZpc3RodW1iPTEiLCJlbWFpbCI6Ijg4cDh2bWQyQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzczOTA0ODA2LCJyb29tIjoiODI0NTcxMTRkNzU5YmJhZTQ5MmQxNTU3NGExYzljNTMiLCJyb29tTmFtZSI6IlNoYWRhYiBBYmJhcyIsImV4cCI6MTc3Mzk0ODAwNn0.LVjCGNs4h4Cuz3q-JXfe9mVu98vnW1oNhjTSR2XFG98")
+            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiI4OHA4dm1kMl84c2M0bHFtdiIsImF1ZCI6Im1lbHBfY29uZiIsInN1YiI6Im1lZXRkZXYubWVscC51cyIsIm1vZGVyYXRvciI6dHJ1ZSwiaXNzIjoibWVscF9jb25mXzgiLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBBYmJhcyIsImlkIjoiODhwOHZtZDIiLCJhdmF0YXIiOiJodHRwczovL3VzLWFwaS5tZWxwLnVzL2Rvd25sb2FkL3YwLzg4cDh2bWFtdWs4dy84OTQ2QHVzZXIuanBlZz9zZXNzaW9uaWQ9aGJqR3NMVTlRUHR0MU9WcTd0eHRsYlRNMXFHdm0wbWNQbFo5cWxVczNFVFEmaXN0aHVtYj0xIiwiZW1haWwiOiI4OHA4dm1kMkBtZWxwLmNvbSJ9LCJncm91cCI6Im9uZXRvb25lIn0sImlhdCI6MTc3NDYwNjY2OSwicm9vbSI6IjY1MjAyZDkzMGEwZjhlMGY2ODEzNjRiYTU3ZDY3ZDJiIiwicm9vbU5hbWUiOiJTaGFkYWIgQWJiYXMiLCJleHAiOjE3NzQ2NDk4Njl9.fgra5-FmoK7fFE555XKlLFcCpz8bXCswg96PRAj7tzM")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -169,7 +190,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("82457114d759bbae492d15574a1c9c53")
+                       .setRoom("shadab")
                         .build();
                 join(defaultOptions1);
             }

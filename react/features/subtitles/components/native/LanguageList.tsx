@@ -12,6 +12,7 @@ interface ILanguageListProps {
 
 interface ILanguageItem {
     id: string;
+    label?: string;
     lang: string;
     selected: boolean;
 }
@@ -26,6 +27,7 @@ const LanguageList = ({ items, onLanguageSelected }: ILanguageListProps) => {
     const listItems = items?.map(item => (
         <LanguageListItem
             key = { item.id }
+            label = { item.label }
             lang = { item.lang }
             onLanguageSelected = { onLanguageSelected }
             selected = { item.selected } />

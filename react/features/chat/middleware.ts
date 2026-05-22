@@ -43,10 +43,12 @@ import { getDisplayName } from '../visitors/functions';
 import {
     ADD_MESSAGE,
     CLOSE_CHAT,
+    NOTIFY_TRANSCRIPTION_STARTED,
     OPEN_CHAT,
     SEND_MESSAGE,
     SEND_REACTION,
-    SET_FOCUSED_TAB
+    SET_FOCUSED_TAB,
+    SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import {
     addMessage,
@@ -55,7 +57,8 @@ import {
     closeChat,
     notifyPrivateRecipientsChanged,
     openChat,
-    setPrivateMessageRecipient
+    setPrivateMessageRecipient,
+    showTranscriptionConsent
 } from './actions';
 import { ChatPrivacyDialog } from './components';
 import {
@@ -197,21 +200,37 @@ MiddlewareRegistry.register(store => next => action => {
 
     case ENDPOINT_MESSAGE_RECEIVED: {
         const state = store.getState();
+        const { participant, data } = action;
+
+        if (data?.name === SHOW_TRANSCRIPTION_CONSENT) {
+            const starterId = data.from;
+
+            if (localParticipant?.id !== starterId) {
+                const moderatorName = getParticipantDisplayName(state, starterId)
+                    || data.moderatorName
+                    || i18next.t('transcriptionConsent.defaultModeratorName');
+
+                store.dispatch(showTranscriptionConsent(moderatorName, starterId));
+            }
+        }
 
         if (!isReactionsEnabled(state)) {
             return next(action);
         }
 
-        const { participant, data } = action;
-
         if (data?.name === ENDPOINT_REACTION_NAME) {
             // Skip duplicates, keep just 3.
             const reactions = Array.from(new Set(data.reactions)).slice(0, 3) as string[];
+            const participantId = participant.getId();
 
-            store.dispatch(pushReactions(reactions));
+            store.dispatch(pushReactions(
+                reactions,
+                participantId,
+                getParticipantDisplayName(state, participantId)
+            ));
 
             _handleReceivedMessage(store, {
-                participantId: participant.getId(),
+                participantId,
                 message: getReactionMessageFromBuffer(reactions),
                 privateMessage: false,
                 lobbyChat: false,
@@ -295,6 +314,21 @@ MiddlewareRegistry.register(store => next => action => {
     case PARTICIPANT_JOINED:
     case PARTICIPANT_LEFT:
     case PARTICIPANT_UPDATED: {
+        if (action.type === PARTICIPANT_JOINED && !action.participant?.local) {
+            const state = store.getState();
+            const { transcriptionStartedByCurrentUser } = state['features/chat'];
+            const conference = getCurrentConference(state);
+            const local = getLocalParticipant(state);
+
+            if (transcriptionStartedByCurrentUser && conference && local?.id && action.participant?.id) {
+                conference.sendEndpointMessage(action.participant.id, {
+                    name: SHOW_TRANSCRIPTION_CONSENT,
+                    from: local.id,
+                    moderatorName: local.displayName || i18next.t('transcriptionConsent.defaultModeratorName')
+                });
+            }
+        }
+
         if (action.type === PARTICIPANT_LEFT) {
             const { privateMessageRecipient } = store.getState()['features/chat'];
 
@@ -309,6 +343,29 @@ MiddlewareRegistry.register(store => next => action => {
 
             return result;
         }
+        break;
+    }
+
+    case NOTIFY_TRANSCRIPTION_STARTED: {
+        const state = getState();
+        const conference = getCurrentConference(state);
+        const local = getLocalParticipant(state);
+        const remoteParticipants = state['features/base/participants'].remote;
+
+        if (conference && local?.id) {
+            remoteParticipants.forEach(participant => {
+                if (participant.id) {
+                    conference.sendEndpointMessage(participant.id, {
+                        name: SHOW_TRANSCRIPTION_CONSENT,
+                        from: local.id,
+                        moderatorName: action.moderatorName
+                            || local.displayName
+                            || i18next.t('transcriptionConsent.defaultModeratorName')
+                    });
+                }
+            });
+        }
+
         break;
     }
 

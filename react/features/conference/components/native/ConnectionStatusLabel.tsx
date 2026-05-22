@@ -3,12 +3,8 @@ import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-
 import styles from './styles';
 
-const CONNECTED_LABEL_MS = 1000;
-const E2EE_LABEL_MS = 1000;
-const E2EE_LABEL_TEXT = 'End to end encrypted';
 const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected', 'reconnecting' ]);
 const STATUS_DISPLAY_TEXT: Record<string, string> = {
     calling: 'Calling...',
@@ -17,6 +13,9 @@ const STATUS_DISPLAY_TEXT: Record<string, string> = {
     reconnecting: 'Reconnecting...',
     ringing: 'Ringing...'
 };
+const CONNECTED_PHASE_CONNECTED_MS = 1000;
+const CONNECTED_PHASE_ENCRYPTED_MS = 2000;
+const CONNECTED_ENCRYPTED_TEXT = 'End to end encrypted';
 
 function normalizeStatus(rawStatus?: string) {
     if (!rawStatus) {
@@ -30,64 +29,48 @@ export default function ConnectionStatusLabel() {
     const { connectionStatus, connectedTimestamp } = useSelector((state: IReduxState) => state['features/base/conference']);
     const normalizedStatus = normalizeStatus(connectionStatus);
     const [ now, setNow ] = useState(Date.now());
+    const effectiveStatus = normalizedStatus;
+    const effectiveConnectedTimestamp = effectiveStatus === 'connected' ? connectedTimestamp : undefined;
 
     useEffect(() => {
-        if (!connectionStatus && !connectedTimestamp) {
+        if (effectiveStatus !== 'connected' || !effectiveConnectedTimestamp) {
             return;
         }
 
-        console.log('[connectionStatus] redux:', {
-            connectionStatus,
-            normalizedStatus,
-            connectedTimestamp
-        });
-    }, [ connectionStatus, normalizedStatus, connectedTimestamp ]);
-
-    useEffect(() => {
-        if (normalizedStatus !== 'connected' || !connectedTimestamp) {
-            return;
-        }
-
-        const elapsed = Math.max(0, now - connectedTimestamp);
-        let delay: number | null = null;
-
-        if (elapsed < CONNECTED_LABEL_MS) {
-            delay = CONNECTED_LABEL_MS - elapsed;
-        } else if (elapsed < CONNECTED_LABEL_MS + E2EE_LABEL_MS) {
-            delay = CONNECTED_LABEL_MS + E2EE_LABEL_MS - elapsed;
-        }
-
-        if (delay === null) {
-            return;
-        }
-
-        const timeoutId = setTimeout(() => {
+        const intervalId = setInterval(() => {
             setNow(Date.now());
-        }, delay);
+        }, 250);
 
-        return () => clearTimeout(timeoutId);
-    }, [ normalizedStatus, connectedTimestamp, now ]);
+        return () => clearInterval(intervalId);
+    }, [ effectiveStatus, effectiveConnectedTimestamp ]);
 
-    if (!normalizedStatus || normalizedStatus === 'clear') {
+    if (!effectiveStatus || effectiveStatus === 'clear') {
         return null;
     }
 
-    if (!STATUS_TEXT_VALUES.has(normalizedStatus)) {
+    if (!STATUS_TEXT_VALUES.has(effectiveStatus)) {
         return null;
     }
 
-    let statusText = STATUS_DISPLAY_TEXT[normalizedStatus] || normalizedStatus;
+    let statusText = STATUS_DISPLAY_TEXT[effectiveStatus] || effectiveStatus;
 
-    if (normalizedStatus === 'connected' && connectedTimestamp) {
-        const elapsed = Math.max(0, now - connectedTimestamp);
+    if (effectiveStatus === 'connected' && effectiveConnectedTimestamp) {
+        const elapsedMs = Math.max(0, now - effectiveConnectedTimestamp);
 
-        if (elapsed >= CONNECTED_LABEL_MS + E2EE_LABEL_MS) {
-            return null;
+        if (elapsedMs < CONNECTED_PHASE_CONNECTED_MS) {
+            statusText = STATUS_DISPLAY_TEXT.connected;
+        } else if (elapsedMs < CONNECTED_PHASE_ENCRYPTED_MS) {
+            statusText = CONNECTED_ENCRYPTED_TEXT;
+        } else {
+        const totalSeconds = Math.max(0, Math.floor((now - effectiveConnectedTimestamp) / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        statusText = hours > 0
+            ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
-
-        statusText = elapsed >= CONNECTED_LABEL_MS
-            ? E2EE_LABEL_TEXT
-            : STATUS_DISPLAY_TEXT.connected;
     }
 
     return (

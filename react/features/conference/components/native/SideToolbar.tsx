@@ -8,6 +8,7 @@ import {
     TOGGLE_CAMERA_BUTTON_ENABLED
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
+import { getParticipantCountForDisplay } from '../../../base/participants/functions';
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
@@ -35,6 +36,8 @@ const SideToolbar = (props: IProps) => {
     const raisedHandsCount = useSelector((state: IReduxState) =>
         (state['features/base/participants'].raisedHandsQueue || []).length);
     const showRaisedHandsCount = raisedHandsCount > 0;
+    const participantsCount = useSelector(getParticipantCountForDisplay);
+    const showParticipantsCount = participantsCount > 0;
 
     useEffect(() => {
         Animated.timing(visibility, {

@@ -274,7 +274,13 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         runInAudioThread(new Runnable() {
             @Override
             public void run() {
-                if (!availableDevices.contains(device)) {
+                boolean isBuiltInRoute
+                    = DEVICE_SPEAKER.equals(device) || DEVICE_EARPIECE.equals(device);
+                boolean canSelectDevice
+                    = availableDevices.contains(device)
+                        || (isBuiltInRoute && availableDevices.isEmpty());
+
+                if (!canSelectDevice) {
                     JitsiMeetLogger.w(TAG + " Audio device not available: " + device);
                     userSelectedDevice = null;
                     return;
@@ -283,7 +289,7 @@ class AudioModeModule extends ReactContextBaseJavaModule {
                 if (mode != -1) {
                     JitsiMeetLogger.i(TAG + " User selected device set to: " + device);
                     userSelectedDevice = device;
-                    updateAudioRoute(mode, false);
+                    updateAudioRoute(mode, true);
                 }
             }
         });
@@ -412,7 +418,10 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         }
 
         // Consider the user's selection
-        if (userSelectedDevice != null && availableDevices.contains(userSelectedDevice)) {
+        if (userSelectedDevice != null
+            && (availableDevices.contains(userSelectedDevice)
+                || ((DEVICE_SPEAKER.equals(userSelectedDevice) || DEVICE_EARPIECE.equals(userSelectedDevice))
+                    && availableDevices.isEmpty()))) {
             audioDevice = userSelectedDevice;
         }
 

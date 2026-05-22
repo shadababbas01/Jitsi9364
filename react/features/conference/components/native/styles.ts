@@ -2,7 +2,7 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
 export const INSECURE_ROOM_NAME_LABEL_COLOR = BaseTheme.palette.actionDanger;
 
-const TITLE_BAR_BUTTON_SIZE = 24;
+const TITLE_BAR_BUTTON_SIZE = 20;
 const ROUND_BUTTON_SIZE = 48;
 
 
@@ -42,6 +42,16 @@ export default {
         alignSelf: 'stretch',
         backgroundColor: BaseTheme.palette.uiBackground,
         flex: 1
+    },
+
+    pipAvatarContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center'
+    },
+
+    pipAvatar: {
+        opacity: 0.98
     },
 
     displayNameContainer: {
@@ -111,7 +121,7 @@ export default {
     pipButton: {
         iconStyle: {
             color: BaseTheme.palette.icon01,
-            padding: 12,
+            padding: 10,
             fontSize: TITLE_BAR_BUTTON_SIZE
         },
         underlayColor: 'transparent'
@@ -265,7 +275,17 @@ export default {
     sideToolbarButtonWrapper: {
         marginBottom: BaseTheme.spacing[3],
     },
-
+    raiseHandIndicator: {
+        alignItems: 'center',
+        backgroundColor: '#16253a',
+        borderColor: '#4c8dff',
+        borderRadius: 24,
+        borderWidth: 2,
+        height: 28,
+        justifyContent: 'center',
+        position: 'relative',
+        width: 40
+    },
     sideToolbarButtonBadgeWrapper: {
         alignItems: 'center',
         backgroundColor: '#16253a',
@@ -281,15 +301,15 @@ export default {
     sideToolbarButton: {
         iconStyle: {
             color: BaseTheme.palette.icon01,
-            fontSize: TITLE_BAR_BUTTON_SIZE
+            fontSize: 20
         },
         style: {
             alignItems: 'center',
             backgroundColor: '#494949ff',
             borderRadius: 60 / 2,
-            height: 60,
+            height: 56,
             justifyContent: 'center',
-            width: 60
+            width: 56
         },
         underlayColor: 'transparent'
     },
@@ -307,6 +327,25 @@ export default {
             justifyContent: 'center',
             left: 0,
             paddingLeft: 7,
+            position: 'absolute',
+            right: 0,
+            top: 0
+        },
+        underlayColor: 'transparent'
+    },
+    ThumbnailButtonRaiseHand: {
+        iconStyle: {
+            color: '#8bc1ff',
+            fontSize: 22
+        },
+        style: {
+            alignItems: 'flex-start',
+            backgroundColor: 'transparent',
+            borderRadius: 24,
+            bottom: 0,
+            justifyContent: 'center',
+            left: 0,
+            paddingLeft: 5,
             position: 'absolute',
             right: 0,
             top: 0

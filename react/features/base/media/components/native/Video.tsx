@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent, Platform, View } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { connect } from 'react-redux';
 
 import Pressable from '../../../react/components/native/Pressable';
 import { IReduxState } from '../../../../app/types';
+import { ASPECT_RATIO_WIDE } from '../../../responsive-ui/constants';
 import { CAMERA_FACING_MODE } from '../../../media/constants';
 
 import VideoTransform from './VideoTransform';
@@ -14,6 +15,8 @@ import styles from './styles';
  * The type of the React {@code Component} props of {@link Video}.
  */
 interface IProps {
+    aspectRatio?: Symbol;
+    borderRadius?: number;
     cameraFacingMode?: string;
     mirror: boolean;
 
@@ -88,11 +91,19 @@ class Video extends Component<IProps> {
      * @returns {ReactElement|null}
      */
     override render() {
-        const { cameraFacingMode, onPress, stream, zoomEnabled, objectFit } = this.props;
+        const { aspectRatio, borderRadius, cameraFacingMode, onPress, stream, zoomEnabled, objectFit } = this.props;
 
         if (stream) {
             // RTCView
-            const style = styles.video;
+            const useClippedTextureView = Platform.OS === 'android' && Boolean(borderRadius);
+            const style = [
+                styles.video,
+                borderRadius ? { borderRadius } : null
+            ];
+            const clipStyle = [
+                styles.video,
+                borderRadius ? { borderRadius, overflow: 'hidden' } : null
+            ];
             const videoTrack = stream.getVideoTracks?.()[0];
             const facingMode
                 = cameraFacingMode
@@ -104,9 +115,11 @@ class Video extends Component<IProps> {
                 = zoomEnabled
                     ? 'contain'
                     : (objectFit ?? 'cover');
+            const orientationKey = aspectRatio === ASPECT_RATIO_WIDE ? 'landscape' : 'portrait';
             const rtcView
                 = (
                     <RTCView
+                        key = { `${stream.id}-${orientationKey}` }
                         mirror = { !isBackCamera && this.props.mirror }
                         objectFit = { display }
                         streamURL = { stream.toURL() }
@@ -149,9 +162,10 @@ class Video extends Component<IProps> {
     }
 }
 
-const mapStateToProps = (state: IReduxState) => ({
+const mapStateToProps = (state: IReduxState, ownProps: IProps) => ({
+    aspectRatio: state['features/base/responsive-ui'].aspectRatio,
     cameraFacingMode: state['features/base/media']?.video?.facingMode,
-    objectFit: state['features/base/settings'].zoomtype
+    objectFit: ownProps.objectFit ?? state['features/base/settings'].zoomtype
 });
 
 export default connect(mapStateToProps)(Video);

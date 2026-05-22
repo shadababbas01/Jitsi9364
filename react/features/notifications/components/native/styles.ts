@@ -8,13 +8,13 @@ const contentColumn = {
 
 const notification = {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 22,
+    borderRadius: 16,
     display: 'flex',
     flexDirection: 'row',
     marginVertical: BaseTheme.spacing[1],
-    maxWidth: 360,
-    paddingHorizontal: BaseTheme.spacing[3],
-    paddingVertical: BaseTheme.spacing[1],
+    maxWidth: 320,
+    paddingHorizontal: BaseTheme.spacing[2],
+    paddingVertical: BaseTheme.spacing[0],
     width: '100%'
 };
 
@@ -120,7 +120,7 @@ export default {
         alignItems: 'center',
         paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
-        top: BaseTheme.spacing[12],
+        top: BaseTheme.spacing[10],
         width: '100%'
     },
 
@@ -128,7 +128,7 @@ export default {
         alignItems: 'center',
         paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
-        top: BaseTheme.spacing[12],
+        top: BaseTheme.spacing[10],
         width: '100%'
     },
 
@@ -136,7 +136,7 @@ export default {
         alignItems: 'center',
         paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
-        top: BaseTheme.spacing[6],
+        top: BaseTheme.spacing[5],
         width: '100%'
     },
 
@@ -144,7 +144,7 @@ export default {
         alignItems: 'center',
         paddingHorizontal: BaseTheme.spacing[3],
         position: 'absolute',
-        top: BaseTheme.spacing[6],
+        top: BaseTheme.spacing[5],
         width: '100%'
     }
 };

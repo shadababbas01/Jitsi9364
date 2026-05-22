@@ -35,14 +35,20 @@ export function showConnectionStatus(participantID: string) {
  * @param {boolean} local - Whether the participant is local or not.
  * @returns {Function}
  */
-export function showContextMenuDetails(participantId: string, local = false) {
+export function showContextMenuDetails(
+        participantId: string,
+        local = false,
+        options: { compact?: boolean; } = {}) {
     return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const { remoteVideoMenu } = getState()['features/base/config'];
 
         if (local) {
             dispatch(openSheet(LocalVideoMenu));
         } else if (!remoteVideoMenu?.disabled) {
-            dispatch(openSheet(RemoteVideoMenu, { participantId }));
+            dispatch(openSheet(RemoteVideoMenu, {
+                compact: Boolean(options.compact),
+                participantId
+            }));
         }
     };
 }

@@ -54,19 +54,30 @@ const contextMenuItem = {
 export default {
 
     participantsBadge: {
-        backgroundColor: BaseTheme.palette.ui03,
-        borderRadius: BaseTheme.spacing[2],
+        backgroundColor: '#EE4136',
+        alignItems: 'center',
         borderColor: 'white',
+        borderRadius: 999,
+        borderWidth: 1,
+        justifyContent: 'center',
         overflow: 'hidden',
-        height: BaseTheme.spacing[3],
-        minWidth: BaseTheme.spacing[3],
-        color: BaseTheme.palette.text01,
-        ...BaseTheme.typography.labelBold,
+        height: BaseTheme.spacing[4],
+        width: BaseTheme.spacing[4],
         position: 'absolute',
-        right: -3,
-        top: -3,
+        right: -4,
+        top: -4,
+        paddingHorizontal: 0
+    },
+
+    participantsBadgeText: {
+        color: BaseTheme.palette.text01,
+        fontSize: 11,
+        fontWeight: '700',
+        includeFontPadding: false,
+        lineHeight: 11,
         textAlign: 'center',
-        paddingHorizontal: 2
+        textAlignVertical: 'center',
+        transform: [ { translateX: 1 } ]
     },
 
     participantsButtonBadge: {

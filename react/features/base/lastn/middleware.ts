@@ -48,7 +48,7 @@ const _updateLastN = debounce(({ dispatch, getState }: IStore) => {
     // meaning that it is never active
     if (navigator.product === 'ReactNative' && (appState !== 'active' || carMode)) {
         lastNSelected = 0;
-    } else if (audioOnly) {
+    } else if (audioOnly && navigator.product !== 'ReactNative') {
         const { remoteScreenShares, tileViewEnabled } = state['features/video-layout'];
         const largeVideoParticipantId = state['features/large-video'].participantId;
         const largeVideoParticipant

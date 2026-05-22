@@ -3,13 +3,10 @@ import { Animated, Easing, Text, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-import { getConferenceName, getConferenceTimestamp } from '../../../base/conference/functions';
-import { CONFERENCE_TIMER_ENABLED } from '../../../base/flags/constants';
-import { getFeatureFlag } from '../../../base/flags/functions';
+import { getConferenceName } from '../../../base/conference/functions';
 import PictureInPictureButton from '../../../mobile/picture-in-picture/components/PictureInPictureButton';
 import { isRoomNameEnabled } from '../../../prejoin/functions.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
-import ConferenceTimer from '../ConferenceTimer';
 
 import Labels from './Labels';
 import styles from './styles';
@@ -17,12 +14,6 @@ import styles from './styles';
 import ConnectionStatusLabel from '../../../conference/components/native/ConnectionStatusLabel';
 
 interface IProps {
-
-    /**
-     * Whether displaying the current conference timer is enabled or not.
-     */
-    _conferenceTimerEnabled: boolean;
-
     /**
      * Creates a function to be invoked when the onPress of the touchables are
      * triggered.
@@ -96,10 +87,6 @@ const TitleBar = (props: IProps) => {
                     </Text>
                 }
                 <ConnectionStatusLabel />
-                {
-                    props._conferenceTimerEnabled
-                    && <ConferenceTimer textStyle = { styles.meetingTimer } />
-                }
                 <View style = { styles.titleBarLabels as ViewStyle }>
                     {/* eslint-disable-next-line react/jsx-no-bind */}
                     {/* <Labels createOnPress = { props._createOnPress } /> */}
@@ -117,12 +104,7 @@ const TitleBar = (props: IProps) => {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
-    const { hideConferenceTimer } = state['features/base/config'];
-    const startTimestamp = getConferenceTimestamp(state);
-
     return {
-        _conferenceTimerEnabled:
-            Boolean(getFeatureFlag(state, CONFERENCE_TIMER_ENABLED, true) && !hideConferenceTimer && startTimestamp),
         _meetingName: getConferenceName(state),
         _roomNameEnabled: isRoomNameEnabled(state),
         _visible: isToolboxVisible(state)

@@ -130,9 +130,12 @@ class AudioDeviceHandlerConnectionService implements
                     JitsiMeetLogger.i(TAG + " Available audio devices: " + devices.toString());
                 }
 
-                if (audioRouteChanged || audioDevicesChanged) {
+                if (audioDevicesChanged) {
                     module.resetSelectedDevice();
                     module.updateAudioRoute();
+                } else if (audioRouteChanged) {
+                    // Keep user selection intact and force-route back to the selected device.
+                    module.resetAudioRoute();
                 }
             }
         });
@@ -166,6 +169,20 @@ class AudioDeviceHandlerConnectionService implements
         int newAudioRoute = audioDeviceToRouteInt(audioDevice);
 
         RNConnectionService.setAudioRoute(newAudioRoute);
+
+        // Some devices report route changes through Telecom but keep media on
+        // the earpiece. Apply a direct AudioManager fallback as well.
+        try {
+            boolean speaker = AudioModeModule.DEVICE_SPEAKER.equals(audioDevice);
+
+            audioManager.setSpeakerphoneOn(speaker);
+
+            if (speaker) {
+                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            }
+        } catch (Throwable tr) {
+            JitsiMeetLogger.w(tr, TAG + " Failed to apply AudioManager speaker fallback");
+        }
     }
 
     @Override

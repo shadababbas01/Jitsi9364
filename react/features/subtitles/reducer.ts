@@ -6,6 +6,7 @@ import {
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
+    SET_SUBTITLES_LANGUAGE,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -97,6 +98,11 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         return {
             ...state,
             _hasError: action.hasError
+        };
+    case SET_SUBTITLES_LANGUAGE:
+        return {
+            ...state,
+            _language: action.language
         };
     }
 

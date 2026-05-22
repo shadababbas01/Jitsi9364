@@ -7,6 +7,7 @@ import { CHAT_ENABLED } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
 import { IconMessage, IconMessageDot } from '../../../base/icons/svg';
+import { updateSettings } from '../../../base/settings/actions';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { arePollsDisabled } from '../../../conference/functions.any';
 import { enterPictureInPicture } from '../../../mobile/picture-in-picture/actions';
@@ -31,6 +32,16 @@ interface IProps extends AbstractButtonProps {
      * Whether the chat screen is currently open.
      */
     _isChatOpen: boolean;
+
+    /**
+     * Whether native in-call chat is currently open.
+     */
+    _isMelpChatOpen: boolean;
+
+    /**
+     * Whether we have an unread in-call chat message reported by native layer.
+     */
+    _hasInCallMessage: boolean;
 }
 
 interface IState {
@@ -71,6 +82,11 @@ class ChatButton extends AbstractButton<IProps, IState> {
         if (!prevProps._isChatOpen && this.props._isChatOpen) {
             this._setNativeNewMessage(false);
         }
+
+        if (!prevProps._isMelpChatOpen && this.props._isMelpChatOpen) {
+            this._setNativeNewMessage(false);
+            this.props.dispatch(updateSettings({ hasInCallMessage: false }));
+        }
     }
 
     override componentWillUnmount() {
@@ -85,9 +101,12 @@ class ChatButton extends AbstractButton<IProps, IState> {
     }
 
     override render() {
-        const hasUnread = Boolean(this.props._unreadMessageCount) || this.state._hasNativeNewMessage;
+        const hasUnread = Boolean(this.props._unreadMessageCount)
+            || this.state._hasNativeNewMessage
+            || this.props._hasInCallMessage;
         const showUnreadDot = hasUnread
             && !this.props._isChatOpen
+            && !this.props._isMelpChatOpen
             && !this.props.showLabel;
 
         return (
@@ -112,6 +131,7 @@ class ChatButton extends AbstractButton<IProps, IState> {
      */
     override _handleClick() {
         this._setNativeNewMessage(false);
+        this.props.dispatch(updateSettings({ hasInCallMessage: false }));
         // if (NativeModules?.NativeCallsNew?.OpenChat) {
             NativeModules.NativeCallsNew.OpenChat();
             // this.props.dispatch(enterPictureInPicture());
@@ -132,7 +152,9 @@ class ChatButton extends AbstractButton<IProps, IState> {
      * @returns {boolean}
      */
     override _isToggled() {
-        return Boolean(this.props._unreadMessageCount) || this.state._hasNativeNewMessage;
+        return Boolean(this.props._unreadMessageCount)
+            || this.state._hasNativeNewMessage
+            || this.props._hasInCallMessage;
     }
 }
 
@@ -148,7 +170,9 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const { visible = enabled } = ownProps;
 
     return {
+        _hasInCallMessage: Boolean(state['features/base/settings']?.hasInCallMessage),
         _isChatOpen: Boolean(state['features/chat']?.isOpen),
+        _isMelpChatOpen: Boolean(state['features/base/settings']?.isMelpChatOpen),
         _isPollsDisabled: arePollsDisabled(state),
         _unreadMessageCount: getUnreadCount(state) || getUnreadPollCount(state) || getUnreadFilesCount(state),
         visible

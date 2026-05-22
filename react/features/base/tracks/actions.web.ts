@@ -5,8 +5,7 @@ import { showModeratedNotification } from '../../av-moderation/actions';
 import { MEDIA_TYPE as AVM_MEDIA_TYPE } from '../../av-moderation/constants';
 import { shouldShowModeratedNotification } from '../../av-moderation/functions';
 import { setNoiseSuppressionEnabled } from '../../noise-suppression/actions';
-import { showErrorNotification, showNotification } from '../../notifications/actions';
-import { NOTIFICATION_TIMEOUT_TYPE } from '../../notifications/constants';
+import { showErrorNotification } from '../../notifications/actions';
 import { stopReceiver } from '../../remote-control/actions';
 import { setScreenAudioShareState, setScreenshareAudioTrack } from '../../screen-share/actions';
 import { isAudioOnlySharing, isScreenVideoShared } from '../../screen-share/functions';
@@ -211,16 +210,6 @@ async function _toggleScreenSharing(
             }
         }
 
-        // Show notification about more bandwidth usage in audio-only mode if the user starts screensharing. This
-        // doesn't apply to audio-only screensharing.
-        const { enabled: bestPerformanceMode } = state['features/base/audio-only'];
-
-        if (bestPerformanceMode && !audioOnly) {
-            dispatch(showNotification({
-                titleKey: 'notify.screenSharingAudioOnlyTitle',
-                descriptionKey: 'notify.screenSharingAudioOnlyDescription'
-            }, NOTIFICATION_TIMEOUT_TYPE.LONG));
-        }
     } else {
         const { desktopAudioTrack } = state['features/screen-share'];
 

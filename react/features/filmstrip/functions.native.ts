@@ -17,12 +17,6 @@ import { shouldDisplayTileView } from '../video-layout/functions.native';
 import styles from './components/native/styles';
 
 export * from './functions.any';
-var TILE_ASPECT_RATIO = 1;
-var MAX_COLUMN_LANDSCAPE = 15;  // SHADAB update number of tiles view  3
-var MAX_COLUMN_PORTRAIT = 6;// SHADAB update number of tiles view   3
-var max_fit_rows = 7;// SHADAB update number of tiles view   3
-var expected_row = 1;
-var expected_col;
 
 /**
  * Returns true if the filmstrip on mobile is visible, false otherwise.
@@ -124,26 +118,39 @@ export function getTileViewParticipantCount(stateful: IStateful) {
  */
 export function getColumnCount(stateful: IStateful) {
     const state = toState(stateful);
-    const participantCount = getParticipantCountWithFake(state);
-    const { clientHeight: height, clientWidth: width } = state['features/base/responsive-ui'];
-    if(width > height){
-           if(participantCount <MAX_COLUMN_LANDSCAPE * max_fit_rows)
-           {
-            expected_row = Math.floor(Math.sqrt(participantCount))
-            expected_col = Math.ceil(participantCount / expected_row)
-           }
-            else{
-         expected_col = participantCount/max_fit_rows
-         expected_col = Math.min(expected_col, MAX_COLUMN_LANDSCAPE)
-           }
-           return   expected_col;
-    }else{
-          expected_row = Math.ceil(Math.sqrt(participantCount));
-          expected_col = Math.min(MAX_COLUMN_PORTRAIT,Math.ceil(participantCount/Math.min(max_fit_rows,expected_row)));
-           expected_row = Math.ceil(participantCount/expected_col)
-       
-      return  expected_col;
+    const participantCount = getTileViewParticipantCount(state);
+    const { aspectRatio } = state['features/base/responsive-ui'];
+
+    // For narrow view, tiles should stack on top of each other for a lonely
+    // call and a 1:1 call. Otherwise tiles should be grouped into rows of
+    // two.
+    if (aspectRatio === ASPECT_RATIO_NARROW) {
+        return participantCount >= 3 ? 2 : 1;
     }
+
+    if (participantCount === 4) {
+        // In wide view, a four person call should display as a 2x2 grid.
+        return 2;
+    }
+
+    return Math.min(participantCount <= 6 ? 3 : 4, participantCount);
+}
+
+/**
+ * Returns the maximum number of visible rows per tile-view page.
+ *
+ * @param {Object | Function} stateful - The Object or Function that can be
+ * resolved to a Redux state object with the toState function.
+ * @returns {number}
+ */
+export function getMaxVisibleRows(stateful: IStateful) {
+    const state = toState(stateful);
+    const participantCount = getTileViewParticipantCount(state);
+    const columns = getColumnCount(state);
+    const { aspectRatio } = state['features/base/responsive-ui'];
+    const preferredRows = aspectRatio === ASPECT_RATIO_NARROW ? 3 : 2;
+
+    return Math.max(1, Math.min(Math.ceil(participantCount / Math.max(columns, 1)), preferredRows));
 }
 
 /**
@@ -264,7 +271,7 @@ export function getFilmstripDimensions({
 /**
  * Returns true if the local thumbnail should be displayed separately and false otherwise.
  *
- * @returns {boolean} - True if the local thumbnail should be displayed separately and flase otherwise.
+ * @returns {boolean} - True if the local thumbnail should be displayed separately and false otherwise.
  */
 export function shouldDisplayLocalThumbnailSeparately() {
     // XXX Our current design is to have the local participant separate from
@@ -285,15 +292,6 @@ export function shouldDisplayLocalThumbnailSeparately() {
     // do not have much of a choice but to continue rendering LocalThumbnail
     // as any other remote Thumbnail on Android.
     return Platform.OS !== 'android';
-}
-
-/**
- * Returns true if the local thumbnail should be shown as a floating overlay.
- *
- * @returns {boolean}
- */
-export function shouldDisplayFloatingLocalThumbnail() {
-    return true;
 }
 
 /**

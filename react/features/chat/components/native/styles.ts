@@ -350,6 +350,20 @@ export const closedCaptionsStyles = {
         marginTop: BaseTheme.spacing[1]
     },
 
+    typingDots: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingVertical: BaseTheme.spacing[1]
+    },
+
+    typingDot: {
+        backgroundColor: BaseTheme.palette.text03,
+        borderRadius: 999,
+        height: 7,
+        marginRight: BaseTheme.spacing[1],
+        width: 7
+    },
+
     subtitleMessageInterim: {
         opacity: 0.7
     },
@@ -392,5 +406,9 @@ export const closedCaptionsStyles = {
         display: 'flex',
         flex: 1,
         overflow: 'hidden'
+    },
+
+    stopButtonContainer: {
+        padding: BaseTheme.spacing[3]
     }
 };

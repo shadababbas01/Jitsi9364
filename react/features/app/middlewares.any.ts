@@ -51,6 +51,7 @@ import '../video-layout/middleware';
 import '../video-quality/middleware';
 import '../videosipgw/middleware';
 import '../visitors/middleware';
+import '../voice-translation/middleware';
 import '../whiteboard/middleware.any';
 
 import './middleware';

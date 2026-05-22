@@ -1,32 +1,33 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, PanResponder, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { Animated, PanResponder, ViewStyle, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dimensions } from 'react-native';
 
 import { IReduxState } from '../../../app/types';
 import { pinParticipant } from '../../../base/participants/actions';
-import { getLocalParticipant, getRemoteParticipantsSorted } from '../../../base/participants/functions';
+import {
+    getLocalParticipant,
+    getParticipantCountRemoteOnly,
+    getRemoteParticipantsSorted
+} from '../../../base/participants/functions';
 import { getHideSelfView } from '../../../base/settings/functions.any';
-import BaseTheme from '../../../base/ui/components/BaseTheme.native';
-import { isToolboxVisible } from '../../../toolbox/functions.native';
-import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
 import { FILMSTRIP_SIZE } from '../../constants';
 
 import Thumbnail from './Thumbnail';
 
-const TOOLBOX_HEIGHT = 50 + (BaseTheme.spacing[2] * 2);
-const TOOLBOX_MARGIN = BaseTheme.spacing[3];
-
 const FLOATING_WIDTH = 140;
 const FLOATING_HEIGHT = 190;
 const FLOATING_MARGIN = 12;
-const FLOATING_RADIUS = 12;
-const FLOATING_PADDING = 2;
+const FLOATING_END_MARGIN = 0;
+const FLOATING_RADIUS = 0;
 const TAP_SLOP = 4;
+const { width, height } = Dimensions.get('window');
 const CAMERA_BUTTON_SIZE = 32;
 const CAMERA_BUTTON_PADDING = 4;
 const CAMERA_BUTTON_MARGIN = 8;
+const FLOATING_THUMBNAIL_Z_INDEX = 1000;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
@@ -34,32 +35,34 @@ export default function FloatingLocalThumbnail() {
     const localParticipant = useSelector(getLocalParticipant);
     const largeVideoParticipantId = useSelector(
         (state: IReduxState) => state['features/large-video']?.participantId);
+    const remoteParticipantCount = useSelector(getParticipantCountRemoteOnly);
     const remoteParticipants = useSelector(getRemoteParticipantsSorted);
     const disableSelfView = useSelector(getHideSelfView);
     const isTileView = useSelector(shouldDisplayTileView);
-    const toolboxVisible = useSelector(isToolboxVisible);
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const dispatch = useDispatch();
 
     const minX = insets.left + FLOATING_MARGIN;
     const minY = insets.top + FLOATING_MARGIN;
-    const maxX = Math.max(minX, screenWidth - FLOATING_WIDTH - FLOATING_MARGIN - insets.right);
+    const maxX = Math.max(minX, screenWidth - FLOATING_WIDTH - FLOATING_END_MARGIN - insets.right);
     const maxY = Math.max(minY, screenHeight - FLOATING_HEIGHT - FLOATING_MARGIN - insets.bottom);
-    const toolboxOffset = toolboxVisible ? (TOOLBOX_HEIGHT + TOOLBOX_MARGIN) : 0;
-    const toolboxHiddenShift = toolboxVisible ? 0 : 50;
     const defaultY = clamp(
-    maxY - (
-        FILMSTRIP_SIZE +
-        FLOATING_MARGIN +
-        (toolboxVisible ? toolboxOffset -25  : toolboxOffset - 25)
-    ),
-    minY,
-    maxY
-);
+        maxY - (FILMSTRIP_SIZE + FLOATING_MARGIN + 150),
+        minY,
+        maxY
+    );
+    const defaultPosition = {
+        x: maxX,
+        y: defaultY
+    };
 
-    const position = useRef(new Animated.ValueXY({ x: maxX, y: defaultY })).current;
-    const lastPosition = useRef({ x: maxX, y: defaultY });
+    const position = useRef(new Animated.ValueXY(defaultPosition)).current;
+    const lastPosition = useRef(defaultPosition);
+    const previousWindowSize = useRef({
+        height: screenHeight,
+        width: screenWidth
+    });
     const panEnabled = useRef(true);
     const lastNonLocalLargeVideoId = useRef<string | undefined>();
 
@@ -94,13 +97,29 @@ export default function FloatingLocalThumbnail() {
     }, [ minX, minY, maxX, maxY, position ]);
 
     useEffect(() => {
-        const delta = toolboxVisible ? -100 : 100;
-        const nextX = clamp(lastPosition.current.x, minX, maxX);
-        const nextY = clamp(lastPosition.current.y + delta, minY, maxY);
+        const wasLandscape
+            = previousWindowSize.current.width > previousWindowSize.current.height;
+        const dimensionsChanged
+            = previousWindowSize.current.width !== screenWidth
+                || previousWindowSize.current.height !== screenHeight;
+        const isPortrait = screenHeight >= screenWidth;
 
-        lastPosition.current = { x: nextX, y: nextY };
-        position.setValue(lastPosition.current);
-    }, [ toolboxVisible, minX, minY, maxX, maxY, position ]);
+        previousWindowSize.current = {
+            height: screenHeight,
+            width: screenWidth
+        };
+
+        if (!dimensionsChanged) {
+            return;
+        }
+
+        const nextPosition = wasLandscape && isPortrait
+            ? { x: maxX + 65, y: maxY -250 }
+            : defaultPosition;
+
+        lastPosition.current = nextPosition;
+        position.setValue(nextPosition);
+    }, [ defaultPosition, maxX, maxY, position, screenHeight, screenWidth ]);
 
     const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: evt => {
@@ -156,7 +175,7 @@ export default function FloatingLocalThumbnail() {
         dispatch
     ]);
 
-    if (!localParticipant || disableSelfView || isTileView) {
+    if (!localParticipant || disableSelfView || isTileView || remoteParticipantCount < 1) {
         return null;
     }
 
@@ -172,25 +191,27 @@ export default function FloatingLocalThumbnail() {
             renderToHardwareTextureAndroid = { true }
             style = { {
                 position: 'absolute',
-                zIndex: 10,
-                width: FLOATING_WIDTH,
-                height: FLOATING_HEIGHT,
-                borderRadius: 16,
+                zIndex: 0,
+                width: width * 0.28,
+                height: height * 0.18,
+                borderRadius: FLOATING_RADIUS,
                 overflow: 'hidden',
                 left: position.x,
                 top: position.y
-            } as ViewStyle }
+            } as ViewStyle}
             { ...panResponder.panHandlers }>
-            
-           <Thumbnail
+            <Thumbnail
+                backgroundColor = 'black'
+                borderRadius = { 8 }
+                borderWidth = { 2 }
                 disableDominantSpeakerIndicator = { true }
-                height = { FLOATING_HEIGHT }
+                height = { height * 0.17 }
                 hideAudioIndicatorWhenVideoOn = { true }
                 participantID = { floatingParticipantId }
                 renderDisplayName = { false }
                 showAudioIndicator = { true }
                 tileView = { true }
-                width = { FLOATING_WIDTH } />
+                width = { width * 0.27 } />
         </Animated.View>
     );
 }

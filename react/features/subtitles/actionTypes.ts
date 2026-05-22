@@ -70,3 +70,8 @@ export const STORE_SUBTITLE = 'STORE_SUBTITLE';
  * }
  */
 export const SET_SUBTITLES_ERROR = 'SET_SUBTITLES_ERROR';
+
+/**
+ * Action to update the active live captions translation language without toggling captions.
+ */
+export const SET_SUBTITLES_LANGUAGE = 'SET_SUBTITLES_LANGUAGE';

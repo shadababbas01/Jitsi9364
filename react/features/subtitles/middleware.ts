@@ -6,13 +6,17 @@ import { MEET_FEATURES } from '../base/jwt/constants';
 import { isJwtFeatureEnabled } from '../base/jwt/functions';
 import JitsiMeetJS from '../base/lib-jitsi-meet';
 import { TRANSCRIBER_ID } from '../base/participants/constants';
+import { isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { showErrorNotification } from '../notifications/actions';
 import { RECORDING_METADATA_ID } from '../recording/constants';
 import { TRANSCRIBER_JOINED } from '../transcribing/actionTypes';
+import { getLocalTranslationPreferences, isVoiceTranslationEnabled } from '../voice-translation/functions';
+import { toBaseVoiceLanguage } from '../voice-translation/languages';
 
 import {
     SET_REQUESTING_SUBTITLES,
+    SET_SUBTITLES_LANGUAGE,
     TOGGLE_REQUESTING_SUBTITLES
 } from './actionTypes';
 import {
@@ -68,6 +72,85 @@ const REMOVE_AFTER_MS = 3000;
  */
 const STABLE_TRANSCRIPTION_FACTOR = 0.85;
 
+const ttsRequestedIds = new Map<string, number>();
+const TTS_REQUEST_CACHE_LIMIT = 2000;
+const TTS_REQUEST_TTL_MS = 5 * 60 * 1000;
+
+function getLocalParticipantId(state: any) {
+    return state?.['features/base/participants']?.local?.id;
+}
+
+function normalizeLanguageCode(language?: string | null) {
+    return toBaseVoiceLanguage(language).toLowerCase();
+}
+
+function markTtsRequested(id: string) {
+    ttsRequestedIds.set(id, Date.now());
+
+    if (ttsRequestedIds.size <= TTS_REQUEST_CACHE_LIMIT) {
+        return;
+    }
+
+    const now = Date.now();
+
+    for (const [ key, timestamp ] of ttsRequestedIds.entries()) {
+        if (now - timestamp > TTS_REQUEST_TTL_MS) {
+            ttsRequestedIds.delete(key);
+        }
+    }
+}
+
+function maybeRequestVoiceTranslationAudio(
+        store: IStore,
+        messageId: string,
+        participantId: string,
+        text?: string,
+        language?: string,
+        needsTranslation = false) {
+    const state = store.getState();
+
+    if (!text?.trim()
+        || !isVoiceTranslationEnabled(state)
+        || participantId === getLocalParticipantId(state)) {
+        return;
+    }
+
+    const preferences = getLocalTranslationPreferences(state);
+    const targetLanguage = preferences.toLanguage;
+    const targetBaseLanguage = normalizeLanguageCode(targetLanguage);
+    const payloadLanguage = normalizeLanguageCode(language);
+
+    if (preferences.dontTranslate || !targetLanguage || !targetBaseLanguage) {
+        return;
+    }
+
+    if (!needsTranslation && payloadLanguage && payloadLanguage !== targetBaseLanguage) {
+        return;
+    }
+
+    const requestKey = `${messageId}:${targetBaseLanguage}`;
+
+    if (ttsRequestedIds.has(requestKey)) {
+        return;
+    }
+
+    const requestTts = globalThis.__melp_tts_request__;
+
+    if (!requestTts) {
+        return;
+    }
+
+    requestTts({
+        text: text.trim(),
+        language: targetLanguage,
+        sourceLanguage: language,
+        participantId,
+        messageId,
+        needsTranslation
+    });
+    markTtsRequested(requestKey);
+}
+
 /**
  * Middleware that catches actions related to transcript messages to be rendered
  * in {@link Captions}.
@@ -100,6 +183,15 @@ MiddlewareRegistry.register(store => next => action => {
     case SET_REQUESTING_SUBTITLES:
         _requestingSubtitlesChange(store, action.enabled, action.language, action.forceBackendRecordingOn);
         break;
+
+    case SET_SUBTITLES_LANGUAGE: {
+        const { conference } = store.getState()['features/base/conference'];
+
+        conference?.setLocalParticipantProperty(
+            P_NAME_TRANSLATION_LANGUAGE,
+            action.language ? action.language.replace('translation-languages:', '') : '');
+        break;
+    }
     }
 
     return next(action);
@@ -160,20 +252,40 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
     if (json.type === JSON_TYPE_TRANSLATION_RESULT) {
         if (!_areClosedCaptionsEnabled) {
             // If closed captions are not enabled, bail out.
+            maybeRequestVoiceTranslationAudio(
+                store,
+                transcriptMessageID,
+                participantId,
+                json.text?.trim(),
+                json.language,
+                false
+            );
+
             return next(action);
         }
 
         const translation = json.text?.trim();
 
+        maybeRequestVoiceTranslationAudio(
+            store,
+            transcriptMessageID,
+            participantId,
+            translation,
+            json.language,
+            false
+        );
+
         if (isCCTabEnabled(state)) {
             dispatch(storeSubtitle({
-                participantId,
-                text: translation,
-                language: json.language,
-                interim: false,
+                id: transcriptMessageID,
+                interim: Boolean(json.is_interim),
                 isTranscription: false,
-                timestamp,
-                id: transcriptMessageID
+                language: json.language,
+                participantAvatarUrl: avatarUrl,
+                participantId,
+                participantName: name,
+                text: translation,
+                timestamp
             }));
 
             return next(action);
@@ -195,6 +307,18 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
         // translations are disabled.
 
         const { text } = json.transcript[0];
+
+        if (!isInterim) {
+            maybeRequestVoiceTranslationAudio(
+                store,
+                transcriptMessageID,
+                participantId,
+                text,
+                json.language,
+                normalizeLanguageCode(json.language)
+                    !== normalizeLanguageCode(getLocalTranslationPreferences(state).toLanguage)
+            );
+        }
 
         // First, notify the external API.
         if (!(isInterim && skipInterimTranscriptions)) {
@@ -245,6 +369,8 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
         const subtitle: ISubtitle = {
             id: transcriptMessageID,
             participantId,
+            participantName: name,
+            participantAvatarUrl: avatarUrl,
             language: json.language,
             text,
             interim: isInterim,
@@ -363,7 +489,8 @@ function _requestingSubtitlesChange(
         enabled);
 
     if (enabled && conference?.getTranscriptionStatus() === JitsiMeetJS.constants.transcriptionStatus.OFF
-        && isJwtFeatureEnabled(getState(), MEET_FEATURES.TRANSCRIPTION, false)) {
+        && (isJwtFeatureEnabled(getState(), MEET_FEATURES.TRANSCRIPTION, false)
+            || isLocalParticipantModerator(getState()))) {
 
         if (!backendRecordingOn) {
             conference?.dial(TRANSCRIBER_DIAL_NUMBER)
@@ -387,10 +514,10 @@ function _requestingSubtitlesChange(
         }
     }
 
-    if (enabled && language) {
+    if (enabled) {
         conference?.setLocalParticipantProperty(
             P_NAME_TRANSLATION_LANGUAGE,
-            language.replace('translation-languages:', ''));
+            language ? language.replace('translation-languages:', '') : '');
     }
 
     if (!enabled && (backendRecordingOn || forceBackendRecordingOn)

@@ -63,6 +63,11 @@ const useStyles = makeStyles()(theme => {
         emptyState: {
             ...theme.typography.bodyLongBold,
             color: theme.palette.text02
+        },
+        closeLiveCaptionBtn: {
+            display: 'flex',
+            justifyContent: 'center',
+            padding: theme.spacing(2)
         }
     };
 });
@@ -74,11 +79,13 @@ const useStyles = makeStyles()(theme => {
  */
 const ClosedCaptionsTab = ({
     canStartSubtitles,
+    canStopSubtitles,
     filteredSubtitles,
     groupedSubtitles,
     isButtonPressed,
     isTranscribing,
-    startClosedCaptions
+    startClosedCaptions,
+    stopClosedCaptions
 }: AbstractProps): JSX.Element => {
     const { classes, theme } = useStyles();
     const { t } = useTranslation();
@@ -116,10 +123,35 @@ const ClosedCaptionsTab = ({
         <div className = { classes.container }>
             <LanguageSelector />
             <div className = { classes.messagesContainer }>
-                <SubtitlesMessagesContainer
-                    groups = { groupedSubtitles }
-                    messages = { filteredSubtitles } />
+                {
+                    filteredSubtitles.length === 0 ? (
+                        <div className = { classes.emptyContent }>
+                            <Icon
+                                className = { classes.emptyIcon }
+                                color = { theme.palette.icon03 }
+                                src = { IconSubtitles } />
+                            <span className = { classes.emptyState }>
+                                { t('closedCaptionsTab.noMessages') }
+                            </span>
+                        </div>
+                    ) : (
+                        <SubtitlesMessagesContainer
+                            groups = { groupedSubtitles }
+                            messages = { filteredSubtitles } />
+                    )
+                }
             </div>
+            {
+                canStopSubtitles && (
+                    <div className = { classes.closeLiveCaptionBtn }>
+                        <Button
+                            accessibilityLabel = { t('closedCaptionsTab.closeLiveCaptionButton') }
+                            appearance = 'primary'
+                            labelKey = 'closedCaptionsTab.closeLiveCaptionButton'
+                            onClick = { stopClosedCaptions } />
+                    </div>
+                )
+            }
         </div>
     );
 };

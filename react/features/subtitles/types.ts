@@ -17,7 +17,9 @@ export interface ISubtitle extends IGroupableMessage {
     interim?: boolean;
     isTranscription?: boolean;
     language?: string;
+    participantAvatarUrl?: string;
     participantId: string;
+    participantName?: string;
     text: string;
     timestamp: number;
 }

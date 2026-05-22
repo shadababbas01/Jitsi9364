@@ -39,6 +39,8 @@ import { getReceiverVideoQualityLevel } from './functions';
 import logger from './logger';
 import { getMinHeightForQualityLvlMap } from './selector';
 
+const FILMSTRIP_MAX_QUALITY = VIDEO_QUALITY_LEVELS.LOW;
+
 /**
  * Handles changes in the visible participants in the filmstrip. The listener is debounced
  * so that the client doesn't end up sending too many bridge messages when the user is
@@ -228,6 +230,8 @@ StateListenerRegistry.register(
                 }
             }
 
+            newMaxRecvVideoQuality = Math.min(newMaxRecvVideoQuality, FILMSTRIP_MAX_QUALITY);
+
             if (maxReceiverVideoQualityForTileView !== newMaxRecvVideoQuality) {
                 maxVideoQualityChanged = true;
                 dispatch(setMaxReceiverVideoQualityForTileView(newMaxRecvVideoQuality));
@@ -252,6 +256,13 @@ StateListenerRegistry.register(
                 newMaxRecvVideoQualityForLargeVideo = getVideoQualityForLargeVideo(largeVideoHeight);
                 newMaxRecvVideoQualityForScreenSharingFilmstrip
                     = getVideoQualityForScreenSharingFilmstrip(screenSharingFilmstripHeight, state);
+
+                newMaxRecvVideoQualityForStageFilmstrip
+                    = Math.min(newMaxRecvVideoQualityForStageFilmstrip, FILMSTRIP_MAX_QUALITY);
+                newMaxRecvVideoQualityForVerticalFilmstrip
+                    = Math.min(newMaxRecvVideoQualityForVerticalFilmstrip, FILMSTRIP_MAX_QUALITY);
+                newMaxRecvVideoQualityForScreenSharingFilmstrip
+                    = Math.min(newMaxRecvVideoQualityForScreenSharingFilmstrip, FILMSTRIP_MAX_QUALITY);
 
                 // Override HD level calculated for the thumbnail height when # of participants threshold is exceeded
                 if (maxFullResolutionParticipants !== -1) {

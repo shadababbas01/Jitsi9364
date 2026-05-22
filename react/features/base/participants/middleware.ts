@@ -45,8 +45,8 @@ import { CONFERENCE_JOINED, CONFERENCE_WILL_JOIN } from '../conference/actionTyp
 import { forEachConference, getCurrentConference } from '../conference/functions';
 import { IJitsiConference } from '../conference/reducer';
 import { SET_CONFIG } from '../config/actionTypes';
-import { getDisableRemoveRaisedHandOnFocus } from '../config/functions.any';
 import { JitsiConferenceEvents } from '../lib-jitsi-meet';
+import { SET_AUDIO_MUTED } from '../media/actionTypes';
 import { VIDEO_TYPE } from '../media/constants';
 import MiddlewareRegistry from '../redux/MiddlewareRegistry';
 import StateListenerRegistry from '../redux/StateListenerRegistry';
@@ -82,12 +82,10 @@ import {
 } from './actions';
 import {
     LOCAL_PARTICIPANT_DEFAULT_ID,
-    LOWER_HAND_AUDIO_LEVEL,
     PARTICIPANT_JOINED_SOUND_ID,
     PARTICIPANT_LEFT_SOUND_ID
 } from './constants';
 import {
-    getDominantSpeakerParticipant,
     getFirstLoadableAvatarUrl,
     getLocalParticipant,
     getParticipantById,
@@ -105,6 +103,9 @@ import { PARTICIPANT_JOINED_FILE, PARTICIPANT_LEFT_FILE } from './sounds';
 import { IJitsiParticipant } from './types';
 
 import './subscriber';
+
+let _raiseHandWaitForUnmuteAfterMutedRaise = false;
+let _raiseHandSawUnmuteSinceRaise = false;
 
 /**
  * Middleware that captures CONFERENCE_JOINED and CONFERENCE_LEFT actions and
@@ -126,38 +127,18 @@ MiddlewareRegistry.register(store => next => action => {
         return _localParticipantLeft(store, next, action);
 
     case CONFERENCE_WILL_JOIN:
+        _raiseHandWaitForUnmuteAfterMutedRaise = false;
+        _raiseHandSawUnmuteSinceRaise = false;
         store.dispatch(localParticipantIdChanged(action.conference.myUserId()));
         break;
 
     case DOMINANT_SPEAKER_CHANGED: {
-        // Lower hand through xmpp when local participant becomes dominant speaker.
-        const { id } = action.participant;
-        const state = store.getState();
-        const participant = getLocalParticipant(state);
-        const dominantSpeaker = getDominantSpeakerParticipant(state);
-        const isLocal = participant && participant.id === id;
-
-        if (isLocal && dominantSpeaker?.id !== id
-                && hasRaisedHand(participant)
-                && !getDisableRemoveRaisedHandOnFocus(state)) {
-            store.dispatch(raiseHand(false));
-        }
-
+        // Keep raised hand stable; lowering is controlled by mic mute transitions.
         break;
     }
 
     case LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED: {
-        const state = store.getState();
-        const participant = getDominantSpeakerParticipant(state);
-
-        if (
-            participant?.local
-            && hasRaisedHand(participant)
-            && action.level > LOWER_HAND_AUDIO_LEVEL
-            && !getDisableRemoveRaisedHandOnFocus(state)
-        ) {
-            store.dispatch(raiseHand(false));
-        }
+        // Keep raised hand stable; lowering is controlled by mic mute transitions.
         break;
     }
 
@@ -213,6 +194,39 @@ MiddlewareRegistry.register(store => next => action => {
 
         if (typeof APP !== 'undefined') {
             APP.API.notifyRaiseHandUpdated(localId, raisedHandTimestamp);
+        }
+
+        if (raisedHandTimestamp) {
+            const micMuted = store.getState()['features/base/media']?.audio?.muted ?? false;
+
+            _raiseHandWaitForUnmuteAfterMutedRaise = micMuted;
+            _raiseHandSawUnmuteSinceRaise = !micMuted;
+        } else {
+            _raiseHandWaitForUnmuteAfterMutedRaise = false;
+            _raiseHandSawUnmuteSinceRaise = false;
+        }
+
+        break;
+    }
+
+    case SET_AUDIO_MUTED: {
+        const { muted } = action;
+        const localParticipant = getLocalParticipant(store.getState());
+
+        if (!hasRaisedHand(localParticipant)) {
+            break;
+        }
+
+        if (!muted && _raiseHandWaitForUnmuteAfterMutedRaise) {
+            _raiseHandSawUnmuteSinceRaise = true;
+            break;
+        }
+
+        if (muted && (!_raiseHandWaitForUnmuteAfterMutedRaise || _raiseHandSawUnmuteSinceRaise)) {
+            logger.debug('Lowering raised hand after local mic mute transition');
+            _raiseHandWaitForUnmuteAfterMutedRaise = false;
+            _raiseHandSawUnmuteSinceRaise = false;
+            store.dispatch(raiseHand(false));
         }
 
         break;
@@ -901,6 +915,10 @@ function _raiseHandUpdated({ dispatch, getState }: IStore, conference: IJitsiCon
     const isModerator = isLocalParticipantModerator(state);
     const participant = getParticipantById(state, participantId);
     const participantName = getParticipantDisplayName(state, participantId);
+
+    if (participant?.local) {
+        return;
+    }
 
     let shouldDisplayAllowAudio = false;
     let shouldDisplayAllowVideo = false;

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Image, ImageStyle, View, ViewStyle } from 'react-native';
-import { connect } from 'react-redux';
+import { batch, connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
 import { JitsiTrackEvents } from '../../../base/lib-jitsi-meet';
@@ -30,6 +30,7 @@ import { ITrack } from '../../../base/tracks/types';
 import ConnectionIndicator from '../../../connection-indicator/components/native/ConnectionIndicator';
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import { getGifDisplayMode, getGifForParticipant } from '../../../gifs/functions.native';
+import { selectParticipantInLargeVideo } from '../../../large-video/actions.any';
 import {
     showConnectionStatus,
     showContextMenuDetails,
@@ -37,6 +38,8 @@ import {
 } from '../../../participants-pane/actions.native';
 import { toggleToolboxVisible } from '../../../toolbox/actions.native';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
+import { setTileView } from '../../../video-layout/actions.native';
+import VoiceTranslationTileIndicators from '../../../voice-translation/components/native/VoiceTranslationTileIndicators';
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
 
 import AudioMutedIndicator from './AudioMutedIndicator';
@@ -47,6 +50,8 @@ import ScreenShareIndicator from './ScreenShareIndicator';
 import ThumbnailAudioIndicator from './ThumbnailAudioIndicator';
 import styles, { AVATAR_SIZE } from './styles';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+
+const DOUBLE_TAP_TIMEOUT_MS = 200;
 
 
 
@@ -175,6 +180,28 @@ interface IProps {
      */
     disableDominantSpeakerIndicator?: boolean;
 
+    /**
+     * Whether tile-view margin should be disabled for custom containers such
+     * as the floating local thumbnail.
+     */
+    disableTileViewMargin?: boolean;
+
+    /**
+     * Optional border radius override for the thumbnail and its video clip.
+     */
+    borderRadius?: number;
+
+    /**
+     * Optional border width override.
+     */
+    borderWidth?: number;
+
+    /**
+     * Optional background color override for the thumbnail shell and video
+     * clip container.
+     */
+    backgroundColor?: string;
+
       /**
      * The width of the thumnail.
      */
@@ -185,6 +212,10 @@ interface IProps {
  * React component for video thumbnail.
  */
 class Thumbnail extends PureComponent<IProps> {
+    /**
+     * Timeout used to detect double tapping on tile view.
+     */
+    _doubleTapTimeout?: ReturnType<typeof setTimeout>;
 
     /**
      * Creates new Thumbnail component.
@@ -198,6 +229,8 @@ class Thumbnail extends PureComponent<IProps> {
         this._onClick = this._onClick.bind(this);
         this._onThumbnailLongPress = this._onThumbnailLongPress.bind(this);
         this.handleTrackStreamingStatusChanged = this.handleTrackStreamingStatusChanged.bind(this);
+        this._handleTileViewSingleTap = this._handleTileViewSingleTap.bind(this);
+        this._handleTileViewDoubleTap = this._handleTileViewDoubleTap.bind(this);
     }
 
     /**
@@ -206,12 +239,47 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     _onClick() {
-        const { _participantId, _pinned, dispatch, tileView, _toolboxVisible } = this.props;
+        const { _participantId, _pinned, dispatch, tileView } = this.props;
 
-        if (tileView) {
-            dispatch(toggleToolboxVisible());
-        } else {
+        if (!tileView) {
             dispatch(pinParticipant(_pinned ? null : _participantId));
+            return;
+        }
+
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+            this._handleTileViewDoubleTap();
+            return;
+        }
+
+        this._doubleTapTimeout = setTimeout(this._handleTileViewSingleTap, DOUBLE_TAP_TIMEOUT_MS);
+    }
+
+    /**
+     * Single tap handler for tile view thumbnails.
+     *
+     * @returns {void}
+     */
+    _handleTileViewSingleTap() {
+        this._doubleTapTimeout = undefined;
+        this.props.dispatch(toggleToolboxVisible());
+    }
+
+    /**
+     * Double tap handler for tile view thumbnails.
+     *
+     * @returns {void}
+     */
+    _handleTileViewDoubleTap() {
+        const { _participantId, dispatch } = this.props;
+
+        if (_participantId) {
+            batch(() => {
+                dispatch(pinParticipant(_participantId));
+                dispatch(selectParticipantInLargeVideo(_participantId));
+                dispatch(setTileView(false));
+            });
         }
     }
 
@@ -221,11 +289,15 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     _onThumbnailLongPress() {
-        const { _fakeParticipant, _participantId, _local, _localVideoOwner, dispatch } = this.props;
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+        }
+        const { _fakeParticipant, _participantId, _local, _localVideoOwner, dispatch, tileView } = this.props;
 
         if (!_fakeParticipant) {
             if (!_local) {
-                dispatch(showContextMenuDetails(_participantId));
+                dispatch(showContextMenuDetails(_participantId, false, { compact: Boolean(tileView) }));
              }
             }
         // if (_fakeParticipant && _localVideoOwner) {
@@ -278,7 +350,7 @@ class Thumbnail extends PureComponent<IProps> {
                 key = 'top-left-indicators'
                 style = { styles.thumbnailTopLeftIndicatorContainer as ViewStyle }>
                 { !_isVirtualScreenshare && <ConnectionIndicator participantId = { participantId } /> }
-                { !_isVirtualScreenshare && <RaisedHandIndicator participantId = { participantId } /> }
+                { !_isVirtualScreenshare && <RaisedHandIndicator participantId = { participantId } tileView = { tileView } /> }
                 { tileView && (isScreenShare || _isVirtualScreenshare) && (
                     <View style = { styles.screenShareIndicatorContainer as ViewStyle }>
                         <ScreenShareIndicator />
@@ -362,6 +434,10 @@ class Thumbnail extends PureComponent<IProps> {
      * @returns {void}
      */
     componentWillUnmount() {
+        if (this._doubleTapTimeout) {
+            clearTimeout(this._doubleTapTimeout);
+            this._doubleTapTimeout = undefined;
+        }
         // TODO: after converting this component to a react function component,
         // use a custom hook to update local track streaming status.
         const { _videoTrack, dispatch } = this.props;
@@ -403,18 +479,28 @@ class Thumbnail extends PureComponent<IProps> {
             _raisedHand,
             _renderDominantSpeakerIndicator,
             _videoTrack,
+            backgroundColor,
+            borderRadius,
+            borderWidth,
+            disableTileViewMargin,
             height,
             hideAudioIndicatorWhenVideoOn,
             showAudioIndicator,
             tileView,
             width
         } = this.props;
+        const effectiveTileBorderRadius = tileView ? (borderRadius ?? 15) : borderRadius;
+        const disableVideo = !tileView && (isScreenShare || _fakeParticipant);
+        const isVideoOn = Boolean(_videoTrack) && !disableVideo && shouldRenderVideoTrack(_videoTrack, false);
+        const tileBackgroundColor = tileView && !isVideoOn ? '#000000a4' : backgroundColor;
         const styleOverrides = tileView ? {
             aspectRatio: width/height,
+            backgroundColor: tileBackgroundColor,
+            borderRadius: effectiveTileBorderRadius,
             flex: 0,
-            borderWidth: 2,
+            borderWidth: borderWidth ?? 2,
             height,
-            margin: 2,
+            margin: disableTileViewMargin ? 0 : 2,
             maxHeight: height,
             maxWidth: null,
             width: width
@@ -422,8 +508,6 @@ class Thumbnail extends PureComponent<IProps> {
         const indicatorStyle: ViewStyle = {
             bottom: tileView ? 10 : 6
         };
-        const disableVideo = !tileView && (isScreenShare || _fakeParticipant);
-        const isVideoOn = Boolean(_videoTrack) && !disableVideo && shouldRenderVideoTrack(_videoTrack, false);
         const shouldShowAudioIndicator = (showAudioIndicator ?? true)
             && !(hideAudioIndicatorWhenVideoOn && isVideoOn);
 
@@ -444,12 +528,20 @@ class Thumbnail extends PureComponent<IProps> {
                     source = {{ uri: _gifSrc }}
                     style = { styles.thumbnailGif as ImageStyle } />
                     : <>
-                        <View style = { styles.thumbnailVideoClip as ViewStyle }>
+                        <View
+                            style = { [
+                                styles.thumbnailVideoClip,
+                                tileBackgroundColor ? { backgroundColor: tileBackgroundColor } : null,
+                                effectiveTileBorderRadius ? { borderRadius: effectiveTileBorderRadius } : null
+                            ] as ViewStyle[] }>
                             <ParticipantView
                                 avatarSize = { tileView ? AVATAR_SIZE * 1.5 : AVATAR_SIZE }
                                 disableVideo = { disableVideo }
                                 participantId = { participantId }
                                 showAudioIndicator = { shouldShowAudioIndicator }
+                                showSpeakerWave = { Boolean(tileView) }
+                                showStatusLabel = { Boolean(tileView) }
+                                videoBorderRadius = { effectiveTileBorderRadius }
                                 zOrder = { 1 } />
                                 
                         </View>
@@ -457,6 +549,9 @@ class Thumbnail extends PureComponent<IProps> {
                         {
                             this._renderIndicators()
                         }
+                        { tileView && !isScreenShare && !_isVirtualScreenshare && (
+                            <VoiceTranslationTileIndicators participantId = { participantId } />
+                        ) }
                     </>
                 }
             </Container>

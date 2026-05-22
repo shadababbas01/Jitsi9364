@@ -31,6 +31,11 @@ interface IProps {
     _selectedAudioRouteType?: string;
 
     /**
+     * Whether local video is muted.
+     */
+    _videoMuted: boolean;
+
+    /**
      * The color-schemed stylesheet of the feature.
      */
     _styles: any;
@@ -56,6 +61,7 @@ function Toolbox(props: IProps) {
     const {
         _iAmVisitor,
         _selectedAudioRouteType,
+        _videoMuted,
         _styles,
         _visible,
         dispatch
@@ -170,7 +176,7 @@ function Toolbox(props: IProps) {
             borderRadius: 24
         }
     };
-    const audiorouteUsesWhiteBg = Boolean(_selectedAudioRouteType);
+    const audiorouteUsesWhiteBg = _selectedAudioRouteType === 'SPEAKER';
 
     const renderToolboxButtons = () => {
         if (!orderedButtons.length) {
@@ -201,8 +207,8 @@ function Toolbox(props: IProps) {
                                         ? raiseHandButtonStyles
                                     : key === 'audioroute'
                                         ? audiorouteUsesWhiteBg ? whiteCircleStyles : darkCircleStyles
-                                        : key === 'camera'
-                                            ? whiteCircleStyles
+                                    : key === 'camera'
+                                        ? _videoMuted ? darkCircleStyles : whiteCircleStyles
                                             : darkCircleStyles
                             } />
                     ))
@@ -247,6 +253,7 @@ function _mapStateToProps(state: IReduxState) {
     return {
         _iAmVisitor: iAmVisitor(state),
         _selectedAudioRouteType: selectedDevice?.type,
+        _videoMuted: Boolean(state['features/base/media']?.video?.muted),
         _styles: ColorSchemeRegistry.get(state, 'Toolbox'),
         _visible: isToolboxVisible(state),
     };
