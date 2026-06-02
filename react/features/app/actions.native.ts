@@ -10,7 +10,7 @@ import {
     createFakeConfig,
     restoreConfig
 } from '../base/config/functions.native';
-import { getStaticConfig } from '../base/config/staticConfig.native';
+import { getStaticConfig, setStaticConfig } from '../base/config/staticConfig.native';
 import { connect, disconnect, setLocationURL } from '../base/connection/actions.native';
 import { JITSI_CONNECTION_URL_KEY } from '../base/connection/constants';
 import { loadConfig } from '../base/lib-jitsi-meet/functions.native';
@@ -120,22 +120,28 @@ export function appNavigate(uri?: string, options: IReloadNowOptions = {}) {
         let config;
         const staticConfig = getStaticConfig();
 
-        // Avoid (re)loading the config when there is no room.
-        if (!room) {
-            config = restoreConfig(baseURL);
-        }
+        if (staticConfig) {
+            config = staticConfig;
+        } else {
+            const persistedConfig = restoreConfig(baseURL);
 
-        if (!config && staticConfig) {
-            config = JSON.parse(JSON.stringify(staticConfig));
-            dispatch(storeConfig(baseURL, config));
+            if (persistedConfig) {
+                config = persistedConfig;
+                setStaticConfig(persistedConfig);
+            }
         }
 
         if (!config) {
             try {
                 config = await loadConfig(url);
                 dispatch(storeConfig(baseURL, config));
+                setStaticConfig(config);
             } catch (error: any) {
                 config = restoreConfig(baseURL);
+
+                if (config) {
+                    setStaticConfig(config);
+                }
 
                 if (!config) {
                     if (room) {
