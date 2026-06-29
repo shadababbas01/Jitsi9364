@@ -127,6 +127,35 @@ export default {
         justifyContent: 'center'
     },
 
+    /**
+     * Container that lays out the microphone and the footer side by side in
+     * landscape so the UI fits the reduced vertical space without distorting.
+     */
+    landscapeContainer: {
+        alignItems: 'center',
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center'
+    },
+
+    /**
+     * The microphone column when in landscape mode.
+     */
+    landscapeMicrophoneContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center'
+    },
+
+    /**
+     * The footer column (labels and buttons) when in landscape mode.
+     */
+    landscapeFooter: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center'
+    },
+
     titleBarWrapper: {
         alignItems: 'center',
         flex: 1,

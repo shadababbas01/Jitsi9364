@@ -172,6 +172,11 @@ interface IProps extends AbstractProps {
     _calleeInfoVisible: boolean;
 
     /**
+     * Whether the car mode is active or not.
+     */
+    _carMode: boolean;
+
+    /**
      * The indicator which determines that we are still connecting to the
      * conference which includes establishing the XMPP connection and then
      * joining the room. If truthy, then an activity/loading indicator will be
@@ -325,11 +330,13 @@ class Conference extends AbstractConference<IProps, State> {
     }
 
     _syncOrientationMode() {
-        const { _audioOnlyEnabled } = this.props;
+        const { _audioOnlyEnabled, _carMode } = this.props;
 
         OpenMelpModule?.isAudioMode?.(_audioOnlyEnabled);
 
-        if (_audioOnlyEnabled) {
+        // Car mode supports both orientations and manages the orientation lock
+        // itself, so don't force portrait while it is active.
+        if (_audioOnlyEnabled && !_carMode) {
             Orientation.lockToPortrait();
             OpenMelpModule?.IsRotateMode?.(false);
         } else {
@@ -824,6 +831,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _aspectRatio: aspectRatio,
         _audioOnlyEnabled: Boolean(audioOnlyEnabled),
         _brandingStyles: brandingStyles,
+        _carMode: state['features/video-layout'].carMode,
         _calleeInfoVisible: Boolean(state['features/invite'].calleeInfoVisible),
         _calendarEnabled: isCalendarEnabled(state),
         _connecting: isConnecting(state),
