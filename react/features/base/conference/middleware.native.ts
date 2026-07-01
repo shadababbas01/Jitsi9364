@@ -1,9 +1,11 @@
+import { Platform } from 'react-native';
+
 import { appNavigate } from '../../app/actions.native';
 import { notifyConferenceFailed } from '../../conference/actions.native';
 import { JitsiConferenceErrors } from '../lib-jitsi-meet';
 import MiddlewareRegistry from '../redux/MiddlewareRegistry';
 
-import { CONFERENCE_FAILED } from './actionTypes';
+import { CONFERENCE_FAILED, CONFERENCE_JOINED } from './actionTypes';
 import { conferenceLeft } from './actions.native';
 import { TRIGGER_READY_TO_CLOSE_REASONS } from './constants';
 import './middleware.any';
@@ -14,6 +16,15 @@ MiddlewareRegistry.register(store => next => action => {
     const { error } = action;
 
     switch (action.type) {
+    case CONFERENCE_JOINED: {
+        const result = next(action);
+        const { conference } = action;
+
+        conference?.setLocalParticipantProperty('deviceType', Platform.OS);
+
+        return result;
+    }
+
     case CONFERENCE_FAILED: {
         const { getState } = store;
         const state = getState();

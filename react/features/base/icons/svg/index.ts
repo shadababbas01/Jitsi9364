@@ -243,3 +243,6 @@ export {
     ZoomIn,
     ZoomOut
 };
+
+export { default as IconMobile } from './mobileIcon.svg';
+export { default as IconLaptop } from './laptopIcon.svg';

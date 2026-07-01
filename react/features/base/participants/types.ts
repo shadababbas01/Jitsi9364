@@ -12,6 +12,7 @@ export interface IParticipant {
     botType?: string;
     conference?: IJitsiConference;
     displayName?: string;
+    deviceType?: string;
     dominantSpeaker?: boolean;
     e2eeEnabled?: boolean;
     e2eeSupported?: boolean;

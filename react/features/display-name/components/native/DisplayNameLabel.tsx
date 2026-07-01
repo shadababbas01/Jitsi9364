@@ -3,6 +3,8 @@ import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import Icon from '../../../base/icons/components/Icon';
+import { IconLaptop, IconMobile } from '../../../base/icons/svg';
 import {
     getParticipantById,
     getParticipantDisplayName,
@@ -29,6 +31,11 @@ interface IProps {
     contained?: boolean;
 
     /**
+     * The device type of the participant ('web', 'android', 'ios').
+     */
+    deviceType?: string;
+
+    /**
      * The ID of the participant to render the label for.
      */
     participantId: string;
@@ -48,15 +55,40 @@ class DisplayNameLabel extends React.Component<IProps> {
             return null;
         }
 
+        const { _participantName, contained, deviceType } = this.props;
+
+        let iconSrc;
+
+        switch (deviceType) {
+            case 'web':
+                iconSrc = IconLaptop;
+                break;
+            case 'android':
+            case 'ios':
+                iconSrc = IconMobile;
+                break;
+            default:
+                iconSrc = undefined;
+                break;
+        }
+
         return (
             <View
-                style = { (this.props.contained ? styles.displayNamePadding : styles.displayNameBackdrop
-                ) as ViewStyle }>
+                style = { [
+                    contained ? styles.displayNamePadding : styles.displayNameBackdrop,
+                    { flexDirection: 'row', alignItems: 'center' }
+                ] as ViewStyle }>
                 <Text
                     numberOfLines = { 1 }
                     style = { styles.displayNameText as TextStyle }>
-                    { this.props._participantName }
+                    { _participantName }
                 </Text>
+                { deviceType && iconSrc && (
+                    <Icon
+                        size = { 14 }
+                        src = { iconSrc }
+                        style = {{ marginLeft: 6 }} />
+                ) }
             </View>
         );
     }

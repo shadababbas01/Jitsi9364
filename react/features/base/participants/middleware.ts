@@ -540,6 +540,12 @@ StateListenerRegistry.register(
                     })),
                 'localRecording': (participant: IJitsiParticipant, value: string) =>
                     _localRecordingUpdated(store, conference, participant.getId(), Boolean(value)),
+                'deviceType': (participant: IJitsiParticipant, value: string) =>
+                    store.dispatch(participantUpdated({
+                        conference,
+                        id: participant.getId(),
+                        deviceType: value
+                    })),
                 'raisedHand': (participant: IJitsiParticipant, value: string) =>
                     _raiseHandUpdated(store, conference, participant.getId(), value),
                 'region': (participant: IJitsiParticipant, value: string) =>
