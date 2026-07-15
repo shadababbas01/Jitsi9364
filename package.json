@@ -225,7 +225,17 @@
     "test-grid": "DOTENV_CONFIG_PATH=tests/.env wdio run tests/wdio.grid.conf.ts",
     "test-grid-single": "DOTENV_CONFIG_PATH=tests/.env wdio run tests/wdio.grid.conf.ts --spec",
     "test-grid-ff": "DOTENV_CONFIG_PATH=tests/.env wdio run tests/wdio.grid.firefox.conf.ts",
-    "test-grid-ff-single": "DOTENV_CONFIG_PATH=tests/.env wdio run tests/wdio.grid.firefox.conf.ts --spec"
+    "test-grid-ff-single": "DOTENV_CONFIG_PATH=tests/.env wdio run tests/wdio.grid.firefox.conf.ts --spec",
+    "test:ios:build": "sh tests-ios-maestro/scripts/build-sim.sh",
+    "test:ios:smoke": "sh tests-ios-maestro/scripts/run.sh smoke",
+    "test:ios:sanity": "sh tests-ios-maestro/scripts/run.sh sanity",
+    "test:ios:feature": "sh tests-ios-maestro/scripts/run.sh feature",
+    "test:ios": "sh tests-ios-maestro/scripts/run.sh",
+    "test:android:build": "sh tests-android-maestro/scripts/build-apk.sh",
+    "test:android:smoke": "sh tests-android-maestro/scripts/run.sh smoke",
+    "test:android:sanity": "sh tests-android-maestro/scripts/run.sh sanity",
+    "test:android:feature": "sh tests-android-maestro/scripts/run.sh feature",
+    "test:android": "sh tests-android-maestro/scripts/run.sh"
   },
   "resolutions": {
     "@types/react": "17.0.14",
