@@ -20,7 +20,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -274,13 +273,7 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         runInAudioThread(new Runnable() {
             @Override
             public void run() {
-                boolean isBuiltInRoute
-                    = DEVICE_SPEAKER.equals(device) || DEVICE_EARPIECE.equals(device);
-                boolean canSelectDevice
-                    = availableDevices.contains(device)
-                        || (isBuiltInRoute && availableDevices.isEmpty());
-
-                if (!canSelectDevice) {
+                if (!availableDevices.contains(device)) {
                     JitsiMeetLogger.w(TAG + " Audio device not available: " + device);
                     userSelectedDevice = null;
                     return;
@@ -289,7 +282,7 @@ class AudioModeModule extends ReactContextBaseJavaModule {
                 if (mode != -1) {
                     JitsiMeetLogger.i(TAG + " User selected device set to: " + device);
                     userSelectedDevice = device;
-                    updateAudioRoute(mode, true);
+                    updateAudioRoute(mode, false);
                 }
             }
         });
@@ -413,17 +406,12 @@ class AudioModeModule extends ReactContextBaseJavaModule {
             audioDevice = DEVICE_BLUETOOTH;
         } else if (headsetAvailable) {
             audioDevice = DEVICE_HEADPHONES;
-        } else if (mode == VIDEO_CALL) {
-            audioDevice = DEVICE_SPEAKER;
         } else {
-            audioDevice = DEVICE_EARPIECE;
+            audioDevice = DEVICE_SPEAKER;
         }
 
         // Consider the user's selection
-        if (userSelectedDevice != null
-            && (availableDevices.contains(userSelectedDevice)
-                || ((DEVICE_SPEAKER.equals(userSelectedDevice) || DEVICE_EARPIECE.equals(userSelectedDevice))
-                    && availableDevices.isEmpty()))) {
+        if (userSelectedDevice != null && availableDevices.contains(userSelectedDevice)) {
             audioDevice = userSelectedDevice;
         }
 
@@ -441,7 +429,6 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         notifyDevicesChanged();
         return true;
     }
-
     /**
      * Gets the currently selected audio device.
      *

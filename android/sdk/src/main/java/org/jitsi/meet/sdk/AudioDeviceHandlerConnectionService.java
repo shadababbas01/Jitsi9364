@@ -17,16 +17,13 @@
 package org.jitsi.meet.sdk;
 
 import android.content.Context;
-import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.os.Build;
 import android.telecom.CallAudioState;
 import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.ReactContext;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
@@ -133,12 +130,9 @@ class AudioDeviceHandlerConnectionService implements
                     JitsiMeetLogger.i(TAG + " Available audio devices: " + devices.toString());
                 }
 
-                if (audioDevicesChanged) {
+                if (audioRouteChanged || audioDevicesChanged) {
                     module.resetSelectedDevice();
                     module.updateAudioRoute();
-                } else if (audioRouteChanged) {
-                    // Keep user selection intact and force-route back to the selected device.
-                    module.resetAudioRoute();
                 }
             }
         });
@@ -172,64 +166,6 @@ class AudioDeviceHandlerConnectionService implements
         int newAudioRoute = audioDeviceToRouteInt(audioDevice);
 
         RNConnectionService.setAudioRoute(newAudioRoute);
-
-        // Telecom route changes are frequently ignored for the built-in
-        // speaker/earpiece: on Android 12+ setSpeakerphoneOn() is deprecated and
-        // the system keeps the route Telecom selected, so toggling speakerphone
-        // mid-call has no effect on the actual media. Force those two built-in
-        // routes directly; leave bluetooth/wired headsets to Telecom.
-        boolean speaker = AudioModeModule.DEVICE_SPEAKER.equals(audioDevice);
-        boolean earpiece = AudioModeModule.DEVICE_EARPIECE.equals(audioDevice);
-
-        if (speaker || earpiece) {
-            applyBuiltInRoute(speaker);
-        }
-    }
-
-    /**
-     * Forces the audio route to the built-in speaker or earpiece directly through
-     * {@link AudioManager}. On Android 12+ (S) {@link AudioManager#setSpeakerphoneOn(boolean)}
-     * is deprecated and ignored while Telecom owns the call audio, so we use
-     * {@link AudioManager#setCommunicationDevice} which is honored even then and
-     * falls back to {@code setSpeakerphoneOn} on older versions.
-     *
-     * @param speaker whether to route to the speaker (true) or earpiece (false).
-     */
-    private void applyBuiltInRoute(boolean speaker) {
-        try {
-            if (audioManager.getMode() != AudioManager.MODE_IN_COMMUNICATION) {
-                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                int targetType = speaker
-                    ? AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
-                    : AudioDeviceInfo.TYPE_BUILTIN_EARPIECE;
-                List<AudioDeviceInfo> devices = audioManager.getAvailableCommunicationDevices();
-                AudioDeviceInfo target = null;
-
-                for (AudioDeviceInfo device : devices) {
-                    if (device.getType() == targetType) {
-                        target = device;
-                        break;
-                    }
-                }
-
-                if (target != null) {
-                    audioManager.clearCommunicationDevice();
-                    boolean applied = audioManager.setCommunicationDevice(target);
-
-                    JitsiMeetLogger.i(TAG + " setCommunicationDevice("
-                        + (speaker ? "SPEAKER" : "EARPIECE") + ") => " + applied);
-                    return;
-                }
-            }
-
-            // Pre-S fallback.
-            audioManager.setSpeakerphoneOn(speaker);
-        } catch (Throwable tr) {
-            JitsiMeetLogger.w(tr, TAG + " Failed to apply built-in audio route");
-        }
     }
 
     @Override

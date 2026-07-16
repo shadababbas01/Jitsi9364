@@ -20,8 +20,13 @@ import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
 
+import androidx.annotation.RequiresApi;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
@@ -204,6 +209,15 @@ class AudioDeviceHandlerGeneric implements
 
     @Override
     public void setAudioRoute(String device) {
+        // setSpeakerphoneOn() and the Bluetooth SCO APIs are deprecated since
+        // Android 12 and are unreliable on recent versions: switching from the
+        // earpiece back to the speaker is silently ignored. Use the
+        // communication device API instead.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setCommunicationRoute(device);
+            return;
+        }
+
         // Turn speaker on / off
         audioManager.setSpeakerphoneOn(device.equals(AudioModeModule.DEVICE_SPEAKER));
 
@@ -211,14 +225,77 @@ class AudioDeviceHandlerGeneric implements
         setBluetoothAudioRoute(device.equals(AudioModeModule.DEVICE_BLUETOOTH));
     }
 
+    /**
+     * Sets the audio route on Android >= 12 (S) using
+     * {@link AudioManager#setCommunicationDevice}. Must be called while the
+     * audio mode is {@code MODE_IN_COMMUNICATION}.
+     *
+     * @param device The device to route audio to.
+     */
+    @RequiresApi(Build.VERSION_CODES.S)
+    private void setCommunicationRoute(String device) {
+        List<Integer> targetTypes = new ArrayList<>();
+
+        switch (device) {
+            case AudioModeModule.DEVICE_SPEAKER:
+                targetTypes.add(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER);
+                break;
+            case AudioModeModule.DEVICE_EARPIECE:
+                targetTypes.add(AudioDeviceInfo.TYPE_BUILTIN_EARPIECE);
+                break;
+            case AudioModeModule.DEVICE_BLUETOOTH:
+                targetTypes.add(AudioDeviceInfo.TYPE_BLUETOOTH_SCO);
+                targetTypes.add(AudioDeviceInfo.TYPE_BLE_HEADSET);
+                break;
+            case AudioModeModule.DEVICE_HEADPHONES:
+                targetTypes.add(AudioDeviceInfo.TYPE_WIRED_HEADSET);
+                targetTypes.add(AudioDeviceInfo.TYPE_WIRED_HEADPHONES);
+                targetTypes.add(TYPE_USB_HEADSET);
+                targetTypes.add(TYPE_HEARING_AID);
+                break;
+        }
+
+        List<AudioDeviceInfo> availableDevices = audioManager.getAvailableCommunicationDevices();
+        AudioDeviceInfo target = null;
+
+        outer:
+        for (Integer type : targetTypes) {
+            for (AudioDeviceInfo info : availableDevices) {
+                if (info.getType() == type) {
+                    target = info;
+                    break outer;
+                }
+            }
+        }
+
+        // Clear the forced device first: switching directly between the
+        // built-in routes (earpiece <-> speaker) is ignored on some versions
+        // unless the previous selection is cleared.
+        audioManager.clearCommunicationDevice();
+
+        if (target == null) {
+            JitsiMeetLogger.w(TAG + " No communication device found for " + device + ", using default routing");
+            return;
+        }
+
+        boolean success = audioManager.setCommunicationDevice(target);
+        JitsiMeetLogger.i(TAG + " setCommunicationDevice(" + device + ") => " + success);
+    }
+
     @Override
     public boolean setMode(int mode) {
         if (mode == AudioModeModule.DEFAULT) {
             audioFocusLost = false;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.clearCommunicationDevice();
+            } else {
+                audioManager.setSpeakerphoneOn(false);
+                setBluetoothAudioRoute(false);
+            }
+
             audioManager.setMode(AudioManager.MODE_NORMAL);
             audioManager.abandonAudioFocus(this);
-            audioManager.setSpeakerphoneOn(false);
-            setBluetoothAudioRoute(false);
 
             return true;
         }
