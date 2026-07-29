@@ -30,6 +30,7 @@ import { INoSrcDataState, ITracksState } from '../base/tracks/reducer';
 import { IUserInteractionState } from '../base/user-interaction/reducer';
 import { IBreakoutRoomsState } from '../breakout-rooms/reducer';
 import { ICalendarSyncState } from '../calendar-sync/reducer';
+import { ICaptionTtsState } from '../caption-tts/reducer';
 import { IChatState } from '../chat/reducer';
 import { IDeepLinkingState } from '../deep-linking/reducer';
 import { IDropboxState } from '../dropbox/reducer';
@@ -122,6 +123,7 @@ export interface IReduxState {
     'features/breakout-rooms': IBreakoutRoomsState;
     'features/calendar-sync': ICalendarSyncState;
     'features/call-integration': ICallIntegrationState;
+    'features/caption-tts': ICaptionTtsState;
     'features/chat': IChatState;
     'features/deep-linking': IDeepLinkingState;
     'features/debug-event-log': IDebugEventLogState;

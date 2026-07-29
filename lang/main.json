@@ -144,6 +144,12 @@
         "dontShowAgain": "Don’t show me this again",
         "installExtensionText": "Install the extension for Google Calendar and Office 365 integration"
     },
+    "captionTts": {
+        "languageUnavailable": "Cannot read captions aloud",
+        "languageUnavailableDescription": "This device has no voice installed for the selected caption language. Install it from the Android text-to-speech settings.",
+        "readAloud": "Read captions aloud",
+        "readAloudHint": "Participants' own voices are muted while their captions are read aloud."
+    },
     "closedCaptionsTab": {
         "emptyState": "The live captions content will be available once a moderator starts it",
         "startClosedCaptionsButton": "Start live captions",

@@ -27,6 +27,7 @@ const DEFAULT_STATE: ISettingsState = {
     localFlipX: true,
     maxStageParticipants: 1,
     micDeviceId: undefined,
+    readCaptionsAloud: false,
     serverURL: undefined,
     hideShareAudioHelper: false,
     showSubtitlesOnStage: false,
@@ -75,6 +76,7 @@ export interface ISettingsState {
     maxStageParticipants?: number;
     micDeviceId?: string | boolean;
     previewAudioTrack?: any | null;
+    readCaptionsAloud?: boolean;
     serverURL?: string;
     showSubtitlesOnStage?: boolean;
     soundsIncomingMessage?: boolean;

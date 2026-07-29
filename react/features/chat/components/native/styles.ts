@@ -319,6 +319,18 @@ export const closedCaptionsStyles = {
         flexDirection: 'row'
     },
 
+    readAloudLabelContainer: {
+        flex: 1,
+        marginRight: BaseTheme.spacing[2]
+    },
+
+    readAloudHint: {
+        ...BaseTheme.typography.labelRegular,
+        color: BaseTheme.palette.text02,
+        marginHorizontal: BaseTheme.spacing[2],
+        marginTop: BaseTheme.spacing[1]
+    },
+
     subtitleMessageContainer: {
         backgroundColor: BaseTheme.palette.ui02,
         borderRadius: BaseTheme.shape.borderRadius,

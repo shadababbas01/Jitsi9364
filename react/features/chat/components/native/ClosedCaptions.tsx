@@ -3,7 +3,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TouchableHighlight, View, ViewStyle } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
@@ -12,7 +12,10 @@ import JitsiScreen from '../../../base/modal/components/JitsiScreen';
 import { StyleType } from '../../../base/styles/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import Button from '../../../base/ui/components/native/Button';
+import Switch from '../../../base/ui/components/native/Switch';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
+import { setCaptionTtsEnabled } from '../../../caption-tts/actions';
+import { isCaptionTtsEnabled, isCaptionTtsSupported } from '../../../caption-tts/functions.native';
 import { TabBarLabelCounter } from '../../../mobile/navigation/components/TabBarLabelCounter';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
@@ -41,10 +44,15 @@ const ClosedCaptions = ({
 }: AbstractProps): JSX.Element => {
     const navigation = useNavigation();
     const { t } = useTranslation();
+    const dispatch = useDispatch();
     const isCCTabFocused = useSelector((state: IReduxState) => state['features/chat'].focusedTab === ChatTabs.CLOSED_CAPTIONS);
+    const readAloud = useSelector(isCaptionTtsEnabled);
     const navigateToLanguageSelect = useCallback(() => {
         navigate(screen.conference.subtitles);
     }, [ navigation, screen ]);
+    const onReadAloudChange = useCallback((enabled?: boolean) => {
+        dispatch(setCaptionTtsEnabled(Boolean(enabled)));
+    }, [ dispatch ]);
 
     useEffect(() => {
         navigation?.setOptions({
@@ -108,6 +116,25 @@ const ClosedCaptions = ({
                                     src = { IconArrowRight } />
                             </View>
                         </TouchableHighlight>
+                    </View>
+                }
+                {
+                    isCaptionTtsSupported() && <View style = { closedCaptionsStyles.languageButtonContainer as ViewStyle }>
+                        <View style = { closedCaptionsStyles.readAloudLabelContainer as ViewStyle }>
+                            <Text style = { closedCaptionsStyles.languageButtonText }>
+                                { t('captionTts.readAloud') }
+                            </Text>
+                            {
+                                readAloud && (
+                                    <Text style = { closedCaptionsStyles.readAloudHint }>
+                                        { t('captionTts.readAloudHint') }
+                                    </Text>
+                                )
+                            }
+                        </View>
+                        <Switch
+                            checked = { readAloud }
+                            onChange = { onReadAloudChange } />
                     </View>
                 }
                 <View style = { closedCaptionsStyles.messagesContainer as ViewStyle }>

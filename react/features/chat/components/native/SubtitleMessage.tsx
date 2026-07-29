@@ -4,7 +4,11 @@ import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { getParticipantDisplayName } from '../../../base/participants/functions';
-import { normalizeSubtitlesLanguage, translateLiveCaptionText } from '../../../subtitles/languages';
+import {
+    getSubtitleTranslationTarget,
+    normalizeSubtitlesLanguage,
+    translateLiveCaptionTextCached
+} from '../../../subtitles/languages';
 import { ISubtitle } from '../../../subtitles/types';
 
 import { closedCaptionsStyles } from './styles';
@@ -36,25 +40,23 @@ export default function SubtitleMessage({
     const dotAnimations = useRef([ 0, 1, 2 ].map(() => new Animated.Value(0))).current;
 
     useEffect(() => {
-        const targetLanguage = normalizeSubtitlesLanguage(selectedLanguage);
-        const messageLanguage = normalizeSubtitlesLanguage(language);
+        const targetLanguage = getSubtitleTranslationTarget(
+            { interim,
+                isTranscription,
+                language,
+                text },
+            selectedLanguage);
         const currentRequestId = ++requestId.current;
 
         setDisplayText(text);
 
-        if (
-            interim
-            || !text
-            || !targetLanguage
-            || targetLanguage.toLowerCase().startsWith('en')
-            || (!isTranscription && messageLanguage?.toLowerCase() === targetLanguage.toLowerCase())
-        ) {
+        if (!targetLanguage) {
             return;
         }
 
         let cancelled = false;
 
-        translateLiveCaptionText(text, targetLanguage, jwt)
+        translateLiveCaptionTextCached(id, text, targetLanguage, jwt)
             .then(translatedText => {
                 if (!cancelled && requestId.current === currentRequestId) {
                     setDisplayText(translatedText);
