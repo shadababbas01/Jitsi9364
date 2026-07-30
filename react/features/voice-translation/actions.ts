@@ -5,7 +5,8 @@ import {
     SET_PARTICIPANT_TRANSLATING,
     SET_PARTICIPANT_TRANSLATION_PREFERENCES,
     SET_TRANSLATION_PREFERENCES,
-    SET_VOICE_TRANSLATION_POPUP_VISIBLE
+    SET_VOICE_TRANSLATION_POPUP_VISIBLE,
+    SET_VOICE_TRANSLATION_TTS_CONNECTED
 } from './actionTypes';
 import { ITranslationPreferences } from './reducer';
 
@@ -115,5 +116,19 @@ export function setAllowedParticipantId(participantId: string | null) {
     return {
         type: SET_ALLOWED_PARTICIPANT_ID,
         participantId
+    };
+}
+
+/**
+ * Records whether the translated audio service is connected, so the rest of the app knows whether translated speech can
+ * actually be delivered.
+ *
+ * @param {boolean} connected - Whether the service is reachable.
+ * @returns {Object}
+ */
+export function setVoiceTranslationTtsConnected(connected: boolean) {
+    return {
+        type: SET_VOICE_TRANSLATION_TTS_CONNECTED,
+        connected
     };
 }

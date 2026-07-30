@@ -9,6 +9,11 @@ import {
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { SETTINGS_UPDATED } from '../base/settings/actionTypes';
 import { TRACK_ADDED } from '../base/tracks/actionTypes';
+import {
+    resetRemoteAudioSilenced,
+    setRemoteAudioSilenced,
+    silenceNewRemoteAudioTrack
+} from '../base/tracks/remoteAudio';
 import { APP_STATE_CHANGED } from '../mobile/background/actionTypes';
 import { showWarningNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
@@ -35,11 +40,6 @@ import {
 } from './functions.native';
 import logger from './logger';
 import CaptionsTtsQueue from './native/CaptionsTtsQueue';
-import {
-    resetRemoteAudioSilenced,
-    setRemoteAudioSilenced,
-    silenceNewRemoteAudioTrack
-} from './native/remoteAudio';
 
 /**
  * The queue feeding the device text-to-speech engine. Created on first use.
@@ -56,6 +56,12 @@ const spokenMessageIds = new Map<string, number>();
  * Whether this device can read captions aloud at all. Checked once, since the middleware sees every action.
  */
 const supported = isCaptionTtsSupported();
+
+/**
+ * Identifies this feature to the remote audio silencer, so that turning read aloud off cannot unmute the voices while
+ * voice translation is still replacing them.
+ */
+const CAPTION_TTS_SILENCING_REASON = 'captions-read-aloud';
 
 /**
  * Middleware which reads the live captions aloud through the device text-to-speech engine.
@@ -151,7 +157,7 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         } else {
             // Nothing is read aloud in the background, so the participants have to be audible again.
             _getQueue(store).flush();
-            setRemoteAudioSilenced(store.getState(), false);
+            setRemoteAudioSilenced(store.getState(), CAPTION_TTS_SILENCING_REASON, false);
         }
 
         return result;
@@ -220,7 +226,7 @@ function _syncRemoteAudio(store: IStore) {
         && isLiveCaptionsActive(state)
         && !getCaptionTtsState(state).unsupportedLanguage;
 
-    setRemoteAudioSilenced(state, shouldSilence);
+    setRemoteAudioSilenced(state, CAPTION_TTS_SILENCING_REASON, shouldSilence);
 }
 
 /**

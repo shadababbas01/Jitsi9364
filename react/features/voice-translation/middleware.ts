@@ -1,11 +1,21 @@
 import { AnyAction } from 'redux';
 
 import { IStore } from '../app/types';
-import { ENDPOINT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
+import {
+    CONFERENCE_FAILED,
+    CONFERENCE_LEFT,
+    ENDPOINT_MESSAGE_RECEIVED
+} from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
 import { PARTICIPANT_JOINED, PARTICIPANT_LEFT } from '../base/participants/actionTypes';
 import { getLocalParticipant, isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
+import { TRACK_ADDED } from '../base/tracks/actionTypes';
+import {
+    resetRemoteAudioSilenced,
+    setRemoteAudioSilenced,
+    silenceNewRemoteAudioTrack
+} from '../base/tracks/remoteAudio';
 import { dismissTranscriptionConsent } from '../chat/actions.any';
 import { showWarningNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
@@ -15,7 +25,8 @@ import {
     DISABLE_VOICE_TRANSLATION,
     ENABLE_VOICE_TRANSLATION,
     SET_PARTICIPANT_TRANSLATING,
-    SET_TRANSLATION_PREFERENCES
+    SET_TRANSLATION_PREFERENCES,
+    SET_VOICE_TRANSLATION_TTS_CONNECTED
 } from './actionTypes';
 import {
     disableVoiceTranslation,
@@ -31,7 +42,8 @@ import {
     getVoiceTranslationState,
     isVoiceTranslationAvailable,
     isVoiceTranslationEnabled,
-    isVoiceTranslationLimitExceeded
+    isVoiceTranslationLimitExceeded,
+    shouldReplaceRemoteVoices
 } from './functions';
 import { ITranslationPreferences } from './reducer';
 
@@ -78,10 +90,45 @@ function buildTranslatingPayload(participantId: string, translating: boolean) {
     };
 }
 
+/**
+ * Identifies this feature to the remote audio silencer, so that captions being read aloud and voice translation cannot
+ * unmute each other's silence.
+ */
+const VOICE_TRANSLATION_SILENCING_REASON = 'voice-translation';
+
+/**
+ * Silences the original voices of the remote participants while their translated speech is being played instead, and
+ * restores them as soon as translation stops.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _syncRemoteVoices(store: IStore) {
+    const state = store.getState();
+
+    setRemoteAudioSilenced(state, VOICE_TRANSLATION_SILENCING_REASON, shouldReplaceRemoteVoices(state));
+}
+
 MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyAction) => {
     const result = next(action);
     const state = store.getState();
     const conference = getCurrentConference(state);
+
+    switch (action.type) {
+    case ENABLE_VOICE_TRANSLATION:
+    case SET_VOICE_TRANSLATION_TTS_CONNECTED:
+        _syncRemoteVoices(store);
+        break;
+
+    case TRACK_ADDED:
+        silenceNewRemoteAudioTrack(action.track);
+        break;
+
+    case CONFERENCE_FAILED:
+    case CONFERENCE_LEFT:
+        resetRemoteAudioSilenced();
+        break;
+    }
 
     switch (action.type) {
     case ENABLE_VOICE_TRANSLATION: {
@@ -115,6 +162,9 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
 
         store.dispatch(dismissTranscriptionConsent());
         store.dispatch(setRequestingSubtitles(false, false, null));
+
+        // Nothing is translating any more, so the original voices have to come back.
+        _syncRemoteVoices(store);
         break;
     }
 
@@ -129,6 +179,9 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
         } catch (_) {
             // The data channel may not be ready yet.
         }
+
+        // Asking not to be translated, or picking a language, changes whether the original voices are wanted.
+        _syncRemoteVoices(store);
         break;
     }
 

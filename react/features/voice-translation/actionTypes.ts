@@ -32,3 +32,8 @@ export const SET_VOICE_TRANSLATION_POPUP_VISIBLE = 'SET_VOICE_TRANSLATION_POPUP_
  * Action type for setting the allowed participant ID for voice translation.
  */
 export const SET_ALLOWED_PARTICIPANT_ID = 'VOICE_TRANSLATION_SET_ALLOWED_PARTICIPANT_ID';
+
+/**
+ * Action type for recording whether the translated audio service is reachable.
+ */
+export const SET_VOICE_TRANSLATION_TTS_CONNECTED = 'SET_VOICE_TRANSLATION_TTS_CONNECTED';

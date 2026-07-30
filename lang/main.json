@@ -1475,6 +1475,7 @@
         "translationLanguageLabel": "Translation Language",
         "translationVariationNotice": "AI-generated voice translation may vary in accuracy. Translated speech is approximate and may not perfectly convey the original meaning.",
         "update": "Update",
+        "voicesMuted": "The original voices are muted while the translated speech is played.",
         "voiceTranslationActiveClickSettings": "Voice translation is active. Click to open settings."
     },
     "unpinParticipant": "{{participantName}} - Unpin",

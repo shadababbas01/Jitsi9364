@@ -35,7 +35,8 @@ import {
 import {
     getLocalTranslationPreferences,
     isVoiceTranslationAvailable,
-    isVoiceTranslationEnabled
+    isVoiceTranslationEnabled,
+    shouldReplaceRemoteVoices
 } from '../../functions';
 import {
     FALLBACK_VOICE_TRANSLATION_LANGUAGES,
@@ -76,6 +77,7 @@ export default function VoiceTranslationPanel() {
     const voiceTranslationAvailable = useSelector(isVoiceTranslationAvailable);
     const voiceTranslationEnabled = useSelector(isVoiceTranslationEnabled);
     const isModerator = useSelector(isLocalParticipantModerator);
+    const voicesReplaced = useSelector(shouldReplaceRemoteVoices);
     const [ languages, setLanguages ] = useState<IVoiceTranslationLanguage[]>(
         FALLBACK_VOICE_TRANSLATION_LANGUAGES);
     const [ expandedSelector, setExpandedSelector ] = useState<SelectorType | null>(null);
@@ -295,6 +297,11 @@ export default function VoiceTranslationPanel() {
                                 { t('voiceTranslation.active') }
                             </Text>
                         </View>
+                    )}
+                    {voicesReplaced && (
+                        <Text style = { styles.description }>
+                            { t('voiceTranslation.voicesMuted') }
+                        </Text>
                     )}
                 </View>
 

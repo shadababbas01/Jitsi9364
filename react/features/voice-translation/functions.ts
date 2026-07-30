@@ -22,7 +22,8 @@ const DEFAULT_STATE: IVoiceTranslationState = {
     preferences: DEFAULT_PREFERENCES,
     showPreferencesPopup: false,
     startedBy: null,
-    translatingParticipants: {}
+    translatingParticipants: {},
+    ttsConnected: false
 };
 
 /**
@@ -133,4 +134,20 @@ export function getTranslationDecisionForParticipant(state: IReduxState, partici
         sourceLanguage: participantPreferences.fromLanguage,
         targetLanguage: localPreferences.toLanguage
     };
+}
+
+/**
+ * Returns whether the local user should hear the translated voices instead of the original ones.
+ *
+ * The original voices are only replaced once translated audio can actually be delivered: while the service is
+ * unreachable, or while the local user asked not to be translated, muting the others would leave them with silence.
+ *
+ * @param {IReduxState} state - Redux state.
+ * @returns {boolean}
+ */
+export function shouldReplaceRemoteVoices(state: IReduxState): boolean {
+    const { enabled, ttsConnected } = getVoiceTranslationState(state);
+    const { dontTranslate, toLanguage } = getLocalTranslationPreferences(state);
+
+    return Boolean(enabled && ttsConnected && !dontTranslate && toLanguage);
 }

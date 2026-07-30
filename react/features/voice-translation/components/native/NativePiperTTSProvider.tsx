@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IReduxState } from '../../../app/types';
 import { translateLiveCaptionText } from '../../../subtitles/languages';
 import { setTileView } from '../../../video-layout/actions.any';
-import { setParticipantTranslating } from '../../actions';
+import { setParticipantTranslating, setVoiceTranslationTtsConnected } from '../../actions';
 import { DEFAULT_PIPER_TTS_URL } from '../../constants';
 import logger from '../../logger';
 
@@ -222,7 +222,8 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
         isConnectingRef.current = false;
         setIsConnecting(false);
         setIsConnected(false);
-    }, []);
+        dispatch(setVoiceTranslationTtsConnected(false));
+    }, [ dispatch ]);
 
     const playNextInQueue = useCallback(() => {
         if (!enabledRef.current || isPlayingRef.current) {
@@ -323,6 +324,10 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
                 setIsConnecting(false);
                 setIsConnected(true);
                 setLastError(null);
+
+                // Lets the rest of the app know translated speech can be delivered, which is what allows the original
+                // voices to be muted.
+                dispatch(setVoiceTranslationTtsConnected(true));
                 flushQueue();
             };
 
@@ -380,6 +385,7 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
                 isConnectingRef.current = false;
                 setIsConnecting(false);
                 setIsConnected(false);
+                dispatch(setVoiceTranslationTtsConnected(false));
 
                 if (pendingRequests.current.length) {
                     queuedRequests.current = [
@@ -399,7 +405,7 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
             setIsConnecting(false);
             setLastError(error instanceof Error ? error.message : 'Connection error');
         }
-    }, [ flushQueue, jwt, playNextInQueue ]);
+    }, [ dispatch, flushQueue, jwt, playNextInQueue ]);
 
     useEffect(() => {
         connectRef.current = connect;

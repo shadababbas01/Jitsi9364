@@ -8,7 +8,8 @@ import {
     SET_PARTICIPANT_TRANSLATING,
     SET_PARTICIPANT_TRANSLATION_PREFERENCES,
     SET_TRANSLATION_PREFERENCES,
-    SET_VOICE_TRANSLATION_POPUP_VISIBLE
+    SET_VOICE_TRANSLATION_POPUP_VISIBLE,
+    SET_VOICE_TRANSLATION_TTS_CONNECTED
 } from './actionTypes';
 
 /**
@@ -26,6 +27,7 @@ export interface IVoiceTranslationState {
     translatingParticipants: {
         [participantId: string]: boolean;
     };
+    ttsConnected: boolean;
 }
 
 export interface ITranslationPreferences {
@@ -47,7 +49,8 @@ const DEFAULT_STATE: IVoiceTranslationState = {
     preferences: DEFAULT_PREFERENCES,
     showPreferencesPopup: false,
     startedBy: null,
-    translatingParticipants: {}
+    translatingParticipants: {},
+    ttsConnected: false
 };
 
 ReducerRegistry.register<IVoiceTranslationState>(
@@ -69,7 +72,14 @@ ReducerRegistry.register<IVoiceTranslationState>(
                 participantPreferences: {},
                 showPreferencesPopup: false,
                 startedBy: null,
-                translatingParticipants: {}
+                translatingParticipants: {},
+                ttsConnected: false
+            };
+
+        case SET_VOICE_TRANSLATION_TTS_CONNECTED:
+            return {
+                ...state,
+                ttsConnected: action.connected
             };
 
         case SET_TRANSLATION_PREFERENCES: {
