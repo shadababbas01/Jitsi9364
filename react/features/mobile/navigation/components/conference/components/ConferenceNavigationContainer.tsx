@@ -54,6 +54,7 @@ import VoiceTranslationPanel
 // @ts-ignore
     from '../../../../../voice-translation/components/native/VoiceTranslationPanel';
 import Whiteboard from '../../../../../whiteboard/components/native/Whiteboard';
+import VirtualBackgroundScreen from '../../../../virtual-background/components/VirtualBackgroundScreen';
 // @ts-ignore
 import { screen } from '../../../routes';
 import {
@@ -74,6 +75,7 @@ import {
     sharedDocumentScreenOptions,
     speakerStatsScreenOptions,
     subtitlesScreenOptions,
+    virtualBackgroundScreenOptions,
     whiteboardScreenOptions
     // @ts-ignore
 } from '../../../screenOptions';
@@ -234,6 +236,13 @@ const ConferenceNavigationContainer = () => {
                             options = {{
                                 ...subtitlesScreenOptions,
                                 title: t('voiceTranslation.popupTitle')
+                            }} />
+                        <ConferenceStack.Screen
+                            component = { VirtualBackgroundScreen }
+                            name = { screen.conference.virtualBackground }
+                            options = {{
+                                ...virtualBackgroundScreenOptions,
+                                title: t('virtualBackground.title')
                             }} />
                         <ConferenceStack.Screen
                             component = { BreakoutRooms }

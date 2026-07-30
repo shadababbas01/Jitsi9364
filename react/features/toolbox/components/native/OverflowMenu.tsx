@@ -22,6 +22,8 @@ import BreakoutRoomsButton
     from '../../../breakout-rooms/components/native/BreakoutRoomsButton';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
+import VirtualBackgroundButton
+    from '../../../mobile/virtual-background/components/VirtualBackgroundButton';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
 import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
@@ -387,6 +389,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <D />
                     <ScreenSharingButton { ...rowProps } />
                     <TileViewButton { ...rowProps } />
+                    <D />
+                    <VirtualBackgroundButton { ...rowProps } />
                     <D />
                     <ZoomButton { ...rowProps } />
                     <D />

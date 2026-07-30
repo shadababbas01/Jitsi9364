@@ -199,6 +199,11 @@ export const connectingScreenOptions = {
 export const whiteboardScreenOptions = presentationScreenOptions;
 
 /**
+ * Screen options for the virtual background picker.
+ */
+export const virtualBackgroundScreenOptions = presentationScreenOptions;
+
+/**
  * Screen options for pre-join screen.
  */
 export const preJoinScreenOptions = {

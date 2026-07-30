@@ -54,6 +54,7 @@ import { IMobileAudioModeState } from '../mobile/audio-mode/reducer';
 import { IMobileBackgroundState } from '../mobile/background/reducer';
 import { ICallIntegrationState } from '../mobile/call-integration/reducer';
 import { IMobileExternalApiState } from '../mobile/external-api/reducer';
+import { IMobileVirtualBackgroundState } from '../mobile/virtual-background/reducer';
 import { INoAudioSignalState } from '../no-audio-signal/reducer';
 import { INoiseDetectionState } from '../noise-detection/reducer';
 import { INoiseSuppressionState } from '../noise-suppression/reducer';
@@ -146,6 +147,7 @@ export interface IReduxState {
     'features/mobile/audio-mode': IMobileAudioModeState;
     'features/mobile/background': IMobileBackgroundState;
     'features/mobile/external-api': IMobileExternalApiState;
+    'features/mobile/virtual-background': IMobileVirtualBackgroundState;
     'features/no-audio-signal': INoAudioSignalState;
     'features/noise-detection': INoiseDetectionState;
     'features/noise-suppression': INoiseSuppressionState;
