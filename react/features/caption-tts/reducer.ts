@@ -10,6 +10,11 @@ export interface ICaptionTtsState {
     speaking: boolean;
 
     /**
+     * The ID of the caption being read aloud, so the UI can point at it.
+     */
+    speakingMessageId: string | null;
+
+    /**
      * The caption language the device has no voice for, if any.
      */
     unsupportedLanguage: string | null;
@@ -17,6 +22,7 @@ export interface ICaptionTtsState {
 
 const DEFAULT_STATE: ICaptionTtsState = {
     speaking: false,
+    speakingMessageId: null,
     unsupportedLanguage: null
 };
 
@@ -26,7 +32,8 @@ ReducerRegistry.register<ICaptionTtsState>('features/caption-tts', (
     case SET_CAPTION_TTS_SPEAKING:
         return {
             ...state,
-            speaking: action.speaking
+            speaking: action.speaking,
+            speakingMessageId: action.speaking ? action.messageId ?? null : null
         };
     case SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE:
         return {

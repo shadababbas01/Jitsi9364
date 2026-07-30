@@ -144,6 +144,12 @@
         "dontShowAgain": "Don’t show me this again",
         "installExtensionText": "Install the extension for Google Calendar and Office 365 integration"
     },
+    "captionsPanel": {
+        "liveTranslation": "Live translation",
+        "paused": "Captions paused",
+        "swapLanguages": "Swap languages",
+        "voicesMuted": "Participants' voices are muted, captions are read aloud instead"
+    },
     "captionTts": {
         "languageUnavailable": "Cannot read captions aloud",
         "languageUnavailableDescription": "This device has no voice installed for the selected caption language. Install it from the Android text-to-speech settings.",

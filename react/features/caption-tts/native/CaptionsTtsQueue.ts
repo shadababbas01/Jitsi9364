@@ -5,6 +5,11 @@ import logger from '../logger';
 interface IUtterance {
 
     /**
+     * The ID of the caption this utterance came from, so the UI can point at the line being spoken.
+     */
+    id?: string;
+
+    /**
      * The BCP-47 tag of the voice to speak with.
      */
     language: string;
@@ -26,7 +31,7 @@ export default class CaptionsTtsQueue {
     /**
      * Called whenever speech starts or stops, so the UI can reflect it.
      */
-    private _onSpeakingChange: (speaking: boolean) => void;
+    private _onSpeakingChange: (speaking: boolean, messageId?: string) => void;
 
     private _enabled = false;
 
@@ -49,7 +54,7 @@ export default class CaptionsTtsQueue {
      *
      * @param {Function} onSpeakingChange - Notified when speech starts and stops.
      */
-    constructor(onSpeakingChange: (speaking: boolean) => void) {
+    constructor(onSpeakingChange: (speaking: boolean, messageId?: string) => void) {
         this._onSpeakingChange = onSpeakingChange;
     }
 
@@ -215,7 +220,7 @@ export default class CaptionsTtsQueue {
             return;
         }
 
-        this._setSpeaking(true);
+        this._setSpeaking(true, utterance.id);
 
         try {
             await module.speak(utterance.text, utterance.language, DEFAULT_SPEECH_RATE);
@@ -236,14 +241,15 @@ export default class CaptionsTtsQueue {
      * Updates the speaking state and notifies the listener when it changes.
      *
      * @param {boolean} speaking - Whether a caption is being spoken.
+     * @param {string} messageId - The caption being spoken, if any.
      * @returns {void}
      */
-    private _setSpeaking(speaking: boolean) {
+    private _setSpeaking(speaking: boolean, messageId?: string) {
         if (this._speaking === speaking) {
             return;
         }
 
         this._speaking = speaking;
-        this._onSpeakingChange(speaking);
+        this._onSpeakingChange(speaking, messageId);
     }
 }

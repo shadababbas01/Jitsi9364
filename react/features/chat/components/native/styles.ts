@@ -319,63 +319,6 @@ export const closedCaptionsStyles = {
         flexDirection: 'row'
     },
 
-    panel: {
-        backgroundColor: BaseTheme.palette.ui01,
-        borderTopColor: BaseTheme.palette.ui03,
-        borderTopLeftRadius: BaseTheme.shape.borderRadius,
-        borderTopRightRadius: BaseTheme.shape.borderRadius,
-        borderTopWidth: 1,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0
-    },
-
-    panelHeader: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        paddingHorizontal: BaseTheme.spacing[3],
-        paddingTop: BaseTheme.spacing[2]
-    },
-
-    panelTitle: {
-        ...BaseTheme.typography.bodyShortBoldLarge,
-        color: BaseTheme.palette.text01,
-        flex: 1,
-        marginLeft: BaseTheme.spacing[2]
-    },
-
-    panelControlRow: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: BaseTheme.spacing[3],
-        paddingVertical: BaseTheme.spacing[1]
-    },
-
-    panelControlLabel: {
-        ...BaseTheme.typography.bodyShortRegular,
-        color: BaseTheme.palette.text02
-    },
-
-    panelControlValue: {
-        ...BaseTheme.typography.bodyShortRegular,
-        color: BaseTheme.palette.text01,
-        marginRight: BaseTheme.spacing[1]
-    },
-
-    panelMessages: {
-        flex: 1,
-        paddingHorizontal: BaseTheme.spacing[2]
-    },
-
-    panelEmptyText: {
-        ...BaseTheme.typography.bodyShortRegular,
-        color: BaseTheme.palette.text03,
-        marginTop: BaseTheme.spacing[3],
-        textAlign: 'center'
-    },
-
     readAloudLabelContainer: {
         flex: 1,
         marginRight: BaseTheme.spacing[2]
@@ -479,5 +422,208 @@ export const closedCaptionsStyles = {
 
     stopButtonContainer: {
         padding: BaseTheme.spacing[3]
+    }
+};
+
+
+/**
+ * Colours taken from the live captions design. They are written out rather than taken from the theme because the panel
+ * is a light surface sitting under the dark meeting UI.
+ */
+const CAPTIONS_PANEL_COLORS = {
+    accent: '#EF4444',
+    border: '#E4E4E7',
+    cardText: '#18181B',
+    mutedSurface: '#F4F4F5',
+    mutedText: '#71717A',
+    surface: '#FFFFFF'
+};
+
+/**
+ * The styles of the live captions panel shown underneath the video.
+ */
+export const captionsPanelStyles = {
+    panel: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.surface,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0
+    },
+
+    selectorRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[3]
+    },
+
+    selector: {
+        borderColor: CAPTIONS_PANEL_COLORS.border,
+        borderRadius: 10,
+        borderWidth: 1,
+        flex: 1
+    },
+
+    selectorContent: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[1]
+    },
+
+    selectorTextContainer: {
+        flex: 1,
+        marginRight: BaseTheme.spacing[1]
+    },
+
+    selectorName: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CAPTIONS_PANEL_COLORS.cardText
+    },
+
+    selectorCode: {
+        ...BaseTheme.typography.labelRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText
+    },
+
+    swapButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: BaseTheme.spacing[2]
+    },
+
+    swapIcon: {
+        color: CAPTIONS_PANEL_COLORS.mutedText,
+        fontSize: 20
+    },
+
+    statusRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    statusDot: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.accent,
+        borderRadius: 999,
+        height: 6,
+        marginRight: BaseTheme.spacing[1],
+        width: 6
+    },
+
+    statusText: {
+        ...BaseTheme.typography.labelRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText,
+        flex: 1
+    },
+
+    readAloudButton: {
+        marginRight: BaseTheme.spacing[2]
+    },
+
+    readAloudHint: {
+        ...BaseTheme.typography.labelRegular,
+        color: CAPTIONS_PANEL_COLORS.accent,
+        paddingBottom: BaseTheme.spacing[1],
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
+
+    transcript: {
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
+
+    emptyText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText,
+        marginTop: BaseTheme.spacing[2],
+        textAlign: 'center'
+    },
+
+    pair: {
+        marginBottom: BaseTheme.spacing[2]
+    },
+
+    sourceCard: {
+        alignItems: 'flex-start',
+        backgroundColor: CAPTIONS_PANEL_COLORS.surface,
+        borderColor: CAPTIONS_PANEL_COLORS.border,
+        borderRadius: 12,
+        borderWidth: 1,
+        flexDirection: 'row',
+        padding: BaseTheme.spacing[2]
+    },
+
+    sourceText: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CAPTIONS_PANEL_COLORS.cardText,
+        flex: 1
+    },
+
+    translationCard: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.mutedSurface,
+        borderRadius: 12,
+        marginTop: BaseTheme.spacing[1],
+        padding: BaseTheme.spacing[2]
+    },
+
+    translationText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText
+    },
+
+    waveform: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: 20,
+        marginLeft: BaseTheme.spacing[2]
+    },
+
+    waveformBar: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.accent,
+        borderRadius: 999,
+        marginHorizontal: 1,
+        width: 2
+    },
+
+    dropdown: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.surface,
+        borderTopColor: CAPTIONS_PANEL_COLORS.border,
+        borderTopWidth: 1,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+
+        // Clears the language pills so they stay tappable while the list is open.
+        top: 64
+    },
+
+    searchInput: {
+        ...BaseTheme.typography.bodyShortRegular,
+        backgroundColor: CAPTIONS_PANEL_COLORS.mutedSurface,
+        borderRadius: 8,
+        color: CAPTIONS_PANEL_COLORS.cardText,
+        marginHorizontal: BaseTheme.spacing[3],
+        marginVertical: BaseTheme.spacing[2],
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[1]
+    },
+
+    dropdownRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    dropdownRowText: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CAPTIONS_PANEL_COLORS.cardText
     }
 };

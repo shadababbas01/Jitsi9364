@@ -1,7 +1,11 @@
 import { AnyAction } from 'redux';
 
 import { IStore } from '../app/types';
-import { CONFERENCE_FAILED, CONFERENCE_LEFT } from '../base/conference/actionTypes';
+import {
+    CONFERENCE_FAILED,
+    CONFERENCE_LEFT,
+    CONFERENCE_PROPERTIES_CHANGED
+} from '../base/conference/actionTypes';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { SETTINGS_UPDATED } from '../base/settings/actionTypes';
 import { TRACK_ADDED } from '../base/tracks/actionTypes';
@@ -112,7 +116,11 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         return result;
     }
 
-    case TRANSCRIBER_JOINED: {
+    case TRANSCRIBER_JOINED:
+
+    // Transcription can also start without the transcriber joining as a participant, and it is already running when
+    // joining a meeting which has captions on, so the conference properties are the other signal to watch.
+    case CONFERENCE_PROPERTIES_CHANGED: {
         const result = next(action);
 
         _syncRemoteAudio(store);
@@ -169,7 +177,8 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
  */
 function _getQueue({ dispatch }: IStore): CaptionsTtsQueue {
     if (!queue) {
-        queue = new CaptionsTtsQueue(speaking => dispatch(setCaptionTtsSpeaking(speaking)));
+        queue = new CaptionsTtsQueue(
+            (speaking, messageId) => dispatch(setCaptionTtsSpeaking(speaking, messageId)));
     }
 
     return queue;
@@ -325,6 +334,7 @@ function _maybeSpeakSubtitle(store: IStore, subtitle?: ISubtitle) {
 
     if (!translateTo) {
         speechQueue.enqueue({
+            id: subtitle.id,
             language: voiceLanguage,
             text: subtitle.text
         });
@@ -336,6 +346,7 @@ function _maybeSpeakSubtitle(store: IStore, subtitle?: ISubtitle) {
         .then(text => {
             if (_shouldSpeak(store)) {
                 speechQueue.enqueue({
+                    id: subtitle.id,
                     language: voiceLanguage,
                     text
                 });
@@ -369,6 +380,7 @@ function _maybeSpeakStageCaption(store: IStore, messageId: string, text?: string
     speechQueue.setEnabled(true);
     _syncRemoteAudio(store);
     speechQueue.enqueue({
+        id: messageId,
         language: toTtsLanguageTag(store.getState()['features/subtitles']._language),
         text
     });

@@ -16,11 +16,13 @@ export function setCaptionTtsEnabled(enabled: boolean) {
  * Indicates whether a caption is currently being read aloud.
  *
  * @param {boolean} speaking - Whether a caption is being spoken.
+ * @param {string} messageId - The ID of the caption being spoken, if any.
  * @returns {Object}
  */
-export function setCaptionTtsSpeaking(speaking: boolean) {
+export function setCaptionTtsSpeaking(speaking: boolean, messageId?: string) {
     return {
         type: SET_CAPTION_TTS_SPEAKING,
+        messageId,
         speaking
     };
 }

@@ -376,7 +376,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
                     {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
-                    {_isVoiceTranslationButtonVisible && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
+                    {true && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />
                     <AudioOnlyButton { ...rowProps } />
                     { this._renderRaiseHandButton(rowProps) }

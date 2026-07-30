@@ -7,6 +7,7 @@ import { ICaptionTtsState } from './reducer';
 
 const DEFAULT_STATE: ICaptionTtsState = {
     speaking: false,
+    speakingMessageId: null,
     unsupportedLanguage: null
 };
 
@@ -69,4 +70,16 @@ export function resolveSpokenLanguage(subtitle: ISubtitle, selectedLanguage?: st
         translateTo,
         voiceLanguage: toTtsLanguageTag(translateTo ?? subtitle.language)
     };
+}
+
+/**
+ * Returns the ID of the caption currently being read aloud, if any.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {string | null}
+ */
+export function getSpeakingCaptionId(state: IReduxState): string | null {
+    const { speaking, speakingMessageId } = getCaptionTtsState(state);
+
+    return speaking ? speakingMessageId : null;
 }
