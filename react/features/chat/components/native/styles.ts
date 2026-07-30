@@ -319,6 +319,63 @@ export const closedCaptionsStyles = {
         flexDirection: 'row'
     },
 
+    panel: {
+        backgroundColor: BaseTheme.palette.ui01,
+        borderTopColor: BaseTheme.palette.ui03,
+        borderTopLeftRadius: BaseTheme.shape.borderRadius,
+        borderTopRightRadius: BaseTheme.shape.borderRadius,
+        borderTopWidth: 1,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0
+    },
+
+    panelHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[2]
+    },
+
+    panelTitle: {
+        ...BaseTheme.typography.bodyShortBoldLarge,
+        color: BaseTheme.palette.text01,
+        flex: 1,
+        marginLeft: BaseTheme.spacing[2]
+    },
+
+    panelControlRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[1]
+    },
+
+    panelControlLabel: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: BaseTheme.palette.text02
+    },
+
+    panelControlValue: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: BaseTheme.palette.text01,
+        marginRight: BaseTheme.spacing[1]
+    },
+
+    panelMessages: {
+        flex: 1,
+        paddingHorizontal: BaseTheme.spacing[2]
+    },
+
+    panelEmptyText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: BaseTheme.palette.text03,
+        marginTop: BaseTheme.spacing[3],
+        textAlign: 'center'
+    },
+
     readAloudLabelContainer: {
         flex: 1,
         marginRight: BaseTheme.spacing[2]

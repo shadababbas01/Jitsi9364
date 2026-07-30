@@ -6,6 +6,7 @@ import {
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
+    SET_SUBTITLES_PANEL_OPEN,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -149,5 +150,18 @@ export function setSubtitlesLanguage(language: string | null) {
     return {
         type: SET_SUBTITLES_LANGUAGE,
         language
+    };
+}
+
+/**
+ * Shows or hides the live captions panel rendered next to the video.
+ *
+ * @param {boolean} open - Whether the panel should be visible.
+ * @returns {Object}
+ */
+export function setSubtitlesPanelOpen(open: boolean) {
+    return {
+        type: SET_SUBTITLES_PANEL_OPEN,
+        open
     };
 }

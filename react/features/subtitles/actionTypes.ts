@@ -75,3 +75,8 @@ export const SET_SUBTITLES_ERROR = 'SET_SUBTITLES_ERROR';
  * Action to update the active live captions translation language without toggling captions.
  */
 export const SET_SUBTITLES_LANGUAGE = 'SET_SUBTITLES_LANGUAGE';
+
+/**
+ * Action to show or hide the live captions panel alongside the video on mobile.
+ */
+export const SET_SUBTITLES_PANEL_OPEN = 'SET_SUBTITLES_PANEL_OPEN';

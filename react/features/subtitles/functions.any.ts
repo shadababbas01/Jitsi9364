@@ -4,6 +4,11 @@ import { TRANSLATION_LANGUAGES, TRANSLATION_LANGUAGES_HEAD } from '../base/i18n/
 import { toState } from '../base/redux/functions';
 import { canAddTranscriber, isTranscribing } from '../transcribing/functions';
 
+import {
+    CAPTIONS_PANEL_HEIGHT_RATIO,
+    CAPTIONS_PANEL_MIN_HEIGHT
+} from './constants';
+
 /**
  * Checks whether the participant can start the subtitles.
  *
@@ -78,4 +83,35 @@ export function isCCTabEnabled(state: IReduxState) {
     const { showSubtitlesOnStage = false } = state['features/base/settings'];
 
     return areClosedCaptionsEnabled(state) && !showSubtitlesOnStage;
+}
+
+/**
+ * Returns whether the live captions panel is shown next to the video.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isCaptionsPanelOpen(state: IReduxState) {
+    return Boolean(state['features/subtitles'].panelOpen) && isLiveCaptionsActive(state);
+}
+
+/**
+ * Returns the height the live captions panel takes away from the video, or 0 when it is not shown.
+ *
+ * The video layout has to agree with the panel on this number: the tile grid sizes itself from the viewport height, so
+ * it needs the reduced height in order to reflow instead of being clipped.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {number}
+ */
+export function getCaptionsPanelHeight(state: IReduxState) {
+    if (!isCaptionsPanelOpen(state)) {
+        return 0;
+    }
+
+    const { clientHeight = 0 } = state['features/base/responsive-ui'];
+
+    return Math.min(
+        clientHeight,
+        Math.max(CAPTIONS_PANEL_MIN_HEIGHT, Math.round(clientHeight * CAPTIONS_PANEL_HEIGHT_RATIO)));
 }

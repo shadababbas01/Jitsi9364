@@ -7,6 +7,7 @@ import {
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
+    SET_SUBTITLES_PANEL_OPEN,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -23,6 +24,7 @@ const defaultState = {
     _requestingSubtitles: false,
     _language: null,
     messages: [],
+    panelOpen: false,
     subtitlesHistory: [],
     _hasError: false
 };
@@ -35,6 +37,7 @@ export interface ISubtitlesState {
     _requestingSubtitles: boolean;
     _transcriptMessages: Map<string, ITranscriptMessage>;
     messages: ITranscriptMessage[];
+    panelOpen: boolean;
     subtitlesHistory: Array<ISubtitle>;
 }
 
@@ -103,6 +106,11 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         return {
             ...state,
             _language: action.language
+        };
+    case SET_SUBTITLES_PANEL_OPEN:
+        return {
+            ...state,
+            panelOpen: action.open
         };
     }
 

@@ -19,6 +19,8 @@ import { isCaptionTtsEnabled, isCaptionTtsSupported } from '../../../caption-tts
 import { TabBarLabelCounter } from '../../../mobile/navigation/components/TabBarLabelCounter';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
+import { setSubtitlesPanelOpen } from '../../../subtitles/actions.any';
+import { setTileView } from '../../../video-layout/actions.any';
 import { ChatTabs } from '../../constants';
 import AbstractClosedCaptions, { AbstractProps } from '../AbstractClosedCaptions';
 
@@ -53,6 +55,14 @@ const ClosedCaptions = ({
     const onReadAloudChange = useCallback((enabled?: boolean) => {
         dispatch(setCaptionTtsEnabled(Boolean(enabled)));
     }, [ dispatch ]);
+
+    // Shows the captions underneath the video instead of on this screen, which needs the tile view so the participants
+    // and the transcript can share the screen.
+    const onShowWithVideo = useCallback(() => {
+        dispatch(setSubtitlesPanelOpen(true));
+        dispatch(setTileView(true));
+        navigation?.goBack();
+    }, [ dispatch, navigation ]);
 
     useEffect(() => {
         navigation?.setOptions({
@@ -155,6 +165,13 @@ const ClosedCaptions = ({
                                 messages = { filteredSubtitles } />
                         )
                     }
+                </View>
+                <View style = { closedCaptionsStyles.stopButtonContainer as ViewStyle }>
+                    <Button
+                        accessibilityLabel = { t('closedCaptionsTab.showWithVideoButton') }
+                        labelKey = 'closedCaptionsTab.showWithVideoButton'
+                        onClick = { onShowWithVideo }
+                        type = { BUTTON_TYPES.PRIMARY } />
                 </View>
                 {
                     canStopSubtitles && (

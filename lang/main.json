@@ -155,6 +155,7 @@
         "startClosedCaptionsButton": "Start live captions",
         "closeLiveCaptionButton": "Turn Off Live Captions",
         "historyTitle": "Live caption history",
+        "showWithVideoButton": "Show with video",
         "noMessages": "No live captions yet. Captions will appear here once speech is detected."
     },
     "liveCaptionsPanel": {

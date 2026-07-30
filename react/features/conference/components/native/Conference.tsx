@@ -40,6 +40,7 @@ import { StyleType } from '../../../base/styles/functions.any';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
 import { getTrackByMediaTypeAndParticipant } from '../../../base/tracks/functions.native';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
+import CaptionsPanel from '../../../chat/components/native/CaptionsPanel';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
 import Filmstrip from '../../../filmstrip/components/native/Filmstrip';
 import FloatingLocalThumbnail from '../../../filmstrip/components/native/FloatingLocalThumbnail';
@@ -700,6 +701,13 @@ class Conference extends AbstractConference<IProps, State> {
                 </SafeAreaView>
 
                 <TestConnectionInfo />
+
+                {/*
+                  * The live captions panel sits under the tile grid, which has already reserved room for it, and above
+                  * the toolbox so the toolbar keeps floating on top.
+                  */
+                    _shouldDisplayTileView && <CaptionsPanel />
+                }
 
                 {
                     _shouldDisplayTileView

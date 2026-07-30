@@ -13,6 +13,7 @@ import { getLocalParticipant, getParticipantCountWithFake } from '../../../base/
 import { ILocalParticipant } from '../../../base/participants/types';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
+import { getCaptionsPanelHeight } from '../../../subtitles/functions.any';
 import { setVisibleRemoteParticipants } from '../../actions.web';
 
 import Thumbnail from './Thumbnail';
@@ -516,7 +517,9 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _disableSelfView: disableSelfView,
         _activeSpeakerIds: activeSpeakerIds
             .filter(id => id && id !== localParticipant?.id),
-        _height: responsiveUi.clientHeight,
+        // The live captions panel takes the bottom of the screen when it is open, so the grid has to lay itself out in
+        // what is left of the viewport instead of being clipped by it.
+        _height: responsiveUi.clientHeight - getCaptionsPanelHeight(state),
         _localParticipant: localParticipant,
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,
