@@ -29,6 +29,7 @@ import AddPeopleDialog
     from '../../../../../invite/components/add-people-dialog/native/AddPeopleDialog';
 // @ts-ignore
 import ParticipantsPane from '../../../../../participants-pane/components/native/ParticipantsPane';
+import AudioExtractionScreen from '../../../../../audio-extraction/components/native/AudioExtractionScreen';
 // @ts-ignore
 import StartLiveStreamDialog from '../../../../../recording/components/LiveStream/native/StartLiveStreamDialog';
 import StartRecordingDialog
@@ -61,6 +62,7 @@ import {
     breakoutRoomsScreenOptions,
     carmodeScreenOptions,
     chatScreenOptions,
+    audioExtractionScreenOptions,
     conferenceScreenOptions,
     gifsMenuOptions,
     inviteScreenOptions,
@@ -160,6 +162,13 @@ const ConferenceNavigationContainer = () => {
                             options = {{
                                 ...liveStreamScreenOptions,
                                 title: t('liveStreaming.title')
+                            }} />
+                        <ConferenceStack.Screen
+                            component = { AudioExtractionScreen }
+                            name = { screen.conference.audioExtraction }
+                            options = {{
+                                ...audioExtractionScreenOptions,
+                                title: 'Audio Extraction'
                             }} />
                         <ConferenceStack.Screen
                             component = { ClosedCaptions }

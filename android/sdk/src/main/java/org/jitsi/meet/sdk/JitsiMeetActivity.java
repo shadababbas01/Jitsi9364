@@ -299,6 +299,14 @@ public class JitsiMeetActivity extends AppCompatActivity
         }
     }
 
+    protected void onRecordingStatusChanged(HashMap<String, Object> extraData) {
+        JitsiMeetLogger.i("Recording status changed: " + extraData);
+    }
+
+    protected void onRecordingLinkAvailable(HashMap<String, Object> extraData) {
+        JitsiMeetLogger.i("Recording link available: " + extraData);
+    }
+
     protected void onReadyToClose() {
         JitsiMeetLogger.i("SDK is ready to close");
         isReadyToClose = true;
@@ -419,9 +427,12 @@ public class JitsiMeetActivity extends AppCompatActivity
                 // case CONFERENCE_UNIQUE_ID_SET:
                 //     onConferenceUniqueIdSet(event.getData());
                 //     break;
-                // case RECORDING_STATUS_CHANGED:
-                //     onRecordingStatusChanged(event.getData());
-                //     break;
+                case RECORDING_STATUS_CHANGED:
+                    onRecordingStatusChanged(event.getData());
+                    break;
+                case RECORDING_LINK_AVAILABLE:
+                    onRecordingLinkAvailable(event.getData());
+                    break;
             }
         }
     }

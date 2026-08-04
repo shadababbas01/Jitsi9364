@@ -125,6 +125,11 @@ export const inviteScreenOptions = presentationScreenOptions;
 export const liveStreamScreenOptions = presentationScreenOptions;
 
 /**
+ * Screen options for audio extraction modal.
+ */
+export const audioExtractionScreenOptions = presentationScreenOptions;
+
+/**
  * Screen options for participants modal.
  */
 export const participantsScreenOptions = presentationScreenOptions;

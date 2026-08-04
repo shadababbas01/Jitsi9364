@@ -11,6 +11,7 @@ export interface ICaptionsTtsNativeModule {
     shutdown: () => void;
     speak: (text: string, language: string, rate: number) => Promise<boolean>;
     stop: () => void;
+    synthesizeToFile: (text: string, language: string, rate: number, fileName: string) => Promise<string>;
 }
 
 /**

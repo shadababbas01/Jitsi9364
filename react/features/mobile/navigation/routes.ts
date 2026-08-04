@@ -15,6 +15,7 @@ export const screen = {
         gifsMenu: 'GIPHY',
         invite: 'Invite',
         liveStream: 'Live stream',
+        audioExtraction: 'Audio Extraction',
         liveCaptions: 'Live Captions',
         main: 'Conference',
         participants: 'Participants',

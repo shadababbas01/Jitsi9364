@@ -29,6 +29,7 @@ import com.facebook.react.bridge.WritableArray;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +81,12 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      * utterance ID.
      */
     private final Map<String, Promise> pendingUtterances = new ConcurrentHashMap<>();
+
+    /**
+     * Files for utterances which should be synthesized to disk and returned to
+     * JavaScript as a WAV path.
+     */
+    private final Map<String, File> pendingSynthesizedFiles = new ConcurrentHashMap<>();
 
     /**
      * Promises waiting for {@link #tts} to finish initializing.
@@ -202,6 +209,76 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
         int result = engine.speak(text, TextToSpeech.QUEUE_ADD, null, utteranceId);
 
         if (result != TextToSpeech.SUCCESS) {
+            settleUtterance(utteranceId, false);
+        }
+    }
+
+    /**
+     * Synthesizes the given text to a WAV file and resolves with the file
+     * path once generation completes.
+     *
+     * @param text The text to synthesize.
+     * @param language A BCP-47 language tag, such as {@code en-US}.
+     * @param rate The speech rate, where {@code 1} is the engine's default.
+     * @param fileName The output file name to create under the cache directory.
+     * @param promise Resolved with the absolute file path when generation
+     * succeeds.
+     */
+    @ReactMethod
+    public void synthesizeToFile(String text, String language, double rate, String fileName, Promise promise) {
+        TextToSpeech engine = tts;
+
+        if (!ttsReady || engine == null) {
+            promise.reject(ERROR_UNAVAILABLE, "Text to speech engine is not ready");
+
+            return;
+        }
+
+        if (text == null || text.trim().isEmpty()) {
+            promise.resolve("");
+
+            return;
+        }
+
+        if (language != null && !language.isEmpty()) {
+            Locale locale = Locale.forLanguageTag(language);
+
+            if (engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
+                engine.setLanguage(locale);
+            } else {
+                JitsiMeetLogger.w(TAG + " no voice available for " + language);
+                promise.resolve("");
+
+                return;
+            }
+        }
+
+        engine.setSpeechRate((float) (rate > 0 ? rate : 1));
+
+        File outputFile = new File(getReactApplicationContext().getCacheDir(), fileName);
+        File parentDir = outputFile.getParentFile();
+
+        if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+            promise.reject(ERROR_UNAVAILABLE, "Unable to create cache directory");
+
+            return;
+        }
+
+        if (outputFile.exists() && !outputFile.delete()) {
+            promise.reject(ERROR_UNAVAILABLE, "Unable to replace existing audio file");
+
+            return;
+        }
+
+        String utteranceId = "melp-caption-file-" + utteranceCounter.incrementAndGet();
+
+        pendingUtterances.put(utteranceId, promise);
+        pendingSynthesizedFiles.put(utteranceId, outputFile);
+
+        int result = engine.synthesizeToFile(text, null, outputFile, utteranceId);
+
+        if (result != TextToSpeech.SUCCESS) {
+            pendingSynthesizedFiles.remove(utteranceId);
             settleUtterance(utteranceId, false);
         }
     }
@@ -337,9 +414,18 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      */
     private void settleUtterance(String utteranceId, boolean spoken) {
         Promise promise = pendingUtterances.remove(utteranceId);
+        File outputFile = pendingSynthesizedFiles.remove(utteranceId);
 
         if (promise != null) {
-            promise.resolve(spoken);
+            if (outputFile != null) {
+                if (spoken) {
+                    promise.resolve(outputFile.getAbsolutePath());
+                } else {
+                    promise.resolve("");
+                }
+            } else {
+                promise.resolve(spoken);
+            }
         }
     }
 }

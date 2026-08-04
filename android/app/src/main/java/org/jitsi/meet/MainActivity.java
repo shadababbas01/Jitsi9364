@@ -40,7 +40,10 @@ import org.webrtc.Logging;
 
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * The one and only Activity that the Jitsi Meet app needs. The
@@ -163,6 +166,29 @@ public class MainActivity extends JitsiMeetActivity {
     }
 
     @Override
+    protected void onConferenceTerminated(HashMap<String, Object> extraData) {
+        super.onConferenceTerminated(extraData);
+
+        String conferenceUrl = extraData == null ? null : String.valueOf(extraData.get("url"));
+        Intent intent = new Intent(this, RecordingsActivity.class);
+
+        if (conferenceUrl != null && !conferenceUrl.isEmpty() && !"null".equals(conferenceUrl)) {
+            intent.putExtra(RecordingsActivity.EXTRA_SERVER_BASE_URL, buildServerBaseUrl(conferenceUrl));
+        }
+
+        if (RecordingStore.hasRecordings(this) || intent.hasExtra(RecordingsActivity.EXTRA_SERVER_BASE_URL)) {
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    protected void onRecordingLinkAvailable(HashMap<String, Object> extraData) {
+        super.onRecordingLinkAvailable(extraData);
+
+        RecordingStore.upsertRecording(this, extraData);
+    }
+
+    @Override
     public void finish() {
         if (removeTaskOnFinish && isTaskRoot() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             super.finishAndRemoveTask();
@@ -173,14 +199,32 @@ public class MainActivity extends JitsiMeetActivity {
     }
 
     private void setJitsiMeetConferenceDefaultOptions() {
+        Bundle recordingService = new Bundle();
+        recordingService.putBoolean("enabled", true);
+        recordingService.putBoolean("sharingEnabled", true);
+        recordingService.putBoolean("hideStorageWarning", true);
+
+        Bundle recordings = new Bundle();
+        recordings.putBoolean("showRecordingLink", true);
+        recordings.putBoolean("suggestRecording", true);
+
+        ArrayList<Bundle> customToolbarButtons = new ArrayList<>();
+        Bundle audioExtractionButton = new Bundle();
+        audioExtractionButton.putString("id", "audio-extraction");
+        audioExtractionButton.putString("text", "Audio Extraction");
+        customToolbarButtons.add(audioExtractionButton);
 
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            // .setServerURL(buildURL("https://meetdev.melp.us/"))
-            .setServerURL(buildURL("https://meet.jit.si/"))
+            .setServerURL(buildURL("https://cdn-meet.melpapp.com/"))
+            // .setServerURL(buildURL("https://meet.jit.si/"))
             .setFeatureFlag("welcomepage.enabled", true)
-            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiI4OHA4dm1kMl84c2M0bHFtdiIsImF1ZCI6Im1lbHBfY29uZiIsInN1YiI6Im1lZXRkZXYubWVscC51cyIsIm1vZGVyYXRvciI6dHJ1ZSwiaXNzIjoibWVscF9jb25mXzgiLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBBYmJhcyIsImlkIjoiODhwOHZtZDIiLCJhdmF0YXIiOiJodHRwczovL3VzLWFwaS5tZWxwLnVzL2Rvd25sb2FkL3YwLzg4cDh2bWFtdWs4dy84OTQ2QHVzZXIuanBlZz9zZXNzaW9uaWQ9aGJqR3NMVTlRUHR0MU9WcTd0eHRsYlRNMXFHdm0wbWNQbFo5cWxVczNFVFEmaXN0aHVtYj0xIiwiZW1haWwiOiI4OHA4dm1kMkBtZWxwLmNvbSJ9LCJncm91cCI6Im9uZXRvb25lIn0sImlhdCI6MTc3NDYwNjY2OSwicm9vbSI6IjY1MjAyZDkzMGEwZjhlMGY2ODEzNjRiYTU3ZDY3ZDJiIiwicm9vbU5hbWUiOiJTaGFkYWIgQWJiYXMiLCJleHAiOjE3NzQ2NDk4Njl9.fgra5-FmoK7fFE555XKlLFcCpz8bXCswg96PRAj7tzM")
+            .setFeatureFlag("recording.enabled", true)
+            .setConfigOverride("recordingService", recordingService)
+            .setConfigOverride("recordings", recordings)
+            .setConfigOverride("customToolbarButtons", customToolbarButtons)
+            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4c2M0bHFtdiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBFaWdodHkiLCJpZCI6IjhzYzRscW12IiwiYXZhdGFyIjoiaHR0cHM6Ly9jZG5tZWRpYS1mbS5tZWxwYXBwLmNvbS84c2M0bHFqY2RhdGMvYmY5eHZtcWxyaHRzLmpwZz9zZXNzaW9uaWQ9WEVLWHJOTWdGQzhhcE5LQmM3UU5VOTRNZ1U5V0FLZGhTMDNkUFpkaE1ISDBrJmlzdGh1bWI9MSIsImVtYWlsIjoiOHNjNGxxbXZAbWVscC5jb20ifSwiZ3JvdXAiOiJvbmV0b29uZSJ9LCJpYXQiOjE3ODU4NzE0NjAsInJvb20iOiI3NzcxOTY0NDc0YWUyYzY1YWFmM2IxN2ZjMjg0Yjk4YSIsInJvb21OYW1lIjoiU2hhZGFiIEVpZ2h0eSIsImV4cCI6MTc4NTkxNDY2MH0.o8rOgvEyPIL717ePz339lh85jcnf26ibRwLvjMCiueg")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -190,11 +234,21 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("shadab")
+                       .setRoom("7771964474ae2c65aaf3b17fc284b98a")
                         .build();
                 join(defaultOptions1);
             }
         }, 500);
+    }
+
+    private String buildServerBaseUrl(String conferenceUrl) {
+        int lastSlash = conferenceUrl.lastIndexOf('/');
+
+        if (lastSlash <= conferenceUrl.indexOf("://") + 2) {
+            return conferenceUrl.endsWith("/") ? conferenceUrl : conferenceUrl + "/";
+        }
+
+        return conferenceUrl.substring(0, lastSlash + 1);
     }
 
     private void resolveRestrictions() {

@@ -63,6 +63,8 @@ import { getActiveSession } from '../../recording/functions';
 import { setRequestingSubtitles } from '../../subtitles/actions.any';
 import { CUSTOM_BUTTON_PRESSED } from '../../toolbox/actionTypes';
 import { muteLocal } from '../../video-menu/actions.native';
+import { navigate } from '../navigation/components/conference/ConferenceNavigationContainerRef';
+import { screen } from '../navigation/routes';
 import { ENTER_PICTURE_IN_PICTURE } from '../picture-in-picture/actionTypes';
 // @ts-ignore
 import { isExternalAPIAvailable } from '../react-native-sdk/functions';
@@ -223,6 +225,10 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
 
     case CUSTOM_BUTTON_PRESSED: {
         const { id, text } = action;
+
+        if (id === 'audio-extraction') {
+            navigate(screen.conference.audioExtraction);
+        }
 
         sendEvent(
             store,

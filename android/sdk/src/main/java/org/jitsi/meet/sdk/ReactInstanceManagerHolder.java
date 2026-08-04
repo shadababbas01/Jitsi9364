@@ -67,6 +67,7 @@ public class ReactInstanceManagerHolder {
                 new ExternalAPIModule(reactContext),
                 new LocaleDetector(reactContext),
                 new LogBridgeModule(reactContext),
+                new LocalMicRecorderModule(reactContext),
                 new PictureInPictureModule(reactContext),
                 new ProximityModule(reactContext),
                 new VirtualBackgroundModule(reactContext),
