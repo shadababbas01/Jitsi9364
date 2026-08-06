@@ -9,6 +9,31 @@
 export const MELP_TRANSCRIBE_URL = 'https://ai.live.melp.us/msgtrans/transcribe';
 
 /**
+ * The endpoint which turns a recorded WAV straight into text, with no upload step in front of it. It takes the audio as
+ * a {@code multipart/form-data} part named {@code audio} alongside {@code mode} and {@code language}, and answers with
+ * the transcript as a bare body: plain text, not JSON, so nothing about the answer is parsed.
+ */
+export const MELP_TRANSCRIBE_TEXT_URL = 'https://ai.live.melp.us:5001/transcribe/text';
+
+/**
+ * The mode {@link MELP_TRANSCRIBE_TEXT_URL} is asked for. Unlike {@link TRANSCRIBE_MODE} this transcribes speech in the
+ * language it was spoken in rather than translating it to English.
+ */
+export const TRANSCRIBE_TEXT_MODE = 'transcribe';
+
+/**
+ * How much speech goes into one caption. Long enough that the service has a sentence to work with rather than a
+ * fragment, short enough that a caption still lands while the room remembers what was said.
+ */
+export const CAPTION_WINDOW_MS = 10 * 1000;
+
+/**
+ * How long to wait before recording again after the microphone could not be opened, which happens while another part of
+ * the application is holding it.
+ */
+export const CAPTION_WINDOW_RETRY_MS = 2 * 1000;
+
+/**
  * The mode asked of the service. Whisper's translate task transcribes speech in any language it recognizes and returns
  * it in English, which is exactly what a single shared caption language needs; {@code transcribe} would return each
  * speaker's own language instead and leave the translating to the caption UI.

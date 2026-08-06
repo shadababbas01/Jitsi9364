@@ -22,9 +22,7 @@ import {
 } from './constants';
 import { isLiveTranscribeEnabled, isLiveTranscribeSupported } from './functions.native';
 import logger from './logger';
-import LocalAudioTap from './native/LocalAudioTap';
-import MelpTranscribeClient from './native/MelpTranscribeClient';
-import { IUtterance } from './types';
+import LocalWindowTranscriber from './native/LocalWindowTranscriber';
 
 /**
  * How long a caption stays on the stage before it is cleared. Matches what the subtitles feature does with the
@@ -38,23 +36,17 @@ const REMOVE_AFTER_MS = 3000;
 const SEEN_CACHE_LIMIT = 200;
 
 /**
- * The tap reading the local microphone. Created on first use.
+ * The recorder turning the local microphone into captions. Created on first use.
  */
-let tap: LocalAudioTap | undefined;
+let transcriber: LocalWindowTranscriber | undefined;
 
 /**
- * The connection to the transcription service, owned here and released together with the tap.
- */
-let client: MelpTranscribeClient | undefined;
-
-/**
- * Counts the utterances captured in this session, so that each caption gets an ID of its own.
+ * Counts the captions produced in this session, so that each one gets an ID of its own.
  */
 let utteranceCount = 0;
 
 /**
- * Whether the tap is currently meant to be running. Tracked rather than read back off the tap, because starting is
- * asynchronous and the tap is therefore not yet running at the moment it has been asked to.
+ * Whether the recorder is currently meant to be running.
  */
 let desired = false;
 
@@ -83,8 +75,8 @@ const supported = isLiveTranscribeSupported();
  * the speaker is known for certain, so captions come out attributed without anyone having to guess who was talking, and
  * the work spreads across the participants instead of piling onto whoever happens to be listening.
  *
- * The audio itself comes from the WebRTC audio device module rather than from a recorder of our own, and is cut into
- * utterances there; see the native {@code LocalAudioTap} for why.
+ * The microphone is recorded in fixed windows and each window is sent to the transcription service as a WAV; see
+ * {@code LocalWindowTranscriber}.
  *
  * @param {Store} store - The redux store.
  * @returns {Function}
@@ -154,21 +146,16 @@ function _sync(store: IStore) {
     desired = wanted;
 
     if (!wanted) {
-        tap?.stop();
+        transcriber?.stop();
         store.dispatch(setLiveTranscribeRunning(false));
 
         return;
     }
 
-    _getTap(store).start().then(started => {
-        // The state can have moved on while the tap was coming up, and the tap stops itself when it has; reporting
-        // what it actually did rather than what was asked of it keeps the UI honest.
-        store.dispatch(setLiveTranscribeRunning(started));
+    const started = _getTranscriber(store).start();
 
-        if (!started && desired) {
-            store.dispatch(setLiveTranscribeError('unavailable'));
-        }
-    });
+    store.dispatch(setLiveTranscribeRunning(started));
+    store.dispatch(setLiveTranscribeError(started ? null : 'unavailable'));
 }
 
 /**
@@ -178,10 +165,8 @@ function _sync(store: IStore) {
  * @returns {void}
  */
 function _teardown(store: IStore) {
-    tap?.destroy();
-    tap = undefined;
-    client?.destroy();
-    client = undefined;
+    transcriber?.destroy();
+    transcriber = undefined;
     desired = false;
     utteranceCount = 0;
     seenMessageIds.clear();
@@ -190,54 +175,17 @@ function _teardown(store: IStore) {
 }
 
 /**
- * Returns the microphone tap, creating it and the connection to the transcription service if necessary.
+ * Returns the recorder producing captions, creating it if necessary.
  *
  * @param {IStore} store - The redux store.
- * @returns {LocalAudioTap}
+ * @returns {LocalWindowTranscriber}
  */
-function _getTap(store: IStore): LocalAudioTap {
-    if (!tap) {
-        tap = new LocalAudioTap(event => {
-            const utterance: IUtterance = {
-                data: event.data,
-                durationMs: event.durationMs,
-                id: _nextUtteranceId(store),
-                sampleRate: event.sampleRate
-            };
-
-            // Printed alongside the text below so that the capture order and the printed order can be compared: the
-            // service serves overlapping requests out of a shared pool, so they do not otherwise come back in the
-            // order they were spoken.
-            logger.info(`[speech] captured #${utteranceCount} (${utterance.durationMs}ms)`);
-
-            _getClient(store).enqueue(utterance);
-        });
+function _getTranscriber(store: IStore): LocalWindowTranscriber {
+    if (!transcriber) {
+        transcriber = new LocalWindowTranscriber(text => _publish(store, _nextUtteranceId(store), text));
     }
 
-    return tap;
-}
-
-/**
- * Returns the connection to the transcription service, creating it if necessary.
- *
- * @param {IStore} store - The redux store.
- * @returns {MelpTranscribeClient}
- */
-function _getClient(store: IStore): MelpTranscribeClient {
-    const { dispatch, getState } = store;
-
-    if (!client) {
-        client = new MelpTranscribeClient(
-            // The token is read per request rather than captured, because the host application sets it and can refresh
-            // it in the middle of a conference.
-            () => getState()['features/base/jwt'].jwt,
-            {
-                onFailingChange: error => dispatch(setLiveTranscribeError(error ? error.message : null)),
-                onText: (utterance, text) => _publish(store, utterance.id, text)
-            });
-    }
-
-    return client;
+    return transcriber;
 }
 
 /**
