@@ -1,6 +1,10 @@
 import { updateSettings } from '../base/settings/actions';
 
-import { SET_CAPTION_TTS_SPEAKING, SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE } from './actionTypes';
+import {
+    SET_CAPTION_TTS_SPEAKING,
+    SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE,
+    SET_CHAT_TTS_SPEAKER
+} from './actionTypes';
 
 /**
  * Turns reading the live captions aloud on or off.
@@ -37,5 +41,18 @@ export function setCaptionTtsUnsupportedLanguage(language: string | null) {
     return {
         type: SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE,
         language
+    };
+}
+
+/**
+ * Records whose chat message is being read aloud, or that none is.
+ *
+ * @param {string | null} participantId - The participant whose message is being spoken.
+ * @returns {Object}
+ */
+export function setChatTtsSpeaker(participantId: string | null) {
+    return {
+        type: SET_CHAT_TTS_SPEAKER,
+        participantId
     };
 }

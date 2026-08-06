@@ -440,48 +440,75 @@ const CAPTIONS_PANEL_COLORS = {
 };
 
 /**
- * The styles of the voice bar sitting on top of the chat input, which turns what the local participant says into a chat
- * message and reads incoming ones back out.
+ * Colours of the live translation call surface. The chat is presented as a call rather than a message list, so it gets a
+ * dark console of its own rather than the flat panel a message list would have.
  */
-export const chatVoiceBarStyles = {
-    bar: {
+const CALL_COLORS = {
+    accent: '#EF4444',
+    speaking: '#7CE39B',
+    console: '#101013',
+    consoleBorder: 'rgba(255, 255, 255, 0.08)',
+    idleControl: 'rgba(255, 255, 255, 0.10)',
+    mutedText: 'rgba(255, 255, 255, 0.55)',
+    text: '#FFFFFF'
+};
+
+/**
+ * The styles of the live translation call surface: the status strip above the transcript and the console under it, which
+ * records what the local participant says and carries the read aloud switch.
+ */
+export const chatCallStyles = {
+
+    statusStrip: {
         alignItems: 'center',
-        backgroundColor: CAPTIONS_PANEL_COLORS.mutedSurface,
-        borderTopColor: CAPTIONS_PANEL_COLORS.border,
-        borderTopWidth: 1,
+        backgroundColor: CALL_COLORS.console,
+        borderBottomColor: CALL_COLORS.consoleBorder,
+        borderBottomWidth: 1,
         flexDirection: 'row',
         paddingHorizontal: BaseTheme.spacing[3],
         paddingVertical: BaseTheme.spacing[2]
     },
 
-    micButton: {
+    statusStripText: {
+        ...BaseTheme.typography.bodyShortBold,
+        color: CALL_COLORS.text,
+        marginLeft: BaseTheme.spacing[2]
+    },
+
+    statusStripLanguage: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: CALL_COLORS.mutedText,
+        marginLeft: BaseTheme.spacing[2]
+    },
+
+    statusStripAside: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: CALL_COLORS.mutedText,
+        marginLeft: 'auto'
+    },
+
+    console: {
         alignItems: 'center',
-        backgroundColor: BaseTheme.palette.action01,
-        borderRadius: 999,
-        height: 40,
-        justifyContent: 'center',
-        width: 40
+        backgroundColor: CALL_COLORS.console,
+        borderTopColor: CALL_COLORS.consoleBorder,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderTopWidth: 1,
+        paddingBottom: BaseTheme.spacing[3],
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[3]
     },
 
-    micButtonRecording: {
-        backgroundColor: CAPTIONS_PANEL_COLORS.accent
-    },
-
-    micButtonDisabled: {
-        backgroundColor: CAPTIONS_PANEL_COLORS.border
-    },
-
-    // Holds the state line so the bar keeps its height whether or not there is anything to say.
-    state: {
+    // Holds the state line so the console keeps its height whether or not there is anything to say.
+    stateRow: {
         alignItems: 'center',
-        flex: 1,
         flexDirection: 'row',
-        marginHorizontal: BaseTheme.spacing[2],
+        justifyContent: 'center',
         minHeight: 20
     },
 
     liveDot: {
-        backgroundColor: CAPTIONS_PANEL_COLORS.accent,
+        backgroundColor: CALL_COLORS.accent,
         borderRadius: 999,
         height: 8,
         marginRight: BaseTheme.spacing[1],
@@ -490,32 +517,186 @@ export const chatVoiceBarStyles = {
 
     stateText: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: CAPTIONS_PANEL_COLORS.cardText,
-        flexShrink: 1
+        color: CALL_COLORS.text
     },
 
     hintText: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: CAPTIONS_PANEL_COLORS.mutedText,
-        flexShrink: 1
+        color: CALL_COLORS.mutedText
     },
 
     elapsedText: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: CAPTIONS_PANEL_COLORS.mutedText,
-        marginLeft: BaseTheme.spacing[1]
+        color: CALL_COLORS.mutedText,
+        marginLeft: BaseTheme.spacing[2]
     },
 
-    readAloudButton: {
+    // The level meter. It stands in for the microphone being live, so it keeps its space when idle rather than making the
+    // console jump every time a recording starts.
+    waveform: {
         alignItems: 'center',
-        borderRadius: 999,
-        height: 36,
+        flexDirection: 'row',
+        height: 28,
         justifyContent: 'center',
-        width: 36
+        marginTop: BaseTheme.spacing[2]
     },
 
-    readAloudButtonOn: {
-        backgroundColor: CAPTIONS_PANEL_COLORS.border
+    waveformBar: {
+        backgroundColor: CALL_COLORS.accent,
+        borderRadius: 999,
+        height: 20,
+        marginHorizontal: 3,
+        width: 3
+    },
+
+    waveformBarIdle: {
+        backgroundColor: CALL_COLORS.idleControl
+    },
+
+    controlsRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: BaseTheme.spacing[3]
+    },
+
+    // Keeps the big microphone button centred: the side controls take up the same width whether or not both are shown.
+    sideControl: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 72
+    },
+
+    roundControl: {
+        alignItems: 'center',
+        backgroundColor: CALL_COLORS.idleControl,
+        borderRadius: 999,
+        height: 44,
+        justifyContent: 'center',
+        width: 44
+    },
+
+    roundControlOn: {
+        backgroundColor: BaseTheme.palette.action01
+    },
+
+    controlLabel: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: CALL_COLORS.mutedText,
+        marginTop: BaseTheme.spacing[1]
+    },
+
+    talkButton: {
+        alignItems: 'center',
+        backgroundColor: BaseTheme.palette.action01,
+        borderRadius: 999,
+        height: 72,
+        justifyContent: 'center',
+        width: 72
+    },
+
+    talkButtonRecording: {
+        backgroundColor: CALL_COLORS.accent
+    },
+
+    talkButtonDisabled: {
+        backgroundColor: CALL_COLORS.idleControl
+    },
+
+    // Sits behind the microphone button and grows with it, so a live microphone reads as a ring rather than a colour
+    // change alone.
+    talkButtonHalo: {
+        borderColor: CALL_COLORS.accent,
+        borderRadius: 999,
+        borderWidth: 2,
+        height: 72,
+        position: 'absolute',
+        width: 72
+    },
+
+    stage: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
+
+    avatarRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center'
+    },
+
+    avatarSlot: {
+        alignItems: 'center',
+        marginHorizontal: BaseTheme.spacing[2],
+        marginVertical: BaseTheme.spacing[3],
+        width: 96
+    },
+
+    // The rings are absolutely positioned around the avatar, so the stack gives them something the size of the avatar to
+    // be centred on.
+    avatarStack: {
+        alignItems: 'center',
+        height: 72,
+        justifyContent: 'center',
+        width: 72
+    },
+
+    avatarRim: {
+        alignItems: 'center',
+        borderColor: 'transparent',
+        borderRadius: 999,
+        borderWidth: 2,
+        justifyContent: 'center',
+        padding: 2
+    },
+
+    avatarRimSpeaking: {
+        borderColor: CALL_COLORS.speaking
+    },
+
+    speakingRing: {
+        borderColor: CALL_COLORS.speaking,
+        borderRadius: 999,
+        borderWidth: 2,
+        height: 72,
+        position: 'absolute',
+        width: 72
+    },
+
+    avatarName: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: CALL_COLORS.mutedText,
+        marginTop: BaseTheme.spacing[2],
+        maxWidth: 96,
+        textAlign: 'center'
+    },
+
+    avatarNameSpeaking: {
+        color: CALL_COLORS.text
+    },
+
+    avatarOverflow: {
+        alignItems: 'center',
+        backgroundColor: CALL_COLORS.idleControl,
+        borderRadius: 999,
+        height: 64,
+        justifyContent: 'center',
+        width: 64
+    },
+
+    avatarOverflowText: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CALL_COLORS.text
+    },
+
+    stageStatus: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CALL_COLORS.mutedText,
+        marginTop: BaseTheme.spacing[3],
+        textAlign: 'center'
     }
 };
 

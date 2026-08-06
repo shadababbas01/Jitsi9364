@@ -6,6 +6,7 @@ import { FALLBACK_LANGUAGE_TAG, LANGUAGE_TAG_OVERRIDES } from './constants';
 import { ICaptionTtsState } from './reducer';
 
 const DEFAULT_STATE: ICaptionTtsState = {
+    chatSpeakerId: null,
     speaking: false,
     speakingMessageId: null,
     unsupportedLanguage: null
@@ -41,6 +42,16 @@ export function isCaptionTtsEnabled(state: IReduxState): boolean {
  */
 export function isChatTtsEnabled(state: IReduxState): boolean {
     return state['features/base/settings'].readChatAloud !== false;
+}
+
+/**
+ * Returns the participant whose chat message is being read aloud right now, if any.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {string | null}
+ */
+export function getChatTtsSpeakerId(state: IReduxState): string | null {
+    return getCaptionTtsState(state).chatSpeakerId;
 }
 
 /**

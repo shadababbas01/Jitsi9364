@@ -109,6 +109,17 @@
         }
     },
     "chat": {
+        "call": {
+            "listening": "Listening",
+            "muted": "Muted",
+            "readAloudOff": "Read aloud off",
+            "readingAloud": "Reading aloud",
+            "someoneIsSpeaking": "{{name}} is speaking…",
+            "title": "Live translation",
+            "type": "Type",
+            "waiting": "Nobody is speaking",
+            "youAreSpeaking": "You're speaking…"
+        },
         "enter": "Enter room",
         "error": "Error: your message was not sent. Reason: {{error}}",
         "fieldPlaceHolder": "Aa",

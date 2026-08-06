@@ -1,6 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 import { Route, useIsFocused } from '@react-navigation/native';
-import React, { Component, useEffect } from 'react';
+import React, { Component, useEffect, useMemo, useState } from 'react';
 import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
@@ -13,10 +13,10 @@ import { closeChat, sendMessage } from '../../actions.native';
 import { ChatTabs } from '../../constants';
 import { IChatProps as AbstractProps } from '../../types';
 
-import ChatInputBar from './ChatInputBar';
-import ChatVoiceBar from './ChatVoiceBar';
-import MessageContainer from './MessageContainer';
-import MessageRecipient from './MessageRecipient';
+import ChatCallFooter from './ChatCallConsole';
+import { ChatCallContext } from './ChatCallContext';
+import ChatCallStage from './ChatCallStage';
+import ChatCallStatusStrip from './ChatCallStatusStrip';
 
 interface IProps extends AbstractProps {
 
@@ -62,9 +62,6 @@ class Chat extends Component<IProps> {
      * @inheritdoc
      */
     override render() {
-        const { _messages, route } = this.props;
-        const privateMessageRecipient = route?.params?.privateMessageRecipient;
-
         return (
             <JitsiScreen
                 disableForcedKeyboardDismiss = { true }
@@ -72,9 +69,8 @@ class Chat extends Component<IProps> {
                 hasBottomTextInput = { true }
                 hasExtraHeaderHeight = { true }
                 style = { pollsStyles.pollPaneContainer as StyleType }>
-                {/* @ts-ignore */}
-                <MessageContainer messages = { _messages } />
-                <MessageRecipient privateMessageRecipient = { privateMessageRecipient } />
+                <ChatCallStatusStrip />
+                <ChatCallStage />
             </JitsiScreen>
         );
     }
@@ -86,12 +82,7 @@ class Chat extends Component<IProps> {
      * @returns {React$Element<*>}
      */
     _renderFooter() {
-        return (
-            <>
-                <ChatVoiceBar />
-                <ChatInputBar onSend = { this._onSendMessage } />
-            </>
-        );
+        return <ChatCallFooter onSend = { this._onSendMessage } />;
     }
 
     /**
@@ -153,7 +144,15 @@ export default translate(connect(_mapStateToProps)((props: IProps) => {
         };
     }, [ isFocused, _unreadMessagesCount ]);
 
+    const [ dictating, setDictating ] = useState(false);
+    const callContext = useMemo(() => ({
+        dictating,
+        setDictating
+    }), [ dictating ]);
+
     return (
-        <Chat { ...props } />
+        <ChatCallContext.Provider value = { callContext }>
+            <Chat { ...props } />
+        </ChatCallContext.Provider>
     );
 }));

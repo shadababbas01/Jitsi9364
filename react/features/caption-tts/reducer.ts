@@ -1,8 +1,17 @@
 import ReducerRegistry from '../base/redux/ReducerRegistry';
 
-import { SET_CAPTION_TTS_SPEAKING, SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE } from './actionTypes';
+import {
+    SET_CAPTION_TTS_SPEAKING,
+    SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE,
+    SET_CHAT_TTS_SPEAKER
+} from './actionTypes';
 
 export interface ICaptionTtsState {
+
+    /**
+     * The participant whose chat message is being read aloud, if any.
+     */
+    chatSpeakerId: string | null;
 
     /**
      * Whether a caption is currently being read aloud.
@@ -21,6 +30,7 @@ export interface ICaptionTtsState {
 }
 
 const DEFAULT_STATE: ICaptionTtsState = {
+    chatSpeakerId: null,
     speaking: false,
     speakingMessageId: null,
     unsupportedLanguage: null
@@ -34,6 +44,11 @@ ReducerRegistry.register<ICaptionTtsState>('features/caption-tts', (
             ...state,
             speaking: action.speaking,
             speakingMessageId: action.speaking ? action.messageId ?? null : null
+        };
+    case SET_CHAT_TTS_SPEAKER:
+        return {
+            ...state,
+            chatSpeakerId: action.participantId
         };
     case SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE:
         return {

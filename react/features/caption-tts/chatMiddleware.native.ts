@@ -6,6 +6,7 @@ import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { ADD_MESSAGE } from '../chat/actionTypes';
 import { MESSAGE_TYPE_REMOTE } from '../chat/constants';
 
+import { setChatTtsSpeaker } from './actions';
 import { SPOKEN_CACHE_LIMIT } from './constants';
 import { isCaptionTtsSupported, isChatTtsEnabled, toTtsLanguageTag } from './functions.native';
 import CaptionsTtsQueue from './native/CaptionsTtsQueue';
@@ -21,6 +22,12 @@ let queue: CaptionsTtsQueue | undefined;
  * The messages already handed to the queue, so that nothing is read out twice.
  */
 const spokenMessageIds = new Set<string>();
+
+/**
+ * Who sent each message waiting to be, or being, read out. The queue only knows message IDs, and the UI needs to show
+ * the participant it is speaking for.
+ */
+const messageSenders = new Map<string, string>();
 
 /**
  * Whether this device can speak at all. Checked once, since the middleware sees every action.
@@ -52,8 +59,10 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     case CONFERENCE_FAILED:
     case CONFERENCE_LEFT:
         spokenMessageIds.clear();
+        messageSenders.clear();
         queue?.destroy();
         queue = undefined;
+        store.dispatch(setChatTtsSpeaker(null));
         break;
     }
 
@@ -66,10 +75,13 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
  * @param {IStore} store - The redux store.
  * @returns {CaptionsTtsQueue}
  */
-function _getQueue(): CaptionsTtsQueue {
+function _getQueue({ dispatch }: IStore): CaptionsTtsQueue {
     if (!queue) {
-        // Chat messages are not tied to a line in the captions UI, so nothing needs to know what is being spoken.
-        queue = new CaptionsTtsQueue(() => { /* Nothing to reflect in the UI. */ });
+        queue = new CaptionsTtsQueue((speaking, messageId) => {
+            const speakerId = speaking && messageId ? messageSenders.get(messageId) : undefined;
+
+            dispatch(setChatTtsSpeaker(speakerId ?? null));
+        });
     }
 
     return queue;
@@ -109,7 +121,17 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
         spokenMessageIds.delete(spokenMessageIds.values().next().value as string);
     }
 
-    const speechQueue = _getQueue();
+    if (action.participantId) {
+        messageSenders.set(messageId, action.participantId);
+
+        // The queue reports the end of an utterance without saying which one it was, so who sent what is pruned by age
+        // rather than on the way out. Maps iterate in insertion order, so this drops the oldest entries.
+        while (messageSenders.size > SPOKEN_CACHE_LIMIT) {
+            messageSenders.delete(messageSenders.keys().next().value as string);
+        }
+    }
+
+    const speechQueue = _getQueue(store);
 
     speechQueue.setEnabled(true);
     speechQueue.enqueue({
