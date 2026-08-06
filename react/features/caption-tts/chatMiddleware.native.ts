@@ -5,10 +5,17 @@ import { CONFERENCE_FAILED, CONFERENCE_LEFT } from '../base/conference/actionTyp
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { ADD_MESSAGE } from '../chat/actionTypes';
 import { MESSAGE_TYPE_REMOTE } from '../chat/constants';
+import { translateLiveCaptionTextCached } from '../subtitles/languages';
 
 import { setChatTtsSpeaker } from './actions';
 import { SPOKEN_CACHE_LIMIT } from './constants';
-import { isCaptionTtsSupported, isChatTtsEnabled, toTtsLanguageTag } from './functions.native';
+import {
+    getChatReadAloudLanguage,
+    isCaptionTtsSupported,
+    isChatTtsEnabled,
+    toTtsLanguageTag
+} from './functions.native';
+import logger from './logger';
 import CaptionsTtsQueue from './native/CaptionsTtsQueue';
 
 /**
@@ -131,12 +138,41 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
         }
     }
 
+    const state = store.getState();
+    const language = getChatReadAloudLanguage(state);
     const speechQueue = _getQueue(store);
 
     speechQueue.setEnabled(true);
-    speechQueue.enqueue({
-        id: messageId,
-        language: toTtsLanguageTag(store.getState()['features/subtitles']._language),
-        text
-    });
+
+    if (!language) {
+        // No language was picked, so the message is spoken as it was received, in the voice of the caption language.
+        speechQueue.enqueue({
+            id: messageId,
+            language: toTtsLanguageTag(state['features/subtitles']._language),
+            text
+        });
+
+        return;
+    }
+
+    // What the other participant sent has to be heard in the language the local user picked, so it is translated first.
+    // The service detects the language it was written in on its own, which is why nothing here says what that was.
+    translateLiveCaptionTextCached(`chat:${messageId}`, text, language, state['features/base/jwt'].jwt)
+        .then(translated => {
+            speechQueue.enqueue({
+                id: messageId,
+                language: toTtsLanguageTag(language),
+                text: translated || text
+            });
+        })
+        .catch(error => {
+            logger.warn('Failed to translate a chat message before reading it aloud', error);
+
+            // Better heard in the language it arrived in than not heard at all.
+            speechQueue.enqueue({
+                id: messageId,
+                language: toTtsLanguageTag(state['features/subtitles']._language),
+                text
+            });
+        });
 }

@@ -112,6 +112,9 @@
         "call": {
             "listening": "Listening",
             "muted": "Muted",
+            "noTranslation": "No translation",
+            "searchLanguages": "Search languages",
+            "selectLanguage": "Read aloud in",
             "readAloudOff": "Read aloud off",
             "readingAloud": "Reading aloud",
             "someoneIsSpeaking": "{{name}} is speaking…",

@@ -18,6 +18,7 @@ const DEFAULT_STATE: ISettingsState = {
     audioOutputDeviceId: undefined,
     avatarURL: undefined,
     cameraDeviceId: undefined,
+    chatReadAloudLanguage: 'en',
     disableCallIntegration: undefined,
     disableCrashReporting: undefined,
     disableP2P: undefined,
@@ -66,6 +67,10 @@ export interface ISettingsState {
     audioSettingsVisible?: boolean;
     avatarURL?: string;
     cameraDeviceId?: string | boolean;
+    /**
+     * The language incoming chat messages are translated into before being read aloud.
+     */
+    chatReadAloudLanguage?: string;
     disableCallIntegration?: boolean;
     disableCrashReporting?: boolean;
     disableP2P?: boolean;

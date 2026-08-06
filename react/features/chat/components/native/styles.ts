@@ -697,6 +697,69 @@ export const chatCallStyles = {
         color: CALL_COLORS.mutedText,
         marginTop: BaseTheme.spacing[3],
         textAlign: 'center'
+    },
+
+    languagePill: {
+        alignItems: 'center',
+        backgroundColor: CALL_COLORS.idleControl,
+        borderRadius: 999,
+        flexDirection: 'row',
+        marginLeft: 'auto',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: 4
+    },
+
+    languagePillText: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: CALL_COLORS.text,
+        marginHorizontal: BaseTheme.spacing[1]
+    },
+
+    pickerBackdrop: {
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        flex: 1,
+        justifyContent: 'flex-end'
+    },
+
+    pickerSheet: {
+        backgroundColor: CALL_COLORS.console,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '70%',
+        paddingBottom: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[3]
+    },
+
+    pickerTitle: {
+        ...BaseTheme.typography.bodyShortBoldLarge,
+        color: CALL_COLORS.text,
+        marginBottom: BaseTheme.spacing[2],
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
+
+    pickerSearch: {
+        ...BaseTheme.typography.bodyShortRegular,
+        backgroundColor: CALL_COLORS.idleControl,
+        borderRadius: 8,
+        color: CALL_COLORS.text,
+        marginBottom: BaseTheme.spacing[2],
+        marginHorizontal: BaseTheme.spacing[3],
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[1]
+    },
+
+    pickerRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    pickerRowText: {
+        ...BaseTheme.typography.bodyShortRegularLarge,
+        color: CALL_COLORS.text,
+        flexShrink: 1
     }
 };
 

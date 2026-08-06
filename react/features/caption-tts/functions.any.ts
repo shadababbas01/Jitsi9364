@@ -45,6 +45,17 @@ export function isChatTtsEnabled(state: IReduxState): boolean {
 }
 
 /**
+ * Returns the language incoming chat messages are translated into before being read aloud. Empty when the local user
+ * asked for no translation, in which case a message is spoken as it was received.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {string}
+ */
+export function getChatReadAloudLanguage(state: IReduxState): string {
+    return normalizeSubtitlesLanguage(state['features/base/settings'].chatReadAloudLanguage) ?? '';
+}
+
+/**
  * Returns the participant whose chat message is being read aloud right now, if any.
  *
  * @param {IReduxState} state - The redux state.
