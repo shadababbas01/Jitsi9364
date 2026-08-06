@@ -224,7 +224,7 @@ public class MainActivity extends JitsiMeetActivity {
             .setConfigOverride("recordingService", recordingService)
             .setConfigOverride("recordings", recordings)
             .setConfigOverride("customToolbarButtons", customToolbarButtons)
-            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4c2M0bHFtdiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBFaWdodHkiLCJpZCI6IjhzYzRscW12IiwiYXZhdGFyIjoiaHR0cHM6Ly9jZG5tZWRpYS1mbS5tZWxwYXBwLmNvbS84c2M0bHFqY2RhdGMvYmY5eHZtcWxyaHRzLmpwZz9zZXNzaW9uaWQ9WEVLWHJOTWdGQzhhcE5LQmM3UU5VOTRNZ1U5V0FLZGhTMDNkUFpkaE1ISDBrJmlzdGh1bWI9MSIsImVtYWlsIjoiOHNjNGxxbXZAbWVscC5jb20ifSwiZ3JvdXAiOiJvbmV0b29uZSJ9LCJpYXQiOjE3ODU4NzE0NjAsInJvb20iOiI3NzcxOTY0NDc0YWUyYzY1YWFmM2IxN2ZjMjg0Yjk4YSIsInJvb21OYW1lIjoiU2hhZGFiIEVpZ2h0eSIsImV4cCI6MTc4NTkxNDY2MH0.o8rOgvEyPIL717ePz339lh85jcnf26ibRwLvjMCiueg")
+            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiQWhzZGFiIEFiYmFzIE9uZSIsImlkIjoiMTE2NTYzMzczMCIsImF2YXRhciI6Imh0dHBzOi8vY2RubWVkaWEtZm0ubWVscGFwcC5jb20vODZxMHJ1ZnpvbDR3LzNhNGVAMTcwNDc5MTIyNzEyNy5qcGc_c2Vzc2lvbmlkPTVKcHl0bFR0WExZbVBxOFdEM2xVMVBnazFFaFRmTHY4a2oya29ITkFDSE0maXN0aHVtYj0xIiwiZW1haWwiOiIxMTY1NjMzNzMwQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzg2MDA4Nzg2LCJyb29tIjoiZmUzZDg2OThhZDRjODI2ZDZjZGIwYTEwOTNhNGY4NzkiLCJyb29tTmFtZSI6IkFoc2RhYiBBYmJhcyBPbmUiLCJleHAiOjE3ODYwNTE5ODZ9.VjcQxUfBIeCE23uM9TKAQ7HViimmeuOz_NW_wpZ4X2U")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -234,7 +234,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("7771964474ae2c65aaf3b17fc284b98a")
+                       .setRoom("fe3d8698ad4c826d6cdb0a1093a4f879")
                         .build();
                 join(defaultOptions1);
             }

@@ -17,6 +17,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Package visibility for the on-device speech recognition service MelpSpeechRecognizerModule binds to. Without
+         it the recogniser is invisible to us on Android 11 and later. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true" />
@@ -58,6 +66,15 @@
             android:authorities="${applicationId}.fileprovider"
             android:enabled="false"
             tools:replace="android:authorities">
+        </provider>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.melp-audio-fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/melp_audio_file_paths" />
         </provider>
         <provider
             android:name="androidx.startup.InitializationProvider"

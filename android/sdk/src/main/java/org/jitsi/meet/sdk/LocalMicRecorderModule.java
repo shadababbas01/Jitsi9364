@@ -115,6 +115,10 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
 
                     if (read > 0) {
                         pcm.write(buffer, 0, read);
+
+                        // The same samples feed the live on-device transcription, so that it never has to open a
+                        // microphone of its own and contend with this capture or with the conference's.
+                        MelpSpeechRecognizerModule.feedPcm(buffer, read, audioRecord.getSampleRate());
                     }
                 }
 
