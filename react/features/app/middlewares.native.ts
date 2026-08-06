@@ -1,4 +1,5 @@
 import '../base/config/middleware';
+import '../caption-tts/chatMiddleware.native';
 import '../caption-tts/middleware.native';
 import '../dynamic-branding/middleware';
 import '../gifs/middleware';

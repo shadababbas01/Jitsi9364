@@ -10,8 +10,13 @@ import {
     View
 } from 'react-native';
 import Sound from 'react-native-sound';
+import { useSelector } from 'react-redux';
 
+import { IReduxState } from '../../../app/types';
+import { getCurrentConference } from '../../../base/conference/functions';
+import { getLocalParticipant } from '../../../base/participants/functions';
 import { getCaptionsTtsNativeModule } from '../../../caption-tts/functions.native';
+import { JSON_TYPE_LOCAL_TRANSCRIPTION, TRANSCRIBED_LANGUAGE_TAG } from '../../../live-transcribe/constants';
 import { getLocalMicRecorderNativeModule } from '../../functions.native';
 import styles from './styles';
 
@@ -167,6 +172,8 @@ function HeaderMenuButton({ onPress }: { onPress: () => void; }) {
 
 export default function AudioExtractionScreen() {
     const navigation = useNavigation();
+    const conference = useSelector((state: IReduxState) => getCurrentConference(state));
+    const localParticipant = useSelector((state: IReduxState) => getLocalParticipant(state));
     const [ clips, setClips ] = useState<Clip[]>([]);
     const [ status, setStatus ] = useState('Ready to record 10-second microphone windows.');
     const [ menuVisible, setMenuVisible ] = useState(false);
@@ -176,6 +183,7 @@ export default function AudioExtractionScreen() {
     const captureRunningRef = useRef(false);
     const clipCountRef = useRef(0);
     const soundRef = useRef<Sound | null>(null);
+    const utteranceCountRef = useRef(0);
 
     const activeClip = activeClipId == null
         ? clips[0]
@@ -232,15 +240,26 @@ export default function AudioExtractionScreen() {
             setStatus(`Saved clip ${index + 1}. Transcribing...`);
 
             try {
-                const transcription = await transcribeWavFile(audioSource);
+                const transcription = (await transcribeWavFile(audioSource)).trim();
 
                 setClips(prev => prev.map(item =>
                     item.id === clip.id
-                        ? { ...item, transcript: transcription.trim() }
+                        ? { ...item, transcript: transcription }
                         : item
                 ));
                 void readTranscriptionAloud(transcription);
                 setStatus(`Transcription complete for clip ${index + 1}.`);
+
+                if (conference && localParticipant) {
+                    const utteranceId = `lt-${localParticipant.id}-${++utteranceCountRef.current}`;
+                    conference.sendEndpointMessage('', {
+                        language: TRANSCRIBED_LANGUAGE_TAG,
+                        message_id: utteranceId,
+                        text: transcription,
+                        timestamp: Date.now(),
+                        type: JSON_TYPE_LOCAL_TRANSCRIPTION
+                    });
+                }
 
             } catch (error) {
                 console.warn('[audio-extraction] transcription request failed', {
@@ -267,7 +286,7 @@ export default function AudioExtractionScreen() {
             });
             setStatus('Failed to record microphone audio.');
         }
-    }, []);
+    }, [ conference, localParticipant ]);
 
     useLayoutEffect(() => {
         navigation.setOptions({

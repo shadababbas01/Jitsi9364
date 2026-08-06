@@ -14,6 +14,7 @@ import { ChatTabs } from '../../constants';
 import { IChatProps as AbstractProps } from '../../types';
 
 import ChatInputBar from './ChatInputBar';
+import ChatVoiceBar from './ChatVoiceBar';
 import MessageContainer from './MessageContainer';
 import MessageRecipient from './MessageRecipient';
 
@@ -85,7 +86,12 @@ class Chat extends Component<IProps> {
      * @returns {React$Element<*>}
      */
     _renderFooter() {
-        return <ChatInputBar onSend = { this._onSendMessage } />;
+        return (
+            <>
+                <ChatVoiceBar />
+                <ChatInputBar onSend = { this._onSendMessage } />
+            </>
+        );
     }
 
     /**

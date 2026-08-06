@@ -28,6 +28,7 @@ const DEFAULT_STATE: ISettingsState = {
     maxStageParticipants: 1,
     micDeviceId: undefined,
     readCaptionsAloud: false,
+    readChatAloud: true,
     serverURL: undefined,
     hideShareAudioHelper: false,
     showSubtitlesOnStage: false,
@@ -77,6 +78,11 @@ export interface ISettingsState {
     micDeviceId?: string | boolean;
     previewAudioTrack?: any | null;
     readCaptionsAloud?: boolean;
+
+    /**
+     * Whether chat messages received from other participants are read aloud as they arrive.
+     */
+    readChatAloud?: boolean;
     serverURL?: string;
     showSubtitlesOnStage?: boolean;
     soundsIncomingMessage?: boolean;

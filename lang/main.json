@@ -135,6 +135,17 @@
         },
         "title": "Chat",
         "titleWithPolls": "Chat and Polls",
+        "voice": {
+            "failed": "Could not turn that into a message.",
+            "hint": "Tap the mic and speak to send a message",
+            "nothingHeard": "Nothing was heard, try again.",
+            "readAloud": "Read new messages aloud",
+            "speaking": "You're speaking…",
+            "start": "Start recording",
+            "stop": "Stop recording and send",
+            "transcribing": "Turning speech into a message…",
+            "unavailable": "Voice messages are not available on this device"
+        },
         "you": "you"
     },
     "chromeExtensionBanner": {

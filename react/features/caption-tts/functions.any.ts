@@ -32,6 +32,18 @@ export function isCaptionTtsEnabled(state: IReduxState): boolean {
 }
 
 /**
+ * Returns whether chat messages coming from other participants are read aloud as they arrive. On by default: the point
+ * of the feature is that a message is heard without having to open the chat, so it has to be opted out of rather than
+ * into.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isChatTtsEnabled(state: IReduxState): boolean {
+    return state['features/base/settings'].readChatAloud !== false;
+}
+
+/**
  * Turns a language code coming from the captions into a BCP-47 tag the device engine can look a voice up with.
  *
  * @param {string} language - A language code, with or without a region, e.g. 'hi', 'en-GB' or 'zh_TW'.

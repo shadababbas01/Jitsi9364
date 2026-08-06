@@ -13,17 +13,25 @@ import { connect, useSelector } from 'react-redux';
 import { IReduxState, IStore } from '../../../app/types';
 import { hideSheet } from '../../../base/dialog/actions';
 import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
+import { CHAT_ENABLED } from '../../../base/flags/constants';
+import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
-import { IconInfo, IconUsers, IconVolumeUp } from '../../../base/icons/svg';
+import { IconInfo, IconMessage, IconUsers, IconVolumeUp } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import { IParticipantsState } from '../../../base/participants/reducer';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import BreakoutRoomsButton
     from '../../../breakout-rooms/components/native/BreakoutRoomsButton';
+import { OPEN_CHAT } from '../../../chat/actionTypes';
+import { setFocusedTab } from '../../../chat/actions.any';
+import { ChatTabs } from '../../../chat/constants';
+import { getUnreadCount, getUnreadFilesCount, isChatDisabled } from '../../../chat/functions';
+import { arePollsDisabled } from '../../../conference/functions.any';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import VirtualBackgroundButton
     from '../../../mobile/virtual-background/components/VirtualBackgroundButton';
+import { getUnreadPollCount } from '../../../polls/functions';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
 import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
@@ -134,10 +142,88 @@ class LiveCaptionsOverflowButton extends AbstractButton<ILiveCaptionsOverflowBut
     }
 }
 
+const unreadBadgeStyles = {
+    badge: {
+        alignItems: 'center' as const,
+        backgroundColor: '#F55',
+        borderRadius: 999,
+        justifyContent: 'center' as const,
+        marginLeft: 'auto' as const,
+        minWidth: 20,
+        paddingHorizontal: 6,
+        paddingVertical: 2
+    },
+    badgeText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '600' as const,
+        textAlign: 'center' as const
+    }
+};
+
+interface IInCallMessagesOverflowButtonProps extends AbstractButtonProps {
+
+    /**
+     * True if the polls feature is disabled.
+     */
+    _isPollsDisabled: boolean;
+
+    /**
+     * The number of unread in-call messages.
+     */
+    _unreadMessageCount: number;
+}
+
+/**
+ * Opens the in-call messages (chat) screen from the overflow menu.
+ */
+class InCallMessagesOverflowButton extends AbstractButton<IInCallMessagesOverflowButtonProps> {
+    override accessibilityLabel = 'toolbar.accessibilityLabel.chat';
+    override icon = IconMessage;
+    override label = 'chat.title';
+
+    override _handleClick() {
+        const { _isPollsDisabled, dispatch } = this.props;
+
+        // NOTE: We intentionally do not use the openChat action here, since on this fork it also
+        // puts the app in picture-in-picture mode (needed for the native chat UI). The Jitsi chat
+        // lives inside the conference navigator, so we just navigate to it.
+        navigate(_isPollsDisabled ? screen.conference.chat : screen.conference.chatTabs.main);
+
+        dispatch(setFocusedTab(ChatTabs.CHAT));
+        dispatch({ type: OPEN_CHAT });
+    }
+
+    override _getElementAfter() {
+        const { _unreadMessageCount } = this.props;
+
+        if (!_unreadMessageCount) {
+            return null;
+        }
+
+        return (
+            <View style = { unreadBadgeStyles.badge }>
+                <Text style = { unreadBadgeStyles.badgeText }>
+                    { _unreadMessageCount > 99 ? '99+' : _unreadMessageCount }
+                </Text>
+            </View>
+        );
+    }
+
+    override _isToggled() {
+        return Boolean(this.props._unreadMessageCount);
+    }
+}
+
 const TranslatedOverflowAttendeesButton = translate(OverflowAttendeesButton);
 const TranslatedLiveCaptionsOverflowButton = translate(connect((state: IReduxState) => ({
     _isLiveCaptionsActive: isLiveCaptionsActive(state)
 }))(LiveCaptionsOverflowButton));
+const TranslatedInCallMessagesOverflowButton = translate(connect((state: IReduxState) => ({
+    _isPollsDisabled: Boolean(arePollsDisabled(state)),
+    _unreadMessageCount: getUnreadCount(state) + getUnreadPollCount(state) + getUnreadFilesCount(state),
+    visible: Boolean(getFeatureFlag(state, CHAT_ENABLED, true)) && !isChatDisabled(state)
+}))(InCallMessagesOverflowButton));
 
 interface IVoiceTranslationOverflowButtonProps extends AbstractButtonProps {
     _isVoiceTranslationActive: boolean;
@@ -378,6 +464,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
                     {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
+                    <D />
+                    <TranslatedInCallMessagesOverflowButton { ...topRowProps } />
                     {true && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />
                     <AudioOnlyButton { ...rowProps } />

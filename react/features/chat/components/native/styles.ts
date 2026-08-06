@@ -440,6 +440,86 @@ const CAPTIONS_PANEL_COLORS = {
 };
 
 /**
+ * The styles of the voice bar sitting on top of the chat input, which turns what the local participant says into a chat
+ * message and reads incoming ones back out.
+ */
+export const chatVoiceBarStyles = {
+    bar: {
+        alignItems: 'center',
+        backgroundColor: CAPTIONS_PANEL_COLORS.mutedSurface,
+        borderTopColor: CAPTIONS_PANEL_COLORS.border,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    micButton: {
+        alignItems: 'center',
+        backgroundColor: BaseTheme.palette.action01,
+        borderRadius: 999,
+        height: 40,
+        justifyContent: 'center',
+        width: 40
+    },
+
+    micButtonRecording: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.accent
+    },
+
+    micButtonDisabled: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.border
+    },
+
+    // Holds the state line so the bar keeps its height whether or not there is anything to say.
+    state: {
+        alignItems: 'center',
+        flex: 1,
+        flexDirection: 'row',
+        marginHorizontal: BaseTheme.spacing[2],
+        minHeight: 20
+    },
+
+    liveDot: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.accent,
+        borderRadius: 999,
+        height: 8,
+        marginRight: BaseTheme.spacing[1],
+        width: 8
+    },
+
+    stateText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: CAPTIONS_PANEL_COLORS.cardText,
+        flexShrink: 1
+    },
+
+    hintText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText,
+        flexShrink: 1
+    },
+
+    elapsedText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: CAPTIONS_PANEL_COLORS.mutedText,
+        marginLeft: BaseTheme.spacing[1]
+    },
+
+    readAloudButton: {
+        alignItems: 'center',
+        borderRadius: 999,
+        height: 36,
+        justifyContent: 'center',
+        width: 36
+    },
+
+    readAloudButtonOn: {
+        backgroundColor: CAPTIONS_PANEL_COLORS.border
+    }
+};
+
+/**
  * The styles of the live captions panel shown underneath the video.
  */
 export const captionsPanelStyles = {
