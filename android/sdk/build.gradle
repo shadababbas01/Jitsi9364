@@ -48,7 +48,6 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:5.0.1'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'androidx.startup:startup-runtime:1.1.0'
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.67'
 
     // Bundled (no Google Play Services required) selfie segmentation model, used by
     // VirtualBackgroundProcessor to replace / blur the local camera background.

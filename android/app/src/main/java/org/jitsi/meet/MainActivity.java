@@ -224,7 +224,7 @@ public class MainActivity extends JitsiMeetActivity {
             .setConfigOverride("recordingService", recordingService)
             .setConfigOverride("recordings", recordings)
             .setConfigOverride("customToolbarButtons", customToolbarButtons)
-            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiIxMTY1NjMzNzMwIiwiYXZhdGFyIjoiIiwiZW1haWwiOiIifSwidXNlciI6eyJuYW1lIjoiQWhzZGFiIEFiYmFzIE9uZSIsImlkIjoiMTE2NTYzMzczMCIsImF2YXRhciI6Imh0dHBzOi8vY2RubWVkaWEtZm0ubWVscGFwcC5jb20vODZxMHJ1ZnpvbDR3LzNhNGVAMTcwNDc5MTIyNzEyNy5qcGc_c2Vzc2lvbmlkPTVKcHl0bFR0WExZbVBxOFdEM2xVMVBnazFFaFRmTHY4a2oya29ITkFDSE0maXN0aHVtYj0xIiwiZW1haWwiOiIxMTY1NjMzNzMwQG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzg2MDA4Nzg2LCJyb29tIjoiZmUzZDg2OThhZDRjODI2ZDZjZGIwYTEwOTNhNGY4NzkiLCJyb29tTmFtZSI6IkFoc2RhYiBBYmJhcyBPbmUiLCJleHAiOjE3ODYwNTE5ODZ9.VjcQxUfBIeCE23uM9TKAQ7HViimmeuOz_NW_wpZ4X2U")
+            .setToken("")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -234,7 +234,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("fe3d8698ad4c826d6cdb0a1093a4f879")
+                       .setRoom("33434012302f5aaa4fe3a248f6f66438")
                         .build();
                 join(defaultOptions1);
             }

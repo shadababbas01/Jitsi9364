@@ -1,8 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 
 const { LocalMicRecorder } = NativeModules;
-const { MelpCrypto } = NativeModules;
-const { MelpAudioTranscriptionBridge } = NativeModules;
 const { MelpSpeechRecognizer } = NativeModules;
 
 /**
@@ -45,30 +43,6 @@ export interface ILocalMicRecorderNativeModule {
     stopUtteranceSession: () => void;
 }
 
-export interface IMelpCryptoNativeModule {
-    decryptString: (input: string, key: string, algo: string) => Promise<string | null>;
-}
-
-export interface IMelpAudioTranscriptionBridgeResult {
-    fileUrl?: string;
-    resolvedFileUrl?: string;
-    transcription?: string;
-    uploadApiResponse?: string;
-    uploadDecryptedFileUrl?: string;
-    uploadDecryptedResponse?: string;
-    uploadDecryptionError?: string;
-    uploadEncryptedData?: string;
-    uploadRequestPreview?: string;
-}
-
-export interface IMelpAudioTranscriptionBridgeNativeModule {
-    transcribeAudioFile: (
-        audioPath: string,
-        messageId: string,
-        conversationId?: string,
-    ) => Promise<IMelpAudioTranscriptionBridgeResult | null>;
-}
-
 export interface IMelpSpeechRecognizerNativeModule {
     isSupported: () => Promise<boolean>;
     start: (windowMs: number) => Promise<boolean>;
@@ -89,20 +63,4 @@ export function getLocalMicRecorderNativeModule(): ILocalMicRecorderNativeModule
     }
 
     return LocalMicRecorder;
-}
-
-export function getMelpCryptoNativeModule(): IMelpCryptoNativeModule | undefined {
-    if (Platform.OS !== 'android') {
-        return undefined;
-    }
-
-    return MelpCrypto;
-}
-
-export function getMelpTranscriptionBridgeNativeModule(): IMelpAudioTranscriptionBridgeNativeModule | undefined {
-    if (Platform.OS !== 'android') {
-        return undefined;
-    }
-
-    return MelpAudioTranscriptionBridge;
 }
