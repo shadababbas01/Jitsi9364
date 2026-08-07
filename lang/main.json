@@ -111,8 +111,15 @@
     "chat": {
         "call": {
             "listening": "Listening",
+            "listeningForSpeech": "Listening — just speak",
+            "micIsOff": "Microphone off",
+            "micOff": "Turn the microphone off",
+            "micOn": "Turn the microphone on",
             "muted": "Muted",
             "noTranslation": "No translation",
+            "pausedWhileReading": "Paused while reading a message out",
+            "sending": "Sending what you said…",
+            "sound": "Sound",
             "searchLanguages": "Search languages",
             "selectLanguage": "Read aloud in",
             "readAloudOff": "Read aloud off",

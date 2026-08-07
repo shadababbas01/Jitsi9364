@@ -47,12 +47,15 @@ export function setCaptionTtsUnsupportedLanguage(language: string | null) {
 /**
  * Records whose chat message is being read aloud, or that none is.
  *
- * @param {string | null} participantId - The participant whose message is being spoken.
+ * @param {string | null} participantId - The participant whose message is being spoken, if known.
+ * @param {boolean} speaking - Whether a message is being spoken at all. Tracked separately because a message whose
+ * sender cannot be identified still has to stop the microphone from hearing it.
  * @returns {Object}
  */
-export function setChatTtsSpeaker(participantId: string | null) {
+export function setChatTtsSpeaker(participantId: string | null, speaking = Boolean(participantId)) {
     return {
         type: SET_CHAT_TTS_SPEAKER,
-        participantId
+        participantId,
+        speaking
     };
 }

@@ -14,6 +14,11 @@ export interface ICaptionTtsState {
     chatSpeakerId: string | null;
 
     /**
+     * Whether a chat message is being read aloud right now, whoever sent it.
+     */
+    chatSpeaking: boolean;
+
+    /**
      * Whether a caption is currently being read aloud.
      */
     speaking: boolean;
@@ -31,6 +36,7 @@ export interface ICaptionTtsState {
 
 const DEFAULT_STATE: ICaptionTtsState = {
     chatSpeakerId: null,
+    chatSpeaking: false,
     speaking: false,
     speakingMessageId: null,
     unsupportedLanguage: null
@@ -48,7 +54,8 @@ ReducerRegistry.register<ICaptionTtsState>('features/caption-tts', (
     case SET_CHAT_TTS_SPEAKER:
         return {
             ...state,
-            chatSpeakerId: action.participantId
+            chatSpeakerId: action.participantId,
+            chatSpeaking: Boolean(action.speaking)
         };
     case SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE:
         return {

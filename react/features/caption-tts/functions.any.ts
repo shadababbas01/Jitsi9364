@@ -7,6 +7,7 @@ import { ICaptionTtsState } from './reducer';
 
 const DEFAULT_STATE: ICaptionTtsState = {
     chatSpeakerId: null,
+    chatSpeaking: false,
     speaking: false,
     speakingMessageId: null,
     unsupportedLanguage: null
@@ -53,6 +54,19 @@ export function isChatTtsEnabled(state: IReduxState): boolean {
  */
 export function getChatReadAloudLanguage(state: IReduxState): string {
     return normalizeSubtitlesLanguage(state['features/base/settings'].chatReadAloudLanguage) ?? '';
+}
+
+/**
+ * Returns whether the device is reading a message out loud right now. The microphone has to ignore what it hears while
+ * that is true, or the spoken message is transcribed and sent straight back.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isReadingAloud(state: IReduxState): boolean {
+    const { chatSpeaking, speaking } = getCaptionTtsState(state);
+
+    return Boolean(chatSpeaking || speaking);
 }
 
 /**

@@ -25,7 +25,8 @@ export const SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE = 'SET_CAPTION_TTS_UNSUPPORTED
  *
  * {
  *      type: SET_CHAT_TTS_SPEAKER,
- *      participantId: string | null
+ *      participantId: string | null,
+ *      speaking: boolean
  * }
  */
 export const SET_CHAT_TTS_SPEAKER = 'SET_CHAT_TTS_SPEAKER';

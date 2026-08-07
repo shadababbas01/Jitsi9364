@@ -17,6 +17,7 @@ import {
 } from './functions.native';
 import logger from './logger';
 import CaptionsTtsQueue from './native/CaptionsTtsQueue';
+import { clearSpokenText, rememberSpokenText } from './spokenText';
 
 /**
  * The queue feeding the device text-to-speech engine with chat messages. Deliberately separate from the one the captions
@@ -67,6 +68,7 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     case CONFERENCE_LEFT:
         spokenMessageIds.clear();
         messageSenders.clear();
+        clearSpokenText();
         queue?.destroy();
         queue = undefined;
         store.dispatch(setChatTtsSpeaker(null));
@@ -87,7 +89,7 @@ function _getQueue({ dispatch }: IStore): CaptionsTtsQueue {
         queue = new CaptionsTtsQueue((speaking, messageId) => {
             const speakerId = speaking && messageId ? messageSenders.get(messageId) : undefined;
 
-            dispatch(setChatTtsSpeaker(speakerId ?? null));
+            dispatch(setChatTtsSpeaker(speakerId ?? null, speaking));
         });
     }
 
@@ -146,6 +148,7 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
 
     if (!language) {
         // No language was picked, so the message is spoken as it was received, in the voice of the caption language.
+        rememberSpokenText(text);
         speechQueue.enqueue({
             id: messageId,
             language: toTtsLanguageTag(state['features/subtitles']._language),
@@ -159,6 +162,8 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
     // The service detects the language it was written in on its own, which is why nothing here says what that was.
     translateLiveCaptionTextCached(`chat:${messageId}`, text, language, state['features/base/jwt'].jwt)
         .then(translated => {
+            // What goes to the engine is what the microphone might hear back, so that is what has to be remembered.
+            rememberSpokenText(translated || text);
             speechQueue.enqueue({
                 id: messageId,
                 language: toTtsLanguageTag(language),
@@ -169,6 +174,7 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
             logger.warn('Failed to translate a chat message before reading it aloud', error);
 
             // Better heard in the language it arrived in than not heard at all.
+            rememberSpokenText(text);
             speechQueue.enqueue({
                 id: messageId,
                 language: toTtsLanguageTag(state['features/subtitles']._language),

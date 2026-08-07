@@ -2,15 +2,30 @@
 
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, Pressable, Text, TextStyle, View, ViewStyle } from 'react-native';
+import {
+    Animated,
+    DeviceEventEmitter,
+    Easing,
+    Pressable,
+    Text,
+    TextStyle,
+    View,
+    ViewStyle
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-import { getLocalMicRecorderNativeModule } from '../../../audio-extraction/functions.native';
+import {
+    IMelpUtterance,
+    MELP_UTTERANCE_READY_EVENT,
+    MELP_UTTERANCE_SPEECH_STATE_EVENT,
+    getLocalMicRecorderNativeModule
+} from '../../../audio-extraction/functions.native';
 import Icon from '../../../base/icons/components/Icon';
-import { IconMessage, IconMic, IconStop, IconVolumeOff, IconVolumeUp } from '../../../base/icons/svg';
+import { IconMessage, IconMic, IconMicSlash, IconVolumeOff, IconVolumeUp } from '../../../base/icons/svg';
 import { updateSettings } from '../../../base/settings/actions';
-import { getCaptionsTtsNativeModule, isChatTtsEnabled } from '../../../caption-tts/functions.native';
+import { getCaptionsTtsNativeModule, isChatTtsEnabled, isReadingAloud } from '../../../caption-tts/functions.native';
+import { wasRecentlySpoken } from '../../../caption-tts/spokenText';
 import transcribeWavFile from '../../../live-transcribe/native/transcribeWav';
 import { sendMessage } from '../../actions.native';
 
@@ -19,10 +34,15 @@ import ChatInputBar from './ChatInputBar';
 import { chatCallStyles as styles } from './styles';
 
 /**
- * The longest single utterance we record. The native recorder takes a duration up front and stops early when asked, so
- * this is only a backstop for a recording nobody ever stopped.
+ * How long a pause ends an utterance and sends it off to be transcribed.
  */
-const MAX_RECORDING_MS = 2 * 60 * 1000;
+const SILENCE_MS = 1000;
+
+/**
+ * The longest the recorder waits for a pause before handing an utterance over anyway, so that a monologue is still
+ * transcribed as it goes rather than at the end.
+ */
+const MAX_UTTERANCE_MS = 20 * 1000;
 
 /**
  * How long to wait for the transcription service. Longer than the caption default because a whole utterance is a bigger
@@ -31,30 +51,19 @@ const MAX_RECORDING_MS = 2 * 60 * 1000;
 const TRANSCRIBE_TIMEOUT_MS = 60 * 1000;
 
 /**
+ * How long the microphone stays deaf after the device has stopped speaking. A room reverberates, and the last syllable
+ * out of the loudspeaker is still in the air after the engine reports it done.
+ */
+const ECHO_TAIL_MS = 400;
+
+/**
  * How many bars the level meter is drawn with.
  */
 const WAVEFORM_BARS = 7;
 
-type VoiceState = 'idle' | 'recording' | 'transcribing';
-
 /**
- * Formats an elapsed duration as {@code m:ss}.
- *
- * @param {number} elapsedMs - How long the recording has been running.
- * @returns {string}
- */
-function formatElapsed(elapsedMs: number) {
-    const totalSeconds = Math.floor(elapsedMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = String(totalSeconds % 60).padStart(2, '0');
-
-    return `${minutes}:${seconds}`;
-}
-
-/**
- * A level meter standing in for the open microphone. The bars are animated rather than driven by the real signal: the
- * recorder writes its samples straight to a file without reporting levels back, and a meter which merely says "the
- * microphone is live" is what this has to convey.
+ * A level meter following the voice: the recorder reports when it starts and stops hearing speech, and the bars move
+ * while it does.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element}
@@ -112,9 +121,10 @@ function Waveform({ active }: { active: boolean; }) {
 }
 
 /**
- * The console of the live translation call: it records what the local participant says, sends the transcript to everyone
- * as a chat message, and carries the switch for reading incoming messages aloud. Reading them out is done by the
- * caption-tts chat middleware wherever in the app the local user is, so this only turns it on and off.
+ * The console of the live translation call. The microphone is open the whole time this screen is on: the recorder cuts
+ * what is said at every pause and hands each utterance over, which is transcribed and sent to everyone in the call as a
+ * chat message without anybody having to press anything. The single microphone button here stops and resumes that; the
+ * conference microphone stays muted for as long as the screen is open, so nothing is said twice.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element | null}
@@ -127,53 +137,150 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
     const { t } = useTranslation();
     const { setDictating } = useContext(ChatCallContext);
     const readAloud = useSelector((state: IReduxState) => isChatTtsEnabled(state));
-
-    const [ voiceState, setVoiceState ] = useState<VoiceState>('idle');
-    const [ elapsedMs, setElapsedMs ] = useState(0);
-    const [ notice, setNotice ] = useState('');
+    const readingAloud = useSelector((state: IReduxState) => isReadingAloud(state));
 
     const recorderRef = useRef(getLocalMicRecorderNativeModule());
     const ttsRef = useRef(getCaptionsTtsNativeModule());
-    const startedAtRef = useRef(0);
-    const cancelledRef = useRef(false);
+    const canRecord = Boolean(recorderRef.current?.startUtteranceSession);
+    const canReadAloud = Boolean(ttsRef.current?.speak);
+
+    const [ listening, setListening ] = useState(canRecord);
+    const [ speaking, setSpeaking ] = useState(false);
+    const [ deafened, setDeafened ] = useState(false);
+    const [ pending, setPending ] = useState(0);
+    const [ notice, setNotice ] = useState('');
+
     const mountedRef = useRef(true);
     const halo = useRef(new Animated.Value(1)).current;
 
-    const canRecord = Boolean(recorderRef.current?.recordToFile);
-    const canReadAloud = Boolean(ttsRef.current?.speak);
-    const isRecording = voiceState === 'recording';
-    const isBusy = voiceState === 'transcribing';
+    // Utterances are transcribed one after the other, so what is said first is also sent first.
+    const chainRef = useRef<Promise<void>>(Promise.resolve());
 
-    // The stage above draws the local avatar speaking while the microphone is open.
-    useEffect(() => {
-        setDictating(isRecording);
-    }, [ isRecording, setDictating ]);
-
-    // Leaving the screen only stops the microphone: a message being read out carries on, since read aloud is not tied to
-    // the chat being open.
     useEffect(() => () => {
         mountedRef.current = false;
-        cancelledRef.current = true;
-        recorderRef.current?.stop();
+        recorderRef.current?.stopUtteranceSession();
         setDictating(false);
     }, []);
 
-    // Keeps the elapsed counter ticking for as long as the microphone is open.
+    // The stage above draws the local avatar speaking while the recorder hears a voice.
     useEffect(() => {
-        if (!isRecording) {
+        setDictating(speaking);
+    }, [ setDictating, speaking ]);
+
+    const transcribeAndSend = useCallback(async (utterance: IMelpUtterance) => {
+        const fileName = utterance.path.split('/').pop() || 'utterance.wav';
+
+        if (mountedRef.current) {
+            setPending(count => count + 1);
+        }
+
+        try {
+            const transcript = await transcribeWavFile(utterance.path, fileName, TRANSCRIBE_TIMEOUT_MS);
+
+            // The backstop to deafening the microphone: what leaked through the gate is the device hearing its own
+            // voice, and sending it back would have the other side read it out and echo it to us in turn.
+            if (transcript && wasRecentlySpoken(transcript)) {
+                return;
+            }
+
+            if (transcript) {
+                dispatch(sendMessage(transcript));
+
+                if (mountedRef.current) {
+                    setNotice('');
+                }
+            }
+        } catch (error) {
+            if (mountedRef.current) {
+                setNotice(t('chat.voice.failed'));
+            }
+        } finally {
+            // Leaving the screen does not abandon an utterance: it is still transcribed and sent, there is just no
+            // console left to say so.
+            if (mountedRef.current) {
+                setPending(count => Math.max(0, count - 1));
+            }
+        }
+    }, [ dispatch, t ]);
+
+    // Each utterance the recorder hands over is transcribed and sent while the microphone carries on listening.
+    useEffect(() => {
+        const utteranceSubscription = DeviceEventEmitter.addListener(
+            MELP_UTTERANCE_READY_EVENT,
+            (utterance: IMelpUtterance) => {
+                if (!utterance?.path) {
+                    return;
+                }
+
+                chainRef.current = chainRef.current
+                    .then(() => transcribeAndSend(utterance))
+                    .catch(() => { /* Already reported; the chain must survive it. */ });
+            });
+        const speechSubscription = DeviceEventEmitter.addListener(
+            MELP_UTTERANCE_SPEECH_STATE_EVENT,
+            (event: { speaking?: boolean; }) => setSpeaking(Boolean(event?.speaking)));
+
+        return () => {
+            utteranceSubscription.remove();
+            speechSubscription.remove();
+        };
+    }, [ transcribeAndSend ]);
+
+    // Deafens the microphone for as long as the device is speaking, plus a tail for the room. This is what stops the
+    // text-to-speech voice from being recorded back in, transcribed, and sent to the meeting as if it had been said.
+    useEffect(() => {
+        const recorder = recorderRef.current;
+
+        if (!recorder?.setUtteranceSessionMuted) {
             return;
         }
 
-        const interval = setInterval(() => {
-            setElapsedMs(Date.now() - startedAtRef.current);
-        }, 250);
+        if (readingAloud) {
+            recorder.setUtteranceSessionMuted(true);
+            setDeafened(true);
+            setSpeaking(false);
 
-        return () => clearInterval(interval);
-    }, [ isRecording ]);
+            return;
+        }
 
-    // Breathes the ring around the microphone button while it is open.
+        const timeout = setTimeout(() => {
+            recorder.setUtteranceSessionMuted(false);
+
+            if (mountedRef.current) {
+                setDeafened(false);
+            }
+        }, ECHO_TAIL_MS);
+
+        return () => clearTimeout(timeout);
+    }, [ readingAloud ]);
+
+    // Opens and closes the microphone to match the button.
     useEffect(() => {
-        if (!isRecording) {
+        const recorder = recorderRef.current;
+
+        if (!recorder || !canRecord) {
+            return;
+        }
+
+        if (!listening) {
+            recorder.stopUtteranceSession();
+            setSpeaking(false);
+
+            return;
+        }
+
+        recorder.startUtteranceSession(SILENCE_MS, MAX_UTTERANCE_MS)
+            .catch(() => {
+                if (mountedRef.current) {
+                    setNotice(t('chat.voice.unavailable'));
+                    setListening(false);
+                }
+            });
+    }, [ canRecord, listening, t ]);
+
+    // Breathes the ring around the microphone button while a voice is being heard.
+    useEffect(() => {
+        if (!speaking) {
             halo.setValue(1);
 
             return;
@@ -197,78 +304,12 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
         animation.start();
 
         return () => animation.stop();
-    }, [ halo, isRecording ]);
+    }, [ halo, speaking ]);
 
-    const startRecording = useCallback(() => {
-        const recorder = recorderRef.current;
-
-        if (!recorder) {
-            return;
-        }
-
-        cancelledRef.current = false;
-        startedAtRef.current = Date.now();
-        setElapsedMs(0);
+    const toggleListening = useCallback(() => {
         setNotice('');
-        setVoiceState('recording');
-
-        // Nothing should talk over the participant while they are dictating.
-        ttsRef.current?.stop();
-
-        const fileName = `chat-voice-${startedAtRef.current}.wav`;
-
-        recorder.recordToFile(fileName, MAX_RECORDING_MS)
-            .then(async audioPath => {
-                if (cancelledRef.current) {
-                    return;
-                }
-
-                if (mountedRef.current) {
-                    setVoiceState('transcribing');
-                }
-
-                const transcript = await transcribeWavFile(audioPath, fileName, TRANSCRIBE_TIMEOUT_MS);
-
-                if (cancelledRef.current) {
-                    return;
-                }
-
-                if (!transcript) {
-                    if (mountedRef.current) {
-                        setNotice(t('chat.voice.nothingHeard'));
-                        setVoiceState('idle');
-                    }
-
-                    return;
-                }
-
-                dispatch(sendMessage(transcript));
-
-                if (mountedRef.current) {
-                    setNotice('');
-                    setVoiceState('idle');
-                }
-            })
-            .catch(() => {
-                if (mountedRef.current && !cancelledRef.current) {
-                    setNotice(t('chat.voice.failed'));
-                    setVoiceState('idle');
-                }
-            });
-    }, [ dispatch, t ]);
-
-    // Asking the recorder to stop makes it resolve with whatever it captured so far, which is then transcribed.
-    const toggleRecording = useCallback(() => {
-        if (isRecording) {
-            recorderRef.current?.stop();
-
-            return;
-        }
-
-        if (voiceState === 'idle') {
-            startRecording();
-        }
-    }, [ isRecording, startRecording, voiceState ]);
+        setListening(value => !value);
+    }, []);
 
     const toggleReadAloud = useCallback(() => {
         if (readAloud) {
@@ -285,22 +326,33 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
 
     let stateLine;
 
-    if (isRecording) {
+    if (!canRecord) {
+        stateLine = (
+            <Text style = { styles.hintText as TextStyle }>
+                { t('chat.voice.unavailable') }
+            </Text>
+        );
+    } else if (deafened) {
+        stateLine = (
+            <Text
+                numberOfLines = { 1 }
+                style = { styles.hintText as TextStyle }>
+                { t('chat.call.pausedWhileReading') }
+            </Text>
+        );
+    } else if (speaking) {
         stateLine = (
             <>
                 <View style = { styles.liveDot as ViewStyle } />
                 <Text style = { styles.stateText as TextStyle }>
-                    { t('chat.voice.speaking') }
-                </Text>
-                <Text style = { styles.elapsedText as TextStyle }>
-                    { formatElapsed(elapsedMs) }
+                    { t('chat.call.youAreSpeaking') }
                 </Text>
             </>
         );
-    } else if (isBusy) {
+    } else if (pending > 0) {
         stateLine = (
             <Text style = { styles.stateText as TextStyle }>
-                { t('chat.voice.transcribing') }
+                { t('chat.call.sending') }
             </Text>
         );
     } else {
@@ -308,7 +360,7 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
             <Text
                 numberOfLines = { 1 }
                 style = { styles.hintText as TextStyle }>
-                { notice || (canRecord ? t('chat.voice.hint') : t('chat.voice.unavailable')) }
+                { notice || t(listening ? 'chat.call.listeningForSpeech' : 'chat.call.micIsOff') }
             </Text>
         );
     }
@@ -319,7 +371,7 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
                 { stateLine }
             </View>
 
-            <Waveform active = { isRecording } />
+            <Waveform active = { speaking } />
 
             <View style = { styles.controlsRow as ViewStyle }>
                 <View style = { styles.sideControl as ViewStyle }>
@@ -339,23 +391,23 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
                                     src = { readAloud ? IconVolumeUp : IconVolumeOff } />
                             </Pressable>
                             <Text style = { styles.controlLabel as TextStyle }>
-                                { readAloud ? t('chat.call.listening') : t('chat.call.muted') }
+                                { readAloud ? t('chat.call.sound') : t('chat.call.muted') }
                             </Text>
                         </>
                     ) }
                 </View>
 
                 <Pressable
-                    accessibilityLabel = { isRecording ? t('chat.voice.stop') : t('chat.voice.start') }
+                    accessibilityLabel = { t(listening ? 'chat.call.micOff' : 'chat.call.micOn') }
                     accessibilityRole = 'button'
-                    disabled = { !canRecord || isBusy }
-                    onPress = { toggleRecording }
+                    disabled = { !canRecord }
+                    onPress = { toggleListening }
                     style = { [
                         styles.talkButton,
-                        isRecording && styles.talkButtonRecording,
-                        (!canRecord || isBusy) && styles.talkButtonDisabled
+                        speaking && styles.talkButtonRecording,
+                        (!canRecord || !listening) && styles.talkButtonDisabled
                     ] as ViewStyle[] }>
-                    { isRecording && (
+                    { speaking && (
                         <Animated.View
                             pointerEvents = 'none'
                             style = { [
@@ -366,7 +418,7 @@ function ChatCallConsole({ inputVisible, onToggleInput }: {
                     <Icon
                         color = '#FFFFFF'
                         size = { 30 }
-                        src = { isRecording ? IconStop : IconMic } />
+                        src = { listening ? IconMic : IconMicSlash } />
                 </Pressable>
 
                 <View style = { styles.sideControl as ViewStyle }>
