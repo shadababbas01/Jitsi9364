@@ -2,6 +2,7 @@ import '../base/config/middleware';
 import '../caption-tts/chatMiddleware.native';
 import '../caption-tts/middleware.native';
 import '../dynamic-branding/middleware';
+import '../live-translation/middleware.native';
 import '../gifs/middleware';
 import '../mobile/audio-mode/middleware';
 import '../mobile/background/middleware';

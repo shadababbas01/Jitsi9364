@@ -9,6 +9,7 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { getParticipantCountForDisplay } from '../../../base/participants/functions';
+import LiveTranslationButton from '../../../live-translation/components/native/LiveTranslationButton';
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
@@ -83,6 +84,9 @@ const SideToolbar = (props: IProps) => {
                         <ChatButton styles = { styles.sideToolbarButton } />
                     </View>
                 }
+                <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                    <LiveTranslationButton styles = { styles.sideToolbarButton } />
+                </View>
                 {raisedHandsCount > 0 && (
                     <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
                         <View style = { styles.sideToolbarButtonBadgeWrapper as ViewStyle }>

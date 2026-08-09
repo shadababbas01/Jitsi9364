@@ -78,6 +78,7 @@ export interface ISettingsState {
     displayName?: string;
     email?: string;
     hideShareAudioHelper?: boolean;
+
     localFlipX?: boolean;
     maxStageParticipants?: number;
     micDeviceId?: string | boolean;

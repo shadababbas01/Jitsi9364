@@ -20,7 +20,6 @@ import { IReduxState, IStore } from '../../../app/types';
 import Avatar from '../../../base/avatar/components/Avatar';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { setConnectionStatus } from '../../../base/conference/actions.any';
-import { MEDIA_TYPE } from '../../../base/media/constants';
 import {
     getLocalParticipant,
     getParticipantById,
@@ -38,7 +37,7 @@ import { updateSettings } from '../../../base/settings/actions';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import { StyleType } from '../../../base/styles/functions.any';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
-import { getTrackByMediaTypeAndParticipant } from '../../../base/tracks/functions.native';
+import { isParticipantAudioMuted } from '../../../base/tracks/functions.native';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
 import CaptionsPanel from '../../../chat/components/native/CaptionsPanel';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
@@ -50,6 +49,7 @@ import { isFilmstripVisible } from '../../../filmstrip/functions.native';
 import { setCalleeInfoVisible } from '../../../invite/actions.any';
 import CalleeInfoContainer from '../../../invite/components/callee-info/CalleeInfoContainer';
 import LargeVideo from '../../../large-video/components/LargeVideo.native';
+import LiveTranslationPanel from '../../../live-translation/components/native/LiveTranslationPanel';
 import { getIsLobbyVisible } from '../../../lobby/functions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
@@ -108,10 +108,11 @@ const remoteMutedTextStyle = {
  * @returns {ReactElement | null}
  */
 function RemoteMutedBanner({ participantId, topOffset = 120 }: { participantId: string; topOffset?: number; }) {
-    const tracks = useSelector((state: IReduxState) => state['features/base/tracks']);
     const participant = useSelector((state: IReduxState) => getParticipantById(state, participantId));
-    const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participantId);
-    const isMuted: boolean = audioTrack?.muted ?? false;
+
+    // Asked of the meeting rather than of the audio track, so that somebody in a live translation call is called muted
+    // only when they have actually closed their microphone: their conference track is muted for the whole of that call.
+    const isMuted = useSelector((state: IReduxState) => isParticipantAudioMuted(participant, state));
     const isRemote = Boolean(participant && !participant.local);
     const displayName: string = participant?.name ?? 'User';
 
@@ -707,6 +708,13 @@ class Conference extends AbstractConference<IProps, State> {
                   * the toolbox so the toolbar keeps floating on top.
                   */
                     _shouldDisplayTileView && <CaptionsPanel />
+                }
+
+                {/*
+                  * The live translation call sits in the same place, for the same reason: the tile grid has already
+                  * given up the room it takes.
+                  */
+                    _shouldDisplayTileView && <LiveTranslationPanel />
                 }
 
                 {

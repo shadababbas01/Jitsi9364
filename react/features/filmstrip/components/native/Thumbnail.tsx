@@ -31,12 +31,15 @@ import ConnectionIndicator from '../../../connection-indicator/components/native
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import { getGifDisplayMode, getGifForParticipant } from '../../../gifs/functions.native';
 import { selectParticipantInLargeVideo } from '../../../large-video/actions.any';
+import { LIVE_TRANSLATION_MIC_ON } from '../../../live-translation/constants';
+import { getLiveTranslationState } from '../../../live-translation/functions.native';
 import {
     showConnectionStatus,
     showContextMenuDetails,
     showSharedVideoMenu
 } from '../../../participants-pane/actions.native';
 import { toggleToolboxVisible } from '../../../toolbox/actions.native';
+import { isToolboxVisible } from '../../../toolbox/functions.native';
 import { shouldDisplayTileView } from '../../../video-layout/functions.native';
 import { setTileView } from '../../../video-layout/actions.native';
 import VoiceTranslationTileIndicators from '../../../voice-translation/components/native/VoiceTranslationTileIndicators';
@@ -49,7 +52,6 @@ import RaisedHandIndicator from './RaisedHandIndicator';
 import ScreenShareIndicator from './ScreenShareIndicator';
 import ThumbnailAudioIndicator from './ThumbnailAudioIndicator';
 import styles, { AVATAR_SIZE } from './styles';
-import { isToolboxVisible } from '../../../toolbox/functions.native';
 
 const DOUBLE_TAP_TIMEOUT_MS = 200;
 
@@ -574,6 +576,21 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const localParticipantId = getLocalParticipant(state)?.id;
     const id = participant?.id;
     const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, id);
+    const { active: liveTranslationActive, micOn: liveTranslationMicOn } = getLiveTranslationState(state);
+
+    // During a translated call the conference microphone is muted throughout and the microphone the recorder listens
+    // through is the one that means anything, so that is the one the tile shows: the local user's own comes out of the
+    // call state, everybody else's out of what they announce in presence. Tiles of anybody not in a translated call are
+    // unaffected - what they transmit is what their track says.
+    let audioMuted;
+
+    if (liveTranslationActive && participant?.local) {
+        audioMuted = !liveTranslationMicOn;
+    } else if (participant?.liveTranslationMic) {
+        audioMuted = participant.liveTranslationMic !== LIVE_TRANSLATION_MIC_ON;
+    } else {
+        audioMuted = audioTrack?.muted ?? true;
+    }
     const videoTrack = getVideoTrackByParticipant(state, participant);
     const isScreenShare = videoTrack?.videoType === VIDEO_TYPE.DESKTOP;
     const participantCount = getParticipantCountWithFake(state);
@@ -593,7 +610,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         : tileViewDimensions.thumbnailSize.height;
 
     return {
-        _audioMuted: audioTrack?.muted ?? true,
+        _audioMuted: audioMuted,
         _fakeParticipant: participant?.fakeParticipant,
         _gifSrc: mode === 'chat' ? undefined : gifSrc,
         _isScreenShare: isScreenShare,

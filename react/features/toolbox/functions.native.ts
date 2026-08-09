@@ -6,6 +6,7 @@ import { getFeatureFlag } from '../base/flags/functions';
 import { getParticipantCountWithFake } from '../base/participants/functions';
 import { toState } from '../base/redux/functions';
 import { isLocalVideoTrackDesktop } from '../base/tracks/functions.native';
+import { isLiveTranslationActive } from '../live-translation/functions.any';
 
 import { MAIN_TOOLBAR_BUTTONS_PRIORITY, VISITORS_MODE_BUTTONS } from './constants';
 import { isButtonEnabled } from './functions.any';
@@ -41,6 +42,13 @@ export function isToolboxVisible(stateful: IStateful) {
     const participantCount = getParticipantCountWithFake(state);
     const alwaysVisibleFlag = getFeatureFlag(state, TOOLBOX_ALWAYS_VISIBLE, false);
     const enabledFlag = getFeatureFlag(state, TOOLBOX_ENABLED, true);
+
+    if (isLiveTranslationActive(state)) {
+        // The translated call takes the bottom of the screen and carries its own controls, so the toolbar starts out of
+        // the way. A tap still brings it back, which is the only way to reach hangup, so none of the reasons a toolbar
+        // is normally forced visible apply here: what the local user last asked for is what they get.
+        return Boolean(enabledFlag && enabled && visible);
+    }
 
     return enabledFlag && enabled
         && (alwaysVisible || visible || participantCount === 1 || alwaysVisibleFlag);

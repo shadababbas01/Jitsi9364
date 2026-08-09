@@ -1,4 +1,6 @@
 import { IReduxState, IStore } from '../../app/types';
+import { LIVE_TRANSLATION_MIC_ON } from '../../live-translation/constants';
+import { getLiveTranslationState } from '../../live-translation/functions.any';
 import { getSsrcRewritingFeatureFlag } from '../config/functions.any';
 import { JitsiTrackErrors, browser } from '../lib-jitsi-meet';
 import { gumPending } from '../media/actions';
@@ -35,6 +37,22 @@ export function isParticipantMediaMuted(participant: IParticipant | undefined,
         mediaType: MediaType, state: IReduxState) {
     if (!participant) {
         return false;
+    }
+
+    // Somebody in a live translation call keeps their conference microphone muted for the whole of it, whatever they
+    // have their own microphone set to, so their audio track would report them as muted from beginning to end. The
+    // microphone they actually have is the one worth showing: the local user's own comes out of the call state, and
+    // everybody else's out of what they announce in presence.
+    if (mediaType === MEDIA_TYPE.AUDIO) {
+        const { active, micOn } = getLiveTranslationState(state);
+
+        if (participant.local && active) {
+            return !micOn;
+        }
+
+        if (participant.liveTranslationMic) {
+            return participant.liveTranslationMic !== LIVE_TRANSLATION_MIC_ON;
+        }
     }
 
     if (getSsrcRewritingFeatureFlag(state)) {

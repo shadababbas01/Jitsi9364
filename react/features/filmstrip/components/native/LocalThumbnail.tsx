@@ -13,11 +13,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { IconMicSlash } from '../../../base/icons/svg';
-import { MEDIA_TYPE } from '../../../base/media/constants';
 import { pinParticipant } from '../../../base/participants/actions';
-import { getLocalParticipant, getParticipantCount } from '../../../base/participants/functions';
+import { getLocalParticipant, getParticipantById, getParticipantCount } from '../../../base/participants/functions';
 import BaseIndicator from '../../../base/react/components/native/BaseIndicator';
-import { getTrackByMediaTypeAndParticipant } from '../../../base/tracks/functions.native';
+import { isParticipantAudioMuted } from '../../../base/tracks/functions.native';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { selectParticipantInLargeVideo } from '../../../large-video/actions.any';
 import { getLargeVideoParticipant } from '../../../large-video/functions';
@@ -70,10 +69,13 @@ export default function LocalThumbnail() {
             : localParticipantId;
     const [ isExpanded, setIsExpanded ] = useState(false);
 
-    // Mic muted for the floating participant
-    const tracks = useSelector((state: IReduxState) => state['features/base/tracks']);
-    const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, floatingParticipantId);
-    const isMicMuted: boolean = audioTrack?.muted ?? true;
+    // Mic muted for the floating participant. Asked of the meeting rather than of the audio track, so that somebody in
+    // a live translation call is called muted only when they have really closed their microphone: their conference
+    // track stays muted for the whole of that call whatever they do with it.
+    const floatingParticipant
+        = useSelector((state: IReduxState) => getParticipantById(state, floatingParticipantId ?? ''));
+    const isMicMuted = useSelector((state: IReduxState) =>
+        (floatingParticipant ? isParticipantAudioMuted(floatingParticipant, state) : true));
     const isLocal = floatingParticipantId === localParticipantId;
 
     const edgeMargin = BaseTheme.spacing[1];

@@ -538,6 +538,12 @@ StateListenerRegistry.register(
                         id: participant.getId(),
                         features: { 'screen-sharing': true }
                     })),
+                'liveTranslationMic': (participant: IJitsiParticipant, value: string) =>
+                    store.dispatch(participantUpdated({
+                        conference,
+                        id: participant.getId(),
+                        liveTranslationMic: value
+                    })),
                 'localRecording': (participant: IJitsiParticipant, value: string) =>
                     _localRecordingUpdated(store, conference, participant.getId(), Boolean(value)),
                 'deviceType': (participant: IJitsiParticipant, value: string) =>

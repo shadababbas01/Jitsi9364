@@ -1,11 +1,10 @@
 /* eslint-disable react/no-multi-comp */
 import { Route, useIsFocused } from '@react-navigation/native';
-import React, { Component, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Component, useEffect, useMemo, useState } from 'react';
 import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { translate } from '../../../base/i18n/functions';
-import { setAudioMuted } from '../../../base/media/actions';
 import JitsiScreen from '../../../base/modal/components/JitsiScreen';
 import { StyleType } from '../../../base/styles/functions.native';
 import { TabBarLabelCounter } from '../../../mobile/navigation/components/TabBarLabelCounter';
@@ -144,25 +143,6 @@ export default translate(connect(_mapStateToProps)((props: IProps) => {
             isFocused && dispatch(closeChat());
         };
     }, [ isFocused, _unreadMessagesCount ]);
-
-    // The local voice reaches the other participants as a translated message read out on their side, so letting the
-    // conference microphone through as well would say everything twice. It is muted for as long as this screen is up and
-    // put back the way it was found on the way out.
-    const wasAudioMutedRef = useRef<boolean>(false);
-    const audioMuted = useSelector((state: IReduxState) => state['features/base/media'].audio.muted);
-
-    useEffect(() => {
-        // Deliberately mount-only: the microphone state as this screen was opened is what has to be restored, so later
-        // changes must not re-run this and unmute halfway through the call.
-        wasAudioMutedRef.current = Boolean(audioMuted);
-        dispatch(setAudioMuted(true));
-
-        return () => {
-            if (!wasAudioMutedRef.current) {
-                dispatch(setAudioMuted(false, true));
-            }
-        };
-    }, [ dispatch ]);
 
     const [ dictating, setDictating ] = useState(false);
     const callContext = useMemo(() => ({

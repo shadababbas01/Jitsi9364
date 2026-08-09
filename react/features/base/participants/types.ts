@@ -29,6 +29,12 @@ export interface IParticipant {
     isReplacing?: number;
     isSilent?: boolean;
     jwtId?: string;
+
+    /**
+     * Whether the microphone of a live translation call is open, for participants who are in one. Empty or absent for
+     * everybody else, whose audio track says it already.
+     */
+    liveTranslationMic?: string;
     loadableAvatarUrl?: string;
     loadableAvatarUrlUseCORS?: boolean;
     local?: boolean;
