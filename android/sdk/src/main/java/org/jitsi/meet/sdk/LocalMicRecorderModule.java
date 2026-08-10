@@ -79,14 +79,18 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
     private static final int MIN_UTTERANCE_MS = 400;
 
     /**
-     * The quietest signal treated as speech, whatever the room sounds like. Out of a 32768 full scale, so about -36 dB.
+     * The quietest signal treated as speech, whatever the room sounds like. Set to 45 dB SPL, converted through the one
+     * anchor Android gives: the CDD asks that a 1 kHz tone at 90 dB SPL record as RMS 2500 on 16-bit samples, which is
+     * -22.35 dBFS out of a 32768 full scale. 45 dB SPL is 45 dB below that anchor, so -67.35 dBFS, or 2500 * 10^(-45/20)
+     * ≈ 14. Being so far under speech, this floor rarely decides anything on its own: the adaptive noise floor below is
+     * what usually sets the threshold.
      */
-    private static final double MIN_SPEECH_RMS = 500;
+    private static final double MIN_SPEECH_RMS = 14;
 
     /**
      * How far above the measured noise floor a buffer has to be to count as speech.
      */
-    private static final double NOISE_FLOOR_MARGIN = 2.5;
+    private static final double NOISE_FLOOR_MARGIN = 10;
 
     /**
      * How quickly the measured noise floor follows the room. Only updated while nobody is speaking.

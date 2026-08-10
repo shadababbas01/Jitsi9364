@@ -35,6 +35,12 @@ export interface IParticipant {
      * everybody else, whose audio track says it already.
      */
     liveTranslationMic?: string;
+
+    /**
+     * Whether the recorder of a live translation call is hearing this participant right now. Empty or absent for
+     * everybody else, whose audio level says it already.
+     */
+    liveTranslationSpeaking?: string;
     loadableAvatarUrl?: string;
     loadableAvatarUrlUseCORS?: boolean;
     local?: boolean;

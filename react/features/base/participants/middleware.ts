@@ -544,6 +544,12 @@ StateListenerRegistry.register(
                         id: participant.getId(),
                         liveTranslationMic: value
                     })),
+                'liveTranslationSpeaking': (participant: IJitsiParticipant, value: string) =>
+                    store.dispatch(participantUpdated({
+                        conference,
+                        id: participant.getId(),
+                        liveTranslationSpeaking: value
+                    })),
                 'localRecording': (participant: IJitsiParticipant, value: string) =>
                     _localRecordingUpdated(store, conference, participant.getId(), Boolean(value)),
                 'deviceType': (participant: IJitsiParticipant, value: string) =>

@@ -229,7 +229,40 @@ export default {
 
     thumbnailDominantSpeaker: {
         borderWidth: 2,
-        borderColor: '#ffffffff' //added by jaswant
+        borderColor: ColorPalette.red
+    },
+
+    /**
+     * Sits with the red outline, so that the tile says who is being recorded and not only that somebody is.
+     */
+    thumbnailRecordingBadge: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.72)',
+        borderColor: ColorPalette.red,
+        borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: 'row',
+        maxWidth: '70%',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[1],
+        position: 'absolute',
+        top: BaseTheme.spacing[2],
+        zIndex: 5
+    },
+
+    thumbnailRecordingBadgeDot: {
+        backgroundColor: ColorPalette.red,
+        borderRadius: 4,
+        height: 8,
+        marginRight: BaseTheme.spacing[1],
+        width: 8
+    },
+
+    thumbnailRecordingBadgeText: {
+        ...BaseTheme.typography.labelBold,
+        color: ColorPalette.white,
+        letterSpacing: 0
     },
 
     thumbnailGif: {

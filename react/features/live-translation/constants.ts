@@ -42,6 +42,25 @@ export const LIVE_TRANSLATION_MIC_OFF = 'off';
 export const LIVE_TRANSLATION_MIC_NONE = '';
 
 /**
+ * The presence property the recorder's speech state is announced through.
+ *
+ * For the same reason the microphone has to be announced: with the conference microphone muted no audio level ever
+ * leaves the device, so nothing the meeting can see says who is talking. This is what the speaking outline on everybody
+ * else's copy of the tile is drawn from.
+ */
+export const LIVE_TRANSLATION_SPEAKING_PROPERTY = 'liveTranslationSpeaking';
+
+/**
+ * The value of {@link LIVE_TRANSLATION_SPEAKING_PROPERTY} while the recorder is hearing the participant.
+ */
+export const LIVE_TRANSLATION_SPEAKING_ON = 'on';
+
+/**
+ * The value of {@link LIVE_TRANSLATION_SPEAKING_PROPERTY} the rest of the time, including outside a translated call.
+ */
+export const LIVE_TRANSLATION_SPEAKING_OFF = 'off';
+
+/**
  * How long a pause ends an utterance and sends it off to be transcribed.
  */
 export const SILENCE_MS = 1000;

@@ -22,6 +22,7 @@ import { setTileView } from '../video-layout/actions.any';
 
 import {
     SET_LIVE_TRANSLATION_ACTIVE,
+    SET_LIVE_TRANSLATION_DICTATING,
     SET_LIVE_TRANSLATION_MIC
 } from './actionTypes';
 import {
@@ -36,6 +37,9 @@ import {
     LIVE_TRANSLATION_MIC_OFF,
     LIVE_TRANSLATION_MIC_ON,
     LIVE_TRANSLATION_MIC_PROPERTY,
+    LIVE_TRANSLATION_SPEAKING_OFF,
+    LIVE_TRANSLATION_SPEAKING_ON,
+    LIVE_TRANSLATION_SPEAKING_PROPERTY,
     MAX_UTTERANCE_MS,
     SILENCE_MS,
     TRANSCRIBE_TIMEOUT_MS
@@ -106,6 +110,17 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
 
         _syncMicrophone(store);
         _announceMicrophone(store);
+
+        // Closing the microphone stops the dictation with it, which the others have to hear about too.
+        _announceSpeaking(store);
+
+        return result;
+    }
+
+    case SET_LIVE_TRANSLATION_DICTATING: {
+        const result = next(action);
+
+        _announceSpeaking(store);
 
         return result;
     }
@@ -191,6 +206,9 @@ function _start(store: IStore) {
 
     _announceMicrophone(store);
 
+    // Nobody is talking yet, and whatever the last call left announced has to be cleared.
+    _announceSpeaking(store);
+
     recorder.startUtteranceSession(SILENCE_MS, MAX_UTTERANCE_MS)
         .catch(error => {
             logger.warn('Could not open the microphone for the live translation call', error);
@@ -265,6 +283,25 @@ function _announceMicrophone({ getState }: IStore) {
         getCurrentConference(state)?.setLocalParticipantProperty(LIVE_TRANSLATION_MIC_PROPERTY, value);
     } catch (error) {
         logger.warn('Could not tell the meeting about the live translation microphone', error);
+    }
+}
+
+/**
+ * Tells the rest of the meeting whether the recorder is hearing the local participant right now, so their tile can be
+ * outlined on everybody else's screen exactly as a speaker's tile is in an ordinary call.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _announceSpeaking({ getState }: IStore) {
+    const state = getState();
+    const { active, dictating, micOn } = state['features/live-translation'];
+    const value = active && micOn && dictating ? LIVE_TRANSLATION_SPEAKING_ON : LIVE_TRANSLATION_SPEAKING_OFF;
+
+    try {
+        getCurrentConference(state)?.setLocalParticipantProperty(LIVE_TRANSLATION_SPEAKING_PROPERTY, value);
+    } catch (error) {
+        logger.warn('Could not tell the meeting about the live translation speech state', error);
     }
 }
 

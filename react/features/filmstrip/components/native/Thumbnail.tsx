@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, ImageStyle, View, ViewStyle } from 'react-native';
+import { Image, ImageStyle, Text, View, ViewStyle } from 'react-native';
 import { batch, connect } from 'react-redux';
 
 import { IReduxState, IStore } from '../../../app/types';
@@ -12,6 +12,7 @@ import {
     getLocalParticipant,
     getParticipantByIdOrUndefined,
     getParticipantCount,
+    getParticipantDisplayName,
     hasRaisedHand,
     getParticipantCountWithFake,
     isEveryoneModerator,
@@ -31,7 +32,7 @@ import ConnectionIndicator from '../../../connection-indicator/components/native
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import { getGifDisplayMode, getGifForParticipant } from '../../../gifs/functions.native';
 import { selectParticipantInLargeVideo } from '../../../large-video/actions.any';
-import { LIVE_TRANSLATION_MIC_ON } from '../../../live-translation/constants';
+import { LIVE_TRANSLATION_MIC_ON, LIVE_TRANSLATION_SPEAKING_ON } from '../../../live-translation/constants';
 import { getLiveTranslationState } from '../../../live-translation/functions.native';
 import {
     showConnectionStatus,
@@ -54,6 +55,17 @@ import ThumbnailAudioIndicator from './ThumbnailAudioIndicator';
 import styles, { AVATAR_SIZE } from './styles';
 
 const DOUBLE_TAP_TIMEOUT_MS = 200;
+
+/**
+ * The audio level, on the 0..1 scale lib-jitsi-meet reports, above which somebody counts as speaking. The same value the
+ * speaker wave treats as active, so the outline and the wave agree.
+ */
+const SPEAKING_AUDIO_LEVEL = 0.02;
+
+/**
+ * How long the outline stays up after the last loud sample, so that it does not blink between words.
+ */
+const SPEAKING_HOLD_MS = 1000;
 
 
 
@@ -116,6 +128,11 @@ interface IProps {
     _participantId: string;
 
     /**
+     * The name shown on the tile while the participant is being recorded.
+     */
+    _participantDisplayName: string;
+
+    /**
      * Indicates whether the participant is pinned or not.
      */
     _pinned?: boolean;
@@ -134,6 +151,18 @@ interface IProps {
      * Whether to show the moderator indicator or not.
      */
     _renderModeratorIndicator: boolean;
+
+    /**
+     * Whether the speaking outline has to be worked out from the audio level rather than taken from the dominant
+     * speaker, which the conference does not report usefully in a call this small.
+     */
+    _speakingFromAudioLevel: boolean;
+
+    /**
+     * Whether the participant is speaking into a translated call, where the muted conference track leaves the announced
+     * state as the only thing that can say so.
+     */
+    _speakingInTranslatedCall: boolean;
 
     _shouldDisplayTileView: boolean;
 
@@ -210,14 +239,28 @@ interface IProps {
       width?: number,
 }
 
+interface IState {
+
+    /**
+     * Whether the participant is speaking judging by their audio level. Only used where the conference does not report a
+     * usable dominant speaker.
+     */
+    _speakingByAudioLevel: boolean;
+}
+
 /**
  * React component for video thumbnail.
  */
-class Thumbnail extends PureComponent<IProps> {
+class Thumbnail extends PureComponent<IProps, IState> {
     /**
      * Timeout used to detect double tapping on tile view.
      */
     _doubleTapTimeout?: ReturnType<typeof setTimeout>;
+
+    /**
+     * Timeout that takes the speaking outline back down once the participant has been quiet for a moment.
+     */
+    _speakingTimeout?: ReturnType<typeof setTimeout>;
 
     /**
      * Creates new Thumbnail component.
@@ -228,11 +271,78 @@ class Thumbnail extends PureComponent<IProps> {
     constructor(props: IProps) {
         super(props);
 
+        this.state = {
+            _speakingByAudioLevel: false
+        };
+
         this._onClick = this._onClick.bind(this);
         this._onThumbnailLongPress = this._onThumbnailLongPress.bind(this);
         this.handleTrackStreamingStatusChanged = this.handleTrackStreamingStatusChanged.bind(this);
         this._handleTileViewSingleTap = this._handleTileViewSingleTap.bind(this);
         this._handleTileViewDoubleTap = this._handleTileViewDoubleTap.bind(this);
+        this._onAudioLevelChanged = this._onAudioLevelChanged.bind(this);
+    }
+
+    /**
+     * Raises the speaking outline on a loud enough sample and arms the timeout that lowers it again.
+     *
+     * @param {number} audioLevel - The audio level of the track, from 0 to 1.
+     * @returns {void}
+     */
+    _onAudioLevelChanged(audioLevel: number) {
+        if (audioLevel < SPEAKING_AUDIO_LEVEL) {
+            return;
+        }
+
+        if (this._speakingTimeout) {
+            clearTimeout(this._speakingTimeout);
+        }
+
+        this._speakingTimeout = setTimeout(() => {
+            this._speakingTimeout = undefined;
+            this.setState({ _speakingByAudioLevel: false });
+        }, SPEAKING_HOLD_MS);
+
+        if (!this.state._speakingByAudioLevel) {
+            this.setState({ _speakingByAudioLevel: true });
+        }
+    }
+
+    /**
+     * Starts or stops watching the audio level of the given track.
+     *
+     * @param {ITrack} audioTrack - The track to listen to.
+     * @param {boolean} listen - Whether to start listening or to stop.
+     * @returns {void}
+     */
+    _watchAudioLevel(audioTrack: ITrack | undefined, listen: boolean) {
+        const jitsiTrack = audioTrack?.jitsiTrack;
+
+        if (!jitsiTrack) {
+            return;
+        }
+
+        if (listen) {
+            jitsiTrack.on(JitsiTrackEvents.TRACK_AUDIO_LEVEL_CHANGED, this._onAudioLevelChanged);
+        } else {
+            jitsiTrack.off(JitsiTrackEvents.TRACK_AUDIO_LEVEL_CHANGED, this._onAudioLevelChanged);
+        }
+    }
+
+    /**
+     * Drops the speaking outline and forgets the timeout behind it.
+     *
+     * @returns {void}
+     */
+    _clearSpeaking() {
+        if (this._speakingTimeout) {
+            clearTimeout(this._speakingTimeout);
+            this._speakingTimeout = undefined;
+        }
+
+        if (this.state._speakingByAudioLevel) {
+            this.setState({ _speakingByAudioLevel: false });
+        }
     }
 
     /**
@@ -391,13 +501,17 @@ class Thumbnail extends PureComponent<IProps> {
         // Listen to track streaming status changed event to keep it updated.
         // TODO: after converting this component to a react function component,
         // use a custom hook to update local track streaming status.
-        const { _videoTrack, dispatch } = this.props;
+        const { _audioTrack, _speakingFromAudioLevel, _videoTrack, dispatch } = this.props;
 
         if (_videoTrack && !_videoTrack.local) {
             _videoTrack.jitsiTrack.on(JitsiTrackEvents.TRACK_STREAMING_STATUS_CHANGED,
                 this.handleTrackStreamingStatusChanged);
             dispatch(trackStreamingStatusChanged(_videoTrack.jitsiTrack,
                 _videoTrack.jitsiTrack.getTrackStreamingStatus()));
+        }
+
+        if (_speakingFromAudioLevel) {
+            this._watchAudioLevel(_audioTrack, true);
         }
     }
 
@@ -427,6 +541,21 @@ class Thumbnail extends PureComponent<IProps> {
                     _videoTrack.jitsiTrack.getTrackStreamingStatus()));
             }
         }
+
+        const { _audioTrack, _speakingFromAudioLevel } = this.props;
+        const trackChanged = prevProps._audioTrack?.jitsiTrack !== _audioTrack?.jitsiTrack;
+
+        if (trackChanged || prevProps._speakingFromAudioLevel !== _speakingFromAudioLevel) {
+            if (prevProps._speakingFromAudioLevel) {
+                this._watchAudioLevel(prevProps._audioTrack, false);
+            }
+
+            if (_speakingFromAudioLevel) {
+                this._watchAudioLevel(_audioTrack, true);
+            } else {
+                this._clearSpeaking();
+            }
+        }
     }
 
     /**
@@ -440,6 +569,14 @@ class Thumbnail extends PureComponent<IProps> {
             clearTimeout(this._doubleTapTimeout);
             this._doubleTapTimeout = undefined;
         }
+
+        if (this._speakingTimeout) {
+            clearTimeout(this._speakingTimeout);
+            this._speakingTimeout = undefined;
+        }
+
+        this._watchAudioLevel(this.props._audioTrack, false);
+
         // TODO: after converting this component to a react function component,
         // use a custom hook to update local track streaming status.
         const { _videoTrack, dispatch } = this.props;
@@ -473,13 +610,17 @@ class Thumbnail extends PureComponent<IProps> {
     render() {
         const {
             disableDominantSpeakerIndicator,
+            _audioMuted,
             _fakeParticipant,
             _gifSrc,
             _isScreenShare: isScreenShare,
             _isVirtualScreenshare,
+            _local,
+            _participantDisplayName,
             _participantId: participantId,
             _raisedHand,
             _renderDominantSpeakerIndicator,
+            _speakingInTranslatedCall,
             _videoTrack,
             backgroundColor,
             borderRadius,
@@ -513,6 +654,17 @@ class Thumbnail extends PureComponent<IProps> {
         const shouldShowAudioIndicator = (showAudioIndicator ?? true)
             && !(hideAudioIndicatorWhenVideoOn && isVideoOn);
 
+        // Below three participants the conference reports no dominant speaker worth having, so the audio level of the
+        // track stands in for it. In a translated call there is no audio level either, and what the participant
+        // announces is all there is.
+        const isSpeaking = Boolean(_renderDominantSpeakerIndicator)
+            || _speakingInTranslatedCall
+            || (this.state._speakingByAudioLevel && !_audioMuted);
+        const showSpeakingOutline = isSpeaking && !_isVirtualScreenshare && !disableDominantSpeakerIndicator;
+
+        // The red outline says somebody is being recorded; on a remote tile there is room to say who.
+        const showRecordingBadge = showSpeakingOutline && Boolean(tileView) && !_local;
+
         return (
             <Container
                 onClick = { this._onClick }
@@ -521,9 +673,7 @@ class Thumbnail extends PureComponent<IProps> {
                     styles.thumbnail,
                     styleOverrides,
                     _raisedHand && !_isVirtualScreenshare ? styles.thumbnailRaisedHand : null,
-                    _renderDominantSpeakerIndicator && !_isVirtualScreenshare && !disableDominantSpeakerIndicator
-                        ? styles.thumbnailDominantSpeaker
-                        : null
+                    showSpeakingOutline ? styles.thumbnailDominantSpeaker : null
                 ] as StyleType[] }
                 touchFeedback = { false }>
                 { _gifSrc ? <Image
@@ -554,6 +704,18 @@ class Thumbnail extends PureComponent<IProps> {
                         { tileView && !isScreenShare && !_isVirtualScreenshare && (
                             <VoiceTranslationTileIndicators participantId = { participantId } />
                         ) }
+                        { showRecordingBadge && (
+                            <View
+                                pointerEvents = 'none'
+                                style = { styles.thumbnailRecordingBadge as ViewStyle }>
+                                <View style = { styles.thumbnailRecordingBadgeDot as ViewStyle } />
+                                <Text
+                                    numberOfLines = { 1 }
+                                    style = { styles.thumbnailRecordingBadgeText }>
+                                    { `${_participantDisplayName} is speaking` }
+                                </Text>
+                            </View>
+                        ) }
                     </>
                 }
             </Container>
@@ -576,7 +738,11 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const localParticipantId = getLocalParticipant(state)?.id;
     const id = participant?.id;
     const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, id);
-    const { active: liveTranslationActive, micOn: liveTranslationMicOn } = getLiveTranslationState(state);
+    const {
+        active: liveTranslationActive,
+        dictating: liveTranslationDictating,
+        micOn: liveTranslationMicOn
+    } = getLiveTranslationState(state);
 
     // During a translated call the conference microphone is muted throughout and the microphone the recorder listens
     // through is the one that means anything, so that is the one the tile shows: the local user's own comes out of the
@@ -590,6 +756,16 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         audioMuted = participant.liveTranslationMic !== LIVE_TRANSLATION_MIC_ON;
     } else {
         audioMuted = audioTrack?.muted ?? true;
+    }
+
+    // And for the same reason there is no audio level to read either, so who is talking is announced as well: the local
+    // user's straight out of the recorder, everybody else's out of presence.
+    let speakingInTranslatedCall;
+
+    if (liveTranslationActive && participant?.local) {
+        speakingInTranslatedCall = liveTranslationMicOn && liveTranslationDictating;
+    } else {
+        speakingInTranslatedCall = participant?.liveTranslationSpeaking === LIVE_TRANSLATION_SPEAKING_ON;
     }
     const videoTrack = getVideoTrackByParticipant(state, participant);
     const isScreenShare = videoTrack?.videoType === VIDEO_TYPE.DESKTOP;
@@ -611,18 +787,22 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
 
     return {
         _audioMuted: audioMuted,
+        _audioTrack: audioTrack,
         _fakeParticipant: participant?.fakeParticipant,
         _gifSrc: mode === 'chat' ? undefined : gifSrc,
         _isScreenShare: isScreenShare,
         _isVirtualScreenshare: isScreenShareParticipant(participant),
         _local: participant?.local,
         _localVideoOwner: Boolean(ownerId === localParticipantId),
+        _participantDisplayName: getParticipantDisplayName(state, id ?? ''),
         _participantId: id ?? '',
         _pinned: participant?.pinned,
         _raisedHand: hasRaisedHand(participant),
         _renderDominantSpeakerIndicator: renderDominantSpeakerIndicator,
         _renderModeratorIndicator: renderModeratorIndicator,
         _shouldDisplayTileView: shouldDisplayTileView(state),
+        _speakingFromAudioLevel: participantCount <= 2,
+        _speakingInTranslatedCall: Boolean(speakingInTranslatedCall),
         _videoTrack: videoTrack,
         width: width1,
         height: height1,
