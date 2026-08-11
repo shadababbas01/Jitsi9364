@@ -702,6 +702,15 @@ function getLobbyChatDisplayName(state: IReduxState, participantId: string) {
 
 
 /**
+ * Whether an arriving message announces itself with a toast over the video and a chime.
+ *
+ * It does not, on this fork. A message here is a transcript of somebody talking in a translated call, and it is read
+ * out loud the moment it arrives, so announcing each one would talk over the call it is announcing. The message is
+ * still added to the log and still read aloud; only the announcement of it is dropped.
+ */
+const ANNOUNCE_RECEIVED_MESSAGES = false;
+
+/**
  * Function to handle an incoming chat message.
  *
  * @param {Store} store - The Redux store.
@@ -727,7 +736,7 @@ function _handleReceivedMessage({ dispatch, getState }: IStore,
         return;
     }
 
-    if (soundEnabled && shouldPlaySound && !isChatOpen) {
+    if (ANNOUNCE_RECEIVED_MESSAGES && soundEnabled && shouldPlaySound && !isChatOpen) {
         dispatch(playSound(INCOMING_MSG_SOUND_ID));
     }
 
@@ -751,7 +760,8 @@ function _handleReceivedMessage({ dispatch, getState }: IStore,
     const millisecondsTimestamp = timestampToDate.getTime();
 
     // skip message notifications on join (the messages having timestamp - coming from the history)
-    const shouldShowNotification = userSelectedNotifications?.['notify.chatMessages']
+    const shouldShowNotification = ANNOUNCE_RECEIVED_MESSAGES
+        && userSelectedNotifications?.['notify.chatMessages']
         && !hasRead && !isReaction && (!timestamp || lobbyChat);
     const newMessage = {
         displayName: _displayName,

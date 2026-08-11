@@ -464,9 +464,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
                     {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
-                    <D />
-                    <TranslatedInCallMessagesOverflowButton { ...topRowProps } />
-                    {true && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
+                    {false && <><D /><TranslatedInCallMessagesOverflowButton { ...topRowProps } /></>}
+                    {false && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />
                     <AudioOnlyButton { ...rowProps } />
                     { this._renderRaiseHandButton(rowProps) }
@@ -482,7 +481,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <D />
                     <ZoomButton { ...rowProps } />
                     <D />
-                    { this._renderOverflowMenuButtons(topRowProps, [ 'chat', 'desktop', 'tileview', 'raisehand', 'polls' ]) }
+                    { this._renderOverflowMenuButtons(topRowProps,
+                        [ 'audio-extraction', 'chat', 'desktop', 'tileview', 'raisehand', 'polls' ]) }
                     <D />
                 </View>
             </BottomSheet>
