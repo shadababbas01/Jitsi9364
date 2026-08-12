@@ -19,6 +19,7 @@ package org.jitsi.meet.sdk;
 import android.media.AudioAttributes;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -65,6 +66,13 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     private static final String ERROR_UNAVAILABLE = "tts_unavailable";
 
     /**
+     * The engine to speak with, asked for by name rather than taking whatever the manufacturer shipped as the system
+     * default. This is the one Google's own apps navigate with, and its voices are what people recognise a spoken
+     * direction as sounding like. Not on every device, so {@link #onEngineInit} falls back.
+     */
+    private static final String PREFERRED_ENGINE = "com.google.android.tts";
+
+    /**
      * The device text-to-speech engine. Created lazily by {@link #initialize}
      * and kept around until {@link #shutdown} is called, because initializing
      * the engine takes a noticeable amount of time.
@@ -75,6 +83,12 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      * Whether {@link #tts} finished initializing successfully.
      */
     private boolean ttsReady;
+
+    /**
+     * Whether {@link #PREFERRED_ENGINE} has already been tried and is not installed on this device, in which case the
+     * system default is used for the rest of the session rather than being asked for and refused every time.
+     */
+    private boolean preferredEngineUnavailable;
 
     /**
      * Promises of the utterances which are currently being spoken, mapped by
@@ -129,38 +143,54 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
                 return;
             }
 
-            tts = new TextToSpeech(getReactApplicationContext(), this::onEngineInit);
-            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                @Override
-                public void onStart(String utteranceId) {
-                    // Nothing to do.
-                }
-
-                @Override
-                public void onDone(String utteranceId) {
-                    settleUtterance(utteranceId, true);
-                }
-
-                @Override
-                public void onError(String utteranceId) {
-                    settleUtterance(utteranceId, false);
-                }
-
-                @Override
-                public void onError(String utteranceId, int errorCode) {
-                    settleUtterance(utteranceId, false);
-                }
-
-                @Override
-                public void onStop(String utteranceId, boolean interrupted) {
-                    settleUtterance(utteranceId, false);
-                }
-            });
-            tts.setAudioAttributes(new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build());
+            tts = createEngine();
         }
+    }
+
+    /**
+     * Creates the engine and wires up everything which does not depend on it having initialized yet.
+     *
+     * {@link #PREFERRED_ENGINE} is asked for unless it has already turned out not to be installed.
+     *
+     * @return the engine, which is not usable until {@link #onEngineInit} says so.
+     */
+    private TextToSpeech createEngine() {
+        TextToSpeech engine = preferredEngineUnavailable
+            ? new TextToSpeech(getReactApplicationContext(), this::onEngineInit)
+            : new TextToSpeech(getReactApplicationContext(), this::onEngineInit, PREFERRED_ENGINE);
+
+        engine.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+                // Nothing to do.
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                settleUtterance(utteranceId, true);
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+                settleUtterance(utteranceId, false);
+            }
+
+            @Override
+            public void onError(String utteranceId, int errorCode) {
+                settleUtterance(utteranceId, false);
+            }
+
+            @Override
+            public void onStop(String utteranceId, boolean interrupted) {
+                settleUtterance(utteranceId, false);
+            }
+        });
+        engine.setAudioAttributes(new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .build());
+
+        return engine;
     }
 
     /**
@@ -192,6 +222,7 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
 
             if (engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 engine.setLanguage(locale);
+                applyBestVoice(engine, locale);
             } else {
                 JitsiMeetLogger.w(TAG + " no voice available for " + language);
                 promise.resolve(false);
@@ -245,6 +276,7 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
 
             if (engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 engine.setLanguage(locale);
+                applyBestVoice(engine, locale);
             } else {
                 JitsiMeetLogger.w(TAG + " no voice available for " + language);
                 promise.resolve("");
@@ -374,6 +406,87 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Points the engine at the best voice it has for a language.
+     *
+     * {@link TextToSpeech#setLanguage} only settles on a language; which of the several voices an engine has for it
+     * gets used is then left to the engine, and the default is rarely the good one. The network voices are the ones a
+     * spoken direction is read out in, and they are what this is looking for. Requiring the network costs nothing
+     * here: a translated call cannot work offline anyway, since every message has already been through a transcription
+     * and a translation service before there is anything to read out.
+     *
+     * @param engine the engine to point at a voice
+     * @param locale the language which is about to be spoken
+     */
+    private void applyBestVoice(TextToSpeech engine, Locale locale) {
+        Set<Voice> voices;
+
+        try {
+            voices = engine.getVoices();
+        } catch (Exception e) {
+            // Not every engine answers this, and the language is already set, so there is a voice either way.
+            JitsiMeetLogger.w(TAG + " could not enumerate the voices of the engine", e);
+
+            return;
+        }
+
+        if (voices == null) {
+            return;
+        }
+
+        Voice best = null;
+
+        for (Voice voice : voices) {
+            Locale voiceLocale = voice.getLocale();
+
+            if (voiceLocale == null || !locale.getLanguage().equals(voiceLocale.getLanguage())) {
+                continue;
+            }
+
+            Set<String> features = voice.getFeatures();
+
+            if (features != null
+                    && features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) {
+                continue;
+            }
+
+            if (best == null || scoreVoice(voice, locale) > scoreVoice(best, locale)) {
+                best = voice;
+            }
+        }
+
+        if (best != null) {
+            engine.setVoice(best);
+        }
+    }
+
+    /**
+     * Says how much a voice is wanted for a language.
+     *
+     * @param voice the voice being judged
+     * @param wanted the language which is about to be spoken
+     * @return the higher the better
+     */
+    private static int scoreVoice(Voice voice, Locale wanted) {
+        String country = wanted.getCountry();
+        int score = voice.getQuality();
+
+        // A voice which has to be fetched is a synthesized one rather than a recorded one, and it is the reason for
+        // choosing a voice at all.
+        if (voice.isNetworkConnectionRequired()) {
+            score += 1000;
+        }
+
+        // Though the country outweighs both: British English read out in an American accent is worse than either
+        // read out in a plainer voice.
+        if (country != null && !country.isEmpty()
+                && country.equalsIgnoreCase(voice.getLocale().getCountry())) {
+            score += 5000;
+        }
+
+        return score;
+    }
+
+    /**
      * Handles the initialization result of {@link #tts}.
      *
      * @param status One of the {@code TextToSpeech.SUCCESS} / {@code ERROR}
@@ -383,6 +496,27 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
         boolean success = status == TextToSpeech.SUCCESS;
 
         synchronized (this) {
+            // The preferred engine is not on every device, and reading a message out in the manufacturer's voice is a
+            // great deal better than not reading it out at all.
+            if (!success && !preferredEngineUnavailable) {
+                JitsiMeetLogger.w(TAG + " " + PREFERRED_ENGINE + " is unavailable, falling back to the default engine");
+
+                preferredEngineUnavailable = true;
+
+                TextToSpeech failed = tts;
+
+                tts = null;
+
+                if (failed != null) {
+                    failed.shutdown();
+                }
+
+                // The retry settles everything waiting, so nothing is resolved here.
+                tts = createEngine();
+
+                return;
+            }
+
             ttsReady = success;
 
             if (!success) {

@@ -39,7 +39,7 @@ interface IProps extends AbstractProps, WithTranslation {
     /**
      * Dialog description key for translations.
      */
-    descriptionKey?: string | { key: string; params: string; };
+    descriptionKey?: string | { key: string; params?: Record<string, string>; };
 
     /**
      * Whether the back button is hidden.

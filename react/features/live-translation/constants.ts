@@ -61,6 +61,29 @@ export const LIVE_TRANSLATION_SPEAKING_ON = 'on';
 export const LIVE_TRANSLATION_SPEAKING_OFF = 'off';
 
 /**
+ * The endpoint message channel invitations travel on. A translated call is only worth anything if the other side is in
+ * it too - one person talking into a transcriber while everybody else talks normally helps nobody - so turning it on
+ * asks the rest of the meeting to come along.
+ */
+export const LIVE_TRANSLATION_ENDPOINT = 'melp-live-translation';
+
+/**
+ * Somebody turned a translated call on and is asking the meeting to join it.
+ */
+export const LIVE_TRANSLATION_INVITE = 'invite';
+
+/**
+ * The inviter turned their call off before anybody answered, so a prompt still on screen is asking about nothing.
+ */
+export const LIVE_TRANSLATION_INVITE_WITHDRAWN = 'invite-withdrawn';
+
+/**
+ * The answers to an invitation, so the inviter learns whether anybody came.
+ */
+export const LIVE_TRANSLATION_INVITE_ACCEPTED = 'invite-accepted';
+export const LIVE_TRANSLATION_INVITE_DECLINED = 'invite-declined';
+
+/**
  * How long a pause ends an utterance and sends it off to be transcribed.
  */
 export const SILENCE_MS = 1000;

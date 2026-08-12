@@ -8,15 +8,20 @@ import {
     MELP_UTTERANCE_SPEECH_STATE_EVENT,
     getLocalMicRecorderNativeModule
 } from '../audio-extraction/functions.native';
-import { CONFERENCE_FAILED, CONFERENCE_LEFT } from '../base/conference/actionTypes';
+import { CONFERENCE_FAILED, CONFERENCE_LEFT, ENDPOINT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
+import { hideDialog, openDialog } from '../base/dialog/actions';
+import ConfirmDialog from '../base/dialog/components/native/ConfirmDialog';
 import { setAudioMuted } from '../base/media/actions';
+import { getLocalParticipant, getParticipantDisplayName } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { SET_CAPTION_TTS_SPEAKING, SET_CHAT_TTS_SPEAKER } from '../caption-tts/actionTypes';
 import { isReadingAloud } from '../caption-tts/functions.native';
 import { wasRecentlySpoken } from '../caption-tts/spokenText';
 import { sendMessage } from '../chat/actions.native';
 import transcribeWavFile from '../live-transcribe/native/transcribeWav';
+import { showNotification } from '../notifications/actions';
+import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 import { setToolboxVisible } from '../toolbox/actions.native';
 import { setTileView } from '../video-layout/actions.any';
 
@@ -33,6 +38,11 @@ import {
 } from './actions';
 import {
     ECHO_TAIL_MS,
+    LIVE_TRANSLATION_ENDPOINT,
+    LIVE_TRANSLATION_INVITE,
+    LIVE_TRANSLATION_INVITE_ACCEPTED,
+    LIVE_TRANSLATION_INVITE_DECLINED,
+    LIVE_TRANSLATION_INVITE_WITHDRAWN,
     LIVE_TRANSLATION_MIC_NONE,
     LIVE_TRANSLATION_MIC_OFF,
     LIVE_TRANSLATION_MIC_ON,
@@ -82,6 +92,18 @@ let wasTileViewEnabled: boolean | undefined;
 let echoTailTimeout: ReturnType<typeof setTimeout> | undefined;
 
 /**
+ * Who is being answered by the invitation prompt currently on screen, so that the prompt can be taken away again if
+ * they change their mind, and so a second invitation does not stack a second prompt on top of the first.
+ */
+let pendingInviteFrom: string | undefined;
+
+/**
+ * The name the dialog asking to join a translated call is opened under, so that withdrawing an invitation closes that
+ * dialog rather than whatever else happens to be on screen.
+ */
+const INVITE_DIALOG = 'LiveTranslationInvite';
+
+/**
  * The live translation call: the local participant speaks, each utterance is transcribed and sent to the meeting as a
  * chat message, and what other participants send is translated and read out loud by the caption-tts chat middleware.
  *
@@ -101,6 +123,21 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         } else {
             _stop(store);
         }
+
+        // Turning the call on asks the meeting to join it; turning it off again takes an unanswered invitation back.
+        // A call turned on in answer to somebody else's invitation says nothing, or the two would invite each other in
+        // circles.
+        if (action.broadcast !== false) {
+            _send(store, action.active ? LIVE_TRANSLATION_INVITE : LIVE_TRANSLATION_INVITE_WITHDRAWN);
+        }
+
+        return result;
+    }
+
+    case ENDPOINT_MESSAGE_RECEIVED: {
+        const result = next(action);
+
+        _handleEndpointMessage(store, action);
 
         return result;
     }
@@ -141,8 +178,10 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     case CONFERENCE_LEFT: {
         const result = next(action);
 
+        pendingInviteFrom = undefined;
+
         if (store.getState()['features/live-translation']?.active) {
-            store.dispatch(setLiveTranslationActive(false));
+            store.dispatch(setLiveTranslationActive(false, false));
         }
 
         return result;
@@ -256,6 +295,118 @@ function _stop(store: IStore) {
     wasTileViewEnabled = undefined;
 
     dispatch(setToolboxVisible(true));
+}
+
+/**
+ * Says something to the whole meeting on the live translation channel, or to one participant when a particular person
+ * is being answered.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {string} what - Which of the things this channel can say.
+ * @param {string} to - Who to say it to. Everybody, when left out.
+ * @returns {void}
+ */
+function _send({ getState }: IStore, what: string, to = '') {
+    const state = getState();
+
+    try {
+        // Over XMPP rather than the bridge channel, which does not exist in a two person call: those run peer to peer,
+        // with no videobridge in the middle to carry an endpoint message. The receiving side sees the same
+        // ENDPOINT_MESSAGE_RECEIVED either way.
+        getCurrentConference(state)?.sendMessage?.({
+            name: LIVE_TRANSLATION_ENDPOINT,
+            action: what,
+            participantId: getLocalParticipant(state)?.id
+        }, to, false);
+    } catch (error) {
+        // An invitation is not worth failing a call over.
+        logger.warn(`Could not send "${what}" to the meeting`, error);
+    }
+}
+
+/**
+ * Handles what the other participants say on the live translation channel: an invitation to join a translated call, an
+ * invitation taken back, or an answer to one this device sent.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {Object} action - The received endpoint message action.
+ * @returns {void}
+ */
+function _handleEndpointMessage(store: IStore, { data, participant }: AnyAction) {
+    if (data?.name !== LIVE_TRANSLATION_ENDPOINT) {
+        return;
+    }
+
+    const { dispatch, getState } = store;
+    const state = getState();
+    const from = data.participantId || participant?.getId?.();
+
+    if (!from) {
+        return;
+    }
+
+    const name = getParticipantDisplayName(state, from);
+
+    switch (data.action) {
+    case LIVE_TRANSLATION_INVITE: {
+        // Nothing to ask somebody who is already in the call, already being asked, or whose device cannot dictate at
+        // all - the last would be an invitation they can only refuse.
+        if (state['features/live-translation'].active
+                || pendingInviteFrom
+                || !getLocalMicRecorderNativeModule()?.startUtteranceSession) {
+            return;
+        }
+
+        pendingInviteFrom = from;
+
+        dispatch(openDialog(INVITE_DIALOG, ConfirmDialog, {
+            confirmLabel: 'liveTranslation.inviteAllow',
+            descriptionKey: {
+                key: 'liveTranslation.inviteDescription',
+                params: { name }
+            },
+            onCancel: () => {
+                pendingInviteFrom = undefined;
+                _send(store, LIVE_TRANSLATION_INVITE_DECLINED, from);
+
+                return true;
+            },
+            onSubmit: () => {
+                pendingInviteFrom = undefined;
+
+                // False, because this call is the answer to an invitation and must not send one of its own back.
+                dispatch(setLiveTranslationActive(true, false));
+                _send(store, LIVE_TRANSLATION_INVITE_ACCEPTED, from);
+
+                return true;
+            },
+            title: 'liveTranslation.inviteTitle'
+        }));
+        break;
+    }
+
+    case LIVE_TRANSLATION_INVITE_WITHDRAWN: {
+        // Only a prompt nobody has answered yet is stale. Somebody who already joined stays joined: the inviter
+        // leaving the call is not a reason to throw everybody else out of it.
+        if (pendingInviteFrom === from) {
+            pendingInviteFrom = undefined;
+            dispatch(hideDialog(INVITE_DIALOG, ConfirmDialog));
+        }
+        break;
+    }
+
+    case LIVE_TRANSLATION_INVITE_ACCEPTED:
+    case LIVE_TRANSLATION_INVITE_DECLINED: {
+        dispatch(showNotification({
+            descriptionKey: data.action === LIVE_TRANSLATION_INVITE_ACCEPTED
+                ? 'liveTranslation.inviteAccepted'
+                : 'liveTranslation.inviteDeclined',
+            descriptionArguments: { name },
+            titleKey: 'liveTranslation.title'
+        }, NOTIFICATION_TIMEOUT_TYPE.SHORT));
+        break;
+    }
+    }
 }
 
 /**

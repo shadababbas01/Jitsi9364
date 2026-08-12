@@ -10,12 +10,15 @@ import {
  * Turns the live translation call on or off.
  *
  * @param {boolean} active - Whether the call is on.
+ * @param {boolean} broadcast - Whether the rest of the meeting is asked to join, or told the asking is over. False for
+ * a call which is being turned on in answer to somebody else's invitation, which would otherwise invite them back.
  * @returns {Object}
  */
-export function setLiveTranslationActive(active: boolean) {
+export function setLiveTranslationActive(active: boolean, broadcast = true) {
     return {
         type: SET_LIVE_TRANSLATION_ACTIVE,
-        active
+        active,
+        broadcast
     };
 }
 

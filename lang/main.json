@@ -241,6 +241,11 @@
     },
     "liveTranslation": {
         "failed": "Could not turn that into a message.",
+        "inviteAccepted": "{{name}} joined the live translation call",
+        "inviteAllow": "Allow",
+        "inviteDeclined": "{{name}} declined the live translation call",
+        "inviteDescription": "{{name}} started a live translation call. Join it so that what you say is translated for everyone.",
+        "inviteTitle": "Live translation",
         "listening": "Listening — just speak",
         "micIsOff": "Your microphone is off",
         "micOff": "Turn the microphone off",
