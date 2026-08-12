@@ -6,9 +6,9 @@ import { Animated, Easing, Pressable, ScrollView, Text, TextStyle, View, ViewSty
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-import Avatar from '../../../base/avatar/components/Avatar';
+import { getInitials } from '../../../base/avatar/functions';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge } from '../../../base/icons/svg';
+import { IconCloseLarge, IconMicSlash, IconTranslate } from '../../../base/icons/svg';
 import { getLocalParticipant } from '../../../base/participants/functions';
 import { updateSettings } from '../../../base/settings/actions';
 import { getChatReadAloudLanguage, getChatTtsSpeakerId } from '../../../caption-tts/functions.native';
@@ -77,14 +77,44 @@ function Waveform() {
 }
 
 /**
+ * The avatar-style badge used for each participant row.
+ *
+ * @param {Object} props - The props of the component.
+ * @returns {JSX.Element}
+ */
+function ParticipantBadge({ displayName, speaking }: {
+    displayName: string;
+    speaking: boolean;
+}) {
+    const initials = useMemo(() => getInitials(displayName) || '?', [ displayName ]);
+
+    return (
+        <View
+            style = { [
+                styles.participantBadge,
+                speaking && styles.participantBadgeActive
+            ] as ViewStyle[] }>
+            <Text
+                numberOfLines = { 1 }
+                style = { [
+                    styles.participantBadgeText,
+                    speaking && styles.participantBadgeTextActive
+                ] as TextStyle[] }>
+                { initials }
+            </Text>
+            { speaking && <View style = { styles.participantBadgeDot as ViewStyle } /> }
+        </View>
+    );
+}
+
+/**
  * A participant, and whether they are the one talking.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element}
  */
-function SpeakerRow({ displayName, participantId, speaking, state }: {
+function SpeakerRow({ displayName, speaking, state }: {
     displayName: string;
-    participantId: string;
     speaking: boolean;
     state: string;
 }) {
@@ -94,13 +124,9 @@ function SpeakerRow({ displayName, participantId, speaking, state }: {
                 styles.speakerRow,
                 speaking && styles.speakerRowActive
             ] as ViewStyle[] }>
-            <View style = { styles.avatarWrapper as ViewStyle }>
-                <Avatar
-                    displayName = { displayName }
-                    participantId = { participantId }
-                    size = { 32 } />
-                { speaking && <View style = { styles.avatarRing as ViewStyle } /> }
-            </View>
+            <ParticipantBadge
+                displayName = { displayName }
+                speaking = { speaking } />
             <View style = { styles.speakerText as ViewStyle }>
                 <Text
                     numberOfLines = { 1 }
@@ -108,14 +134,22 @@ function SpeakerRow({ displayName, participantId, speaking, state }: {
                     { displayName }
                 </Text>
                 { Boolean(state) && (
-                    <Text
-                        numberOfLines = { 1 }
-                        style = { [
-                            styles.speakerState,
-                            speaking && styles.speakerStateActive
-                        ] as TextStyle[] }>
-                        { state }
-                    </Text>
+                    <View style = { styles.speakerStateRow as ViewStyle }>
+                        { !speaking && (
+                            <Icon
+                                color = { LIVE_TRANSLATION_COLORS.textMuted }
+                                size = { 12 }
+                                src = { IconMicSlash } />
+                        ) }
+                        <Text
+                            numberOfLines = { 1 }
+                            style = { [
+                                styles.speakerState,
+                                speaking && styles.speakerStateActive
+                            ] as TextStyle[] }>
+                            { state }
+                        </Text>
+                    </View>
                 ) }
             </View>
             { speaking && <Waveform /> }
@@ -213,54 +247,68 @@ export default function LiveTranslationPanel() {
         <View style = { [ styles.panel, { height } ] as ViewStyle[] }>
             <View style = { styles.grabber as ViewStyle } />
 
-            <View style = { styles.header as ViewStyle }>
-                <View style = { styles.liveDot as ViewStyle } />
-                <Text
-                    numberOfLines = { 1 }
-                    style = { styles.liveLabel as TextStyle }>
-                    { t('liveTranslation.title') }
-                </Text>
-                <LanguagePill
-                    accessibilityLabel = { t('liveTranslation.translateInto') }
-                    label = { t('liveTranslation.translateInto') }
-                    onSelect = { selectHeard }
-                    value = { heardLanguage } />
-                <Pressable
-                    accessibilityLabel = { t('liveTranslation.turnOff') }
-                    accessibilityRole = 'button'
-                    onPress = { close }
-                    style = { styles.closeButton as ViewStyle }>
-                    <Icon
-                        color = { LIVE_TRANSLATION_COLORS.textMuted }
-                        size = { 16 }
-                        src = { IconCloseLarge } />
-                </Pressable>
-            </View>
-
-            <ScrollView
-                contentContainerStyle = { [
-                    styles.speakersContent,
-
-                    // The toolbar is out of the way until it is tapped back on, and then it floats over the bottom of
-                    // the panel, so the list steps aside for exactly as long as it is there.
-                    { paddingBottom: safeAreaBottom + (toolboxVisible ? LIVE_TRANSLATION_TOOLBAR_RESERVE : 0) }
-                ] as ViewStyle[] }
-                style = { styles.speakers as ViewStyle }>
-                { rows.length === 0
-                    ? (
-                        <Text style = { styles.emptyText as TextStyle }>
-                            { t('liveTranslation.nobodyHere') }
+            <View style = { styles.surface as ViewStyle }>
+                <View style = { styles.header as ViewStyle }>
+                    <View style = { styles.headerIcon as ViewStyle }>
+                        <Icon
+                            color = { LIVE_TRANSLATION_COLORS.text }
+                            size = { 18 }
+                            src = { IconTranslate } />
+                    </View>
+                    <View style = { styles.headerCopy as ViewStyle }>
+                        <Text
+                            numberOfLines = { 1 }
+                            style = { styles.liveLabel as TextStyle }>
+                            { t('liveTranslation.title') }
                         </Text>
-                    )
-                    : rows.map(row => (
-                        <SpeakerRow
-                            displayName = { row.displayName }
-                            key = { row.id }
-                            participantId = { row.id }
-                            speaking = { row.speaking }
-                            state = { row.state } />
-                    )) }
-            </ScrollView>
+                    </View>
+                    <View style = { styles.headerActions as ViewStyle }>
+                        <LanguagePill
+                            accessibilityLabel = { t('liveTranslation.translateInto') }
+                            label = { t('liveTranslation.translateInto') }
+                            onSelect = { selectHeard }
+                            value = { heardLanguage } />
+                        <Pressable
+                            accessibilityLabel = { t('liveTranslation.turnOff') }
+                            accessibilityRole = 'button'
+                            onPress = { close }
+                            style = { styles.closeButton as ViewStyle }>
+                            <Icon
+                                color = { LIVE_TRANSLATION_COLORS.textMuted }
+                                size = { 16 }
+                                src = { IconCloseLarge } />
+                        </Pressable>
+                    </View>
+                </View>
+
+                <Text style = { styles.sectionTitle as TextStyle }>
+                    { t('liveTranslation.participants', 'Participants') }
+                </Text>
+
+                <ScrollView
+                    contentContainerStyle = { [
+                        styles.speakersContent,
+
+                        // The toolbar is out of the way until it is tapped back on, and then it floats over the bottom of
+                        // the panel, so the list steps aside for exactly as long as it is there.
+                        { paddingBottom: safeAreaBottom + (toolboxVisible ? LIVE_TRANSLATION_TOOLBAR_RESERVE : 0) }
+                    ] as ViewStyle[] }
+                    style = { styles.speakers as ViewStyle }>
+                    { rows.length === 0
+                        ? (
+                            <Text style = { styles.emptyText as TextStyle }>
+                                { t('liveTranslation.nobodyHere') }
+                            </Text>
+                        )
+                        : rows.map(row => (
+                            <SpeakerRow
+                                displayName = { row.displayName }
+                                key = { row.id }
+                                speaking = { row.speaking }
+                                state = { row.state } />
+                        )) }
+                </ScrollView>
+            </View>
         </View>
     );
 }

@@ -90,25 +90,16 @@ export default function LanguagePill({ accessibilityLabel, label, onSelect, valu
         <>
             <Pressable
                 accessibilityLabel = { accessibilityLabel }
+                accessibilityHint = { label }
                 accessibilityRole = 'button'
                 onPress = { openSheet }
                 style = { styles.languagePill as ViewStyle }>
-                <View style = { styles.languagePillLabels as ViewStyle }>
-                    <Text style = { styles.languagePillLabel as TextStyle }>
-                        { label }
-                    </Text>
-                    <Text
-                        numberOfLines = { 1 }
-                        style = { styles.languagePillName as TextStyle }>
-                        { name }
-                    </Text>
-                </View>
+                <Text
+                    numberOfLines = { 1 }
+                    style = { styles.languagePillName as TextStyle }>
+                    { name }
+                </Text>
                 <View style = { styles.languagePillTrailing as ViewStyle }>
-                    <View style = { styles.languagePillCodeChip as ViewStyle }>
-                        <Text style = { styles.languagePillCode as TextStyle }>
-                            { value.toUpperCase() }
-                        </Text>
-                    </View>
                     <Icon
                         color = { LIVE_TRANSLATION_COLORS.textMuted }
                         size = { 14 }

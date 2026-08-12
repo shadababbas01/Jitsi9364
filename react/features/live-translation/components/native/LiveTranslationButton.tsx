@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { IReduxState } from '../../../app/types';
 import { getLocalMicRecorderNativeModule } from '../../../audio-extraction/functions.native';
 import { translate } from '../../../base/i18n/functions';
-import { IconSubtitles } from '../../../base/icons/svg';
+import { IconTranslate } from '../../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import { setLiveTranslationActive } from '../../actions';
 import { isLiveTranslationActive } from '../../functions.native';
@@ -22,7 +22,7 @@ interface IProps extends AbstractButtonProps {
  */
 class LiveTranslationButton extends AbstractButton<IProps> {
     override accessibilityLabel = 'liveTranslation.title';
-    override icon = IconSubtitles;
+    override icon = IconTranslate;
     override label = 'liveTranslation.turnOn';
     override toggledLabel = 'liveTranslation.turnOff';
 

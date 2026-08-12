@@ -10,8 +10,7 @@ import {
 } from '../audio-extraction/functions.native';
 import { CONFERENCE_FAILED, CONFERENCE_LEFT, ENDPOINT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
-import { hideDialog, openDialog } from '../base/dialog/actions';
-import ConfirmDialog from '../base/dialog/components/native/ConfirmDialog';
+import { hideSheet, openSheet } from '../base/dialog/actions';
 import { setAudioMuted } from '../base/media/actions';
 import { getLocalParticipant, getParticipantDisplayName } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
@@ -24,6 +23,8 @@ import { showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 import { setToolboxVisible } from '../toolbox/actions.native';
 import { setTileView } from '../video-layout/actions.any';
+
+import LiveTranslationInviteSheet from './components/native/LiveTranslationInviteSheet';
 
 import {
     SET_LIVE_TRANSLATION_ACTIVE,
@@ -96,12 +97,6 @@ let echoTailTimeout: ReturnType<typeof setTimeout> | undefined;
  * they change their mind, and so a second invitation does not stack a second prompt on top of the first.
  */
 let pendingInviteFrom: string | undefined;
-
-/**
- * The name the dialog asking to join a translated call is opened under, so that withdrawing an invitation closes that
- * dialog rather than whatever else happens to be on screen.
- */
-const INVITE_DIALOG = 'LiveTranslationInvite';
 
 /**
  * The live translation call: the local participant speaks, each utterance is transcribed and sent to the meeting as a
@@ -359,28 +354,19 @@ function _handleEndpointMessage(store: IStore, { data, participant }: AnyAction)
 
         pendingInviteFrom = from;
 
-        dispatch(openDialog(INVITE_DIALOG, ConfirmDialog, {
-            confirmLabel: 'liveTranslation.inviteAllow',
-            descriptionKey: {
-                key: 'liveTranslation.inviteDescription',
-                params: { name }
-            },
-            onCancel: () => {
-                pendingInviteFrom = undefined;
-                _send(store, LIVE_TRANSLATION_INVITE_DECLINED, from);
-
-                return true;
-            },
-            onSubmit: () => {
+        dispatch(openSheet(LiveTranslationInviteSheet, {
+            inviterName: name,
+            onAllow: () => {
                 pendingInviteFrom = undefined;
 
                 // False, because this call is the answer to an invitation and must not send one of its own back.
                 dispatch(setLiveTranslationActive(true, false));
                 _send(store, LIVE_TRANSLATION_INVITE_ACCEPTED, from);
-
-                return true;
             },
-            title: 'liveTranslation.inviteTitle'
+            onDecline: () => {
+                pendingInviteFrom = undefined;
+                _send(store, LIVE_TRANSLATION_INVITE_DECLINED, from);
+            }
         }));
         break;
     }
@@ -390,7 +376,7 @@ function _handleEndpointMessage(store: IStore, { data, participant }: AnyAction)
         // leaving the call is not a reason to throw everybody else out of it.
         if (pendingInviteFrom === from) {
             pendingInviteFrom = undefined;
-            dispatch(hideDialog(INVITE_DIALOG, ConfirmDialog));
+            dispatch(hideSheet());
         }
         break;
     }
