@@ -173,81 +173,62 @@ export default {
 
     speakerRow: {
         alignItems: 'center',
-        backgroundColor: COLORS.surface,
-        borderColor: '#b3b3b3ff',
-        borderRadius: 8,
+        backgroundColor: COLORS.raised,
+        borderColor: 'transparent',
+        borderRadius: 12,
         borderWidth: 1,
         flexDirection: 'row',
         marginBottom: BaseTheme.spacing[1],
-        minHeight: 56,
-        paddingHorizontal: BaseTheme.spacing[2] + 2,
+        paddingHorizontal: BaseTheme.spacing[2],
         paddingVertical: BaseTheme.spacing[1]
     },
 
     speakerRowActive: {
-        backgroundColor: COLORS.surface,
-        borderColor: '#EE4136',
+        backgroundColor: COLORS.accentSoft,
+        borderColor: COLORS.accentLine
     },
 
-    participantBadge: {
+    avatarWrapper: {
         alignItems: 'center',
-        backgroundColor: '#E5E7EB',
-        borderRadius: 999,
-        height: 48,
         justifyContent: 'center',
-        position: 'relative',
-        width: 48
+        height: 32,
+        width: 32
     },
 
-    participantBadgeActive: {
-        backgroundColor: '#FFF7F6',
-        borderColor: COLORS.action,
-        borderWidth: 2
-    },
-
-    participantBadgeText: {
-        ...BaseTheme.typography.bodyShortBoldLarge,
-        color: COLORS.text
-    },
-
-    participantBadgeTextActive: {
-        color: COLORS.text
-    },
-
-    participantBadgeDot: {
-        backgroundColor: COLORS.action,
+    // Drawn around the avatar of whoever is talking, so the row is recognisable before any of it is read.
+    avatarRing: {
+        borderColor: COLORS.accent,
         borderRadius: 999,
-        bottom: -1,
-        height: 10,
+        borderWidth: 1.5,
+        bottom: -3,
+        left: -3,
         position: 'absolute',
-        right: -1,
-        width: 10
+        right: -3,
+        top: -3
     },
 
     speakerText: {
         flex: 1,
-        marginLeft: BaseTheme.spacing[2],
-        marginRight: BaseTheme.spacing[1]
+        marginLeft: BaseTheme.spacing[2]
     },
 
     speakerName: {
-        ...BaseTheme.typography.bodyShortBoldLarge,
+        ...BaseTheme.typography.bodyShortBold,
         color: COLORS.text
     },
 
     speakerStateRow: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        marginTop: 2
-    },
-
-    speakerState: {
         ...BaseTheme.typography.bodyShortRegular,
         color: COLORS.textMuted
     },
 
+    speakerState: {
+        ...CAPTION,
+        color: COLORS.textMuted
+    },
+
     speakerStateActive: {
-        color: COLORS.action
+        color: COLORS.accent
     },
 
     emptyText: {

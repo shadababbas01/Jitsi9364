@@ -6,9 +6,9 @@ import { Animated, Easing, Pressable, ScrollView, Text, TextStyle, View, ViewSty
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-import { getInitials } from '../../../base/avatar/functions';
+import Avatar from '../../../base/avatar/components/Avatar';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge, IconMicSlash, IconTranslate } from '../../../base/icons/svg';
+import { IconCloseLarge, IconTranslate } from '../../../base/icons/svg';
 import { getLocalParticipant } from '../../../base/participants/functions';
 import { updateSettings } from '../../../base/settings/actions';
 import { getChatReadAloudLanguage, getChatTtsSpeakerId } from '../../../caption-tts/functions.native';
@@ -77,44 +77,14 @@ function Waveform() {
 }
 
 /**
- * The avatar-style badge used for each participant row.
- *
- * @param {Object} props - The props of the component.
- * @returns {JSX.Element}
- */
-function ParticipantBadge({ displayName, speaking }: {
-    displayName: string;
-    speaking: boolean;
-}) {
-    const initials = useMemo(() => getInitials(displayName) || '?', [ displayName ]);
-
-    return (
-        <View
-            style = { [
-                styles.participantBadge,
-                speaking && styles.participantBadgeActive
-            ] as ViewStyle[] }>
-            <Text
-                numberOfLines = { 1 }
-                style = { [
-                    styles.participantBadgeText,
-                    speaking && styles.participantBadgeTextActive
-                ] as TextStyle[] }>
-                { initials }
-            </Text>
-            { speaking && <View style = { styles.participantBadgeDot as ViewStyle } /> }
-        </View>
-    );
-}
-
-/**
  * A participant, and whether they are the one talking.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element}
  */
-function SpeakerRow({ displayName, speaking, state }: {
+function SpeakerRow({ displayName, participantId, speaking, state }: {
     displayName: string;
+    participantId: string;
     speaking: boolean;
     state: string;
 }) {
@@ -124,9 +94,13 @@ function SpeakerRow({ displayName, speaking, state }: {
                 styles.speakerRow,
                 speaking && styles.speakerRowActive
             ] as ViewStyle[] }>
-            <ParticipantBadge
-                displayName = { displayName }
-                speaking = { speaking } />
+            <View style = { styles.avatarWrapper as ViewStyle }>
+                <Avatar
+                    displayName = { displayName }
+                    participantId = { participantId }
+                    size = { 32 } />
+                { speaking && <View style = { styles.avatarRing as ViewStyle } /> }
+            </View>
             <View style = { styles.speakerText as ViewStyle }>
                 <Text
                     numberOfLines = { 1 }
@@ -134,22 +108,14 @@ function SpeakerRow({ displayName, speaking, state }: {
                     { displayName }
                 </Text>
                 { Boolean(state) && (
-                    <View style = { styles.speakerStateRow as ViewStyle }>
-                        { !speaking && (
-                            <Icon
-                                color = { LIVE_TRANSLATION_COLORS.textMuted }
-                                size = { 12 }
-                                src = { IconMicSlash } />
-                        ) }
-                        <Text
-                            numberOfLines = { 1 }
-                            style = { [
-                                styles.speakerState,
-                                speaking && styles.speakerStateActive
-                            ] as TextStyle[] }>
-                            { state }
-                        </Text>
-                    </View>
+                    <Text
+                        numberOfLines = { 1 }
+                        style = { [
+                            styles.speakerState,
+                            speaking && styles.speakerStateActive
+                        ] as TextStyle[] }>
+                        { state }
+                    </Text>
                 ) }
             </View>
             { speaking && <Waveform /> }
@@ -304,6 +270,7 @@ export default function LiveTranslationPanel() {
                             <SpeakerRow
                                 displayName = { row.displayName }
                                 key = { row.id }
+                                participantId = { row.id }
                                 speaking = { row.speaking }
                                 state = { row.state } />
                         )) }
