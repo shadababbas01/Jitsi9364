@@ -1,7 +1,7 @@
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { AnyAction } from 'redux';
 
-import { IStore } from '../app/types';
+import { IReduxState, IStore } from '../app/types';
 import {
     IMelpUtterance,
     MELP_UTTERANCE_READY_EVENT,
@@ -12,8 +12,10 @@ import { CONFERENCE_FAILED, CONFERENCE_LEFT, ENDPOINT_MESSAGE_RECEIVED } from '.
 import { getCurrentConference } from '../base/conference/functions';
 import { hideSheet, openSheet } from '../base/dialog/actions';
 import { setAudioMuted } from '../base/media/actions';
+import { MEDIA_TYPE } from '../base/media/constants';
 import { getLocalParticipant, getParticipantDisplayName } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
+import { TRACK_ADDED, TRACK_UPDATED } from '../base/tracks/actionTypes';
 import { SET_CAPTION_TTS_SPEAKING, SET_CHAT_TTS_SPEAKER } from '../caption-tts/actionTypes';
 import { isReadingAloud } from '../caption-tts/functions.native';
 import { wasRecentlySpoken } from '../caption-tts/spokenText';
@@ -52,6 +54,9 @@ import {
     LIVE_TRANSLATION_SPEAKING_ON,
     LIVE_TRANSLATION_SPEAKING_PROPERTY,
     MAX_UTTERANCE_MS,
+    REMOTE_AUDIO_DEFAULT_GAIN,
+    REMOTE_AUDIO_DUCK_GAIN,
+    REMOTE_AUDIO_DUCK_RETRIES_MS,
     SILENCE_MS,
     TRANSCRIBE_TIMEOUT_MS
 } from './constants';
@@ -97,6 +102,12 @@ let echoTailTimeout: ReturnType<typeof setTimeout> | undefined;
  * they change their mind, and so a second invitation does not stack a second prompt on top of the first.
  */
 let pendingInviteFrom: string | undefined;
+
+/**
+ * The volume of a participant who has only just arrived is set a second and a third time, once their audio is actually
+ * playing. These are those pending attempts, held so that leaving the call cancels them.
+ */
+let duckRetries: Array<ReturnType<typeof setTimeout>> = [];
 
 /**
  * The live translation call: the local participant speaks, each utterance is transcribed and sent to the meeting as a
@@ -169,6 +180,32 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         return result;
     }
 
+    // A participant who joins, or whose track is swapped when the call moves between peer to peer and the bridge, is
+    // heard through an audio track this device has not turned down yet, so each one is caught as it appears.
+    case TRACK_ADDED: {
+        const result = next(action);
+        const state = store.getState();
+
+        if (state['features/live-translation'].active && _duck(state, action.track?.jitsiTrack, true)) {
+            _duckAgainShortly(store);
+        }
+
+        return result;
+    }
+
+    // Unmuting can hand the track a new audio sink, which starts at the volume the bridge gave it rather than the one
+    // this device asked for.
+    case TRACK_UPDATED: {
+        const result = next(action);
+        const state = store.getState();
+
+        if (state['features/live-translation'].active) {
+            _duck(state, action.track?.jitsiTrack, true);
+        }
+
+        return result;
+    }
+
     case CONFERENCE_FAILED:
     case CONFERENCE_LEFT: {
         const result = next(action);
@@ -209,6 +246,11 @@ function _start(store: IStore) {
     } catch (error) {
         logger.warn('Could not route the audio to the loudspeaker', error);
     }
+
+    // What the others say is read out translated, and that reading is what the local user is listening for. Their own
+    // voices are left as a murmur underneath it so it is still clear who is talking.
+    _duckAll(store, true);
+    _duckAgainShortly(store);
 
     // The local voice reaches the others as a translated message read out on their side, so letting the conference
     // microphone through as well would say everything twice.
@@ -273,6 +315,10 @@ function _stop(store: IStore) {
 
     pending = 0;
 
+    // Nothing is being read out any more, so the others are heard in their own voices again.
+    _cancelDuckRetries();
+    _duckAll(store, false);
+
     dispatch(setLiveTranslationPending(0));
     dispatch(setLiveTranslationDictating(false));
 
@@ -290,6 +336,94 @@ function _stop(store: IStore) {
     wasTileViewEnabled = undefined;
 
     dispatch(setToolboxVisible(true));
+}
+
+/**
+ * Turns one remote participant's own voice down while the translation panel is up, or back up to the volume the local
+ * user has chosen for them once it is gone.
+ *
+ * Only their untranslated voice is touched: what the panel reads aloud is played by the speech engine, not by this
+ * track, so the translation stays at full volume throughout.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @param {Object} jitsiTrack - The track to set the volume of. Anything which is not somebody else's audio is ignored,
+ * so callers can pass whatever track an action carried.
+ * @param {boolean} ducked - Whether the panel is on screen.
+ * @returns {void}
+ */
+function _duck(state: IReduxState, jitsiTrack: any, ducked: boolean) {
+    if (!jitsiTrack || jitsiTrack.isLocal?.() || jitsiTrack.getType?.() !== MEDIA_TYPE.AUDIO) {
+        return false;
+    }
+
+    const { participantsVolume } = state['features/filmstrip'];
+    const participantId = jitsiTrack.getParticipantId?.();
+    const chosen = participantsVolume[participantId];
+    const volume = ducked ? REMOTE_AUDIO_DUCK_GAIN : chosen ?? REMOTE_AUDIO_DEFAULT_GAIN;
+    const track = jitsiTrack.track;
+
+    if (typeof track?._setVolume !== 'function') {
+        logger.warn(`No volume to set on the audio of ${participantId}`);
+
+        return false;
+    }
+
+    try {
+        // The volume of a single remote track, which react-native-webrtc adds to the standard track: there is no audio
+        // element on mobile to set a volume on, the way the web version does it.
+        track._setVolume(volume);
+    } catch (error) {
+        logger.warn(`Could not change how loud ${participantId} is heard`, error);
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Turns every remote participant currently in the meeting down, or back up.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {boolean} ducked - Whether the panel is on screen.
+ * @returns {void}
+ */
+function _duckAll({ getState }: IStore, ducked: boolean) {
+    const state = getState();
+    const done = state['features/base/tracks']
+        .filter(track => _duck(state, track.jitsiTrack, ducked)).length;
+
+    logger.info(`${ducked ? 'Turned down' : 'Restored'} the volume of ${done} remote participant(s)`);
+}
+
+/**
+ * Turns everybody down again in a moment, and once more after that.
+ *
+ * The volume of a track which has only just been added does not always take: it is set on an audio sink which the
+ * engine has not created yet, and is dropped rather than kept for when it has. Asking again once the participant is
+ * being heard is what makes it stick.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _duckAgainShortly(store: IStore) {
+    _cancelDuckRetries();
+
+    duckRetries = REMOTE_AUDIO_DUCK_RETRIES_MS.map(delay => setTimeout(() => {
+        if (store.getState()['features/live-translation'].active) {
+            _duckAll(store, true);
+        }
+    }, delay));
+}
+
+/**
+ * Drops the pending attempts, so that a call which has ended cannot turn anybody down after the fact.
+ *
+ * @returns {void}
+ */
+function _cancelDuckRetries() {
+    duckRetries.forEach(retry => clearTimeout(retry));
+    duckRetries = [];
 }
 
 /**
