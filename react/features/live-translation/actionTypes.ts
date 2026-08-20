@@ -48,3 +48,15 @@ export const SET_LIVE_TRANSLATION_PENDING = 'SET_LIVE_TRANSLATION_PENDING';
  * }
  */
 export const SET_LIVE_TRANSLATION_ERROR = 'SET_LIVE_TRANSLATION_ERROR';
+
+/**
+ * The type of (redux) action which records that the local participant would rather hear one particular participant in
+ * their own voice than in translation.
+ *
+ * {
+ *      type: SET_LIVE_TRANSLATION_UNTRANSLATED,
+ *      participantId: string,
+ *      untranslated: boolean
+ * }
+ */
+export const SET_LIVE_TRANSLATION_UNTRANSLATED = 'SET_LIVE_TRANSLATION_UNTRANSLATED';

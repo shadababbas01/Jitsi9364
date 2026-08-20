@@ -39,10 +39,10 @@ export function isParticipantMediaMuted(participant: IParticipant | undefined,
         return false;
     }
 
-    // Somebody in a live translation call keeps their conference microphone muted for the whole of it, whatever they
-    // have their own microphone set to, so their audio track would report them as muted from beginning to end. The
-    // microphone they actually have is the one worth showing: the local user's own comes out of the call state, and
-    // everybody else's out of what they announce in presence.
+    // Somebody in a live translation call is heard both in their own voice and in translation, and it is the dictation
+    // which decides whether anything they say is translated at all. That is the state worth showing on their tile: the
+    // local user's own comes out of the call state, and everybody else's out of what they announce in presence. It
+    // tracks their audio track, but it is known sooner and does not wait for a track update to arrive.
     if (mediaType === MEDIA_TYPE.AUDIO) {
         const { active, micOn } = getLiveTranslationState(state);
 

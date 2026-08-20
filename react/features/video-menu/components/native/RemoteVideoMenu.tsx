@@ -23,6 +23,7 @@ import {
 import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from '../../../breakout-rooms/functions';
 import { IRoom } from '../../../breakout-rooms/types';
 import PrivateMessageButton from '../../../chat/components/native/PrivateMessageButton';
+import HearOriginalVoiceButton from '../../../live-translation/components/native/HearOriginalVoiceButton';
 
 import AskUnmuteButton from './AskUnmuteButton';
 import ConnectionStatusButton from './ConnectionStatusButton';
@@ -209,6 +210,7 @@ class RemoteVideoMenu extends PureComponent<IProps> {
                         room = { room }
                         { ...buttonProps } />))}
                 </>}
+                <HearOriginalVoiceButton { ...buttonProps } />
                 <VolumeSlider participantID = { participantId } />
             </BottomSheet>
         );

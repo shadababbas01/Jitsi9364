@@ -11,18 +11,18 @@ import {
 import { CONFERENCE_FAILED, CONFERENCE_LEFT, ENDPOINT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
 import { hideSheet, openSheet } from '../base/dialog/actions';
-import { setAudioMuted } from '../base/media/actions';
+import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { MEDIA_TYPE } from '../base/media/constants';
+import { PARTICIPANT_LEFT, PARTICIPANT_UPDATED } from '../base/participants/actionTypes';
 import { getLocalParticipant, getParticipantDisplayName } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { TRACK_ADDED, TRACK_UPDATED } from '../base/tracks/actionTypes';
-import { SET_CAPTION_TTS_SPEAKING, SET_CHAT_TTS_SPEAKER } from '../caption-tts/actionTypes';
-import { isReadingAloud } from '../caption-tts/functions.native';
+import { getTrackByMediaTypeAndParticipant } from '../base/tracks/functions.native';
 import { wasRecentlySpoken } from '../caption-tts/spokenText';
 import { sendMessage } from '../chat/actions.native';
-import transcribeWavFile from '../live-transcribe/native/transcribeWav';
-import { showNotification } from '../notifications/actions';
-import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
+import transcribeWavFile, { TranscriptionUnreachableError } from '../live-transcribe/native/transcribeWav';
+import { hideNotification, showNotification } from '../notifications/actions';
+import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
 import { setToolboxVisible } from '../toolbox/actions.native';
 import { setTileView } from '../video-layout/actions.any';
 
@@ -31,16 +31,17 @@ import LiveTranslationInviteSheet from './components/native/LiveTranslationInvit
 import {
     SET_LIVE_TRANSLATION_ACTIVE,
     SET_LIVE_TRANSLATION_DICTATING,
-    SET_LIVE_TRANSLATION_MIC
+    SET_LIVE_TRANSLATION_MIC,
+    SET_LIVE_TRANSLATION_UNTRANSLATED
 } from './actionTypes';
 import {
     setLiveTranslationActive,
     setLiveTranslationDictating,
     setLiveTranslationError,
+    setLiveTranslationMic,
     setLiveTranslationPending
 } from './actions';
 import {
-    ECHO_TAIL_MS,
     LIVE_TRANSLATION_ENDPOINT,
     LIVE_TRANSLATION_INVITE,
     LIVE_TRANSLATION_INVITE_ACCEPTED,
@@ -50,6 +51,7 @@ import {
     LIVE_TRANSLATION_MIC_OFF,
     LIVE_TRANSLATION_MIC_ON,
     LIVE_TRANSLATION_MIC_PROPERTY,
+    LIVE_TRANSLATION_OVERLAP_UID,
     LIVE_TRANSLATION_SPEAKING_OFF,
     LIVE_TRANSLATION_SPEAKING_ON,
     LIVE_TRANSLATION_SPEAKING_PROPERTY,
@@ -60,6 +62,7 @@ import {
     SILENCE_MS,
     TRANSCRIBE_TIMEOUT_MS
 } from './constants';
+import { isParticipantUntranslated } from './functions.any';
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
@@ -80,22 +83,16 @@ let chain: Promise<void> = Promise.resolve();
 let pending = 0;
 
 /**
- * Whether the microphone the conference sends was already muted when the call was turned on. The state it was found in
- * is the state it is put back into.
- */
-let wasAudioMuted = false;
-
-/**
  * The layout the screen was in when the call was turned on, so closing the call puts it back. Undefined means the
  * layout was being chosen automatically, which is also what it goes back to.
  */
 let wasTileViewEnabled: boolean | undefined;
 
 /**
- * Released once the device has finished speaking, so the microphone is not opened while the room still carries the tail
- * of what was said.
+ * Whether the local user is currently being told that somebody is talking over them, so the warning is raised and taken
+ * away once rather than on every speech state which arrives while the overlap lasts.
  */
-let echoTailTimeout: ReturnType<typeof setTimeout> | undefined;
+let overlapWarned = false;
 
 /**
  * Who is being answered by the invitation prompt currently on screen, so that the prompt can be taken away again if
@@ -156,6 +153,7 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
 
         // Closing the microphone stops the dictation with it, which the others have to hear about too.
         _announceSpeaking(store);
+        _syncOverlapWarning(store);
 
         return result;
     }
@@ -164,18 +162,52 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         const result = next(action);
 
         _announceSpeaking(store);
+        _syncOverlapWarning(store);
 
         return result;
     }
 
-    // The device speaking is the one thing which must close the microphone: what comes out of the loudspeaker would
-    // otherwise be heard, transcribed, and sent back for the other side to read out in turn. Captions being read aloud
-    // count just as much as messages.
-    case SET_CAPTION_TTS_SPEAKING:
-    case SET_CHAT_TTS_SPEAKER: {
+    // The local user has one microphone, not two: their voice is transmitted to the meeting and dictated for
+    // translation at the same time, so muting has to stop both. Mirroring the conference mute here rather than in the
+    // button catches every other way of being muted too, a moderator's mute among them.
+    case SET_AUDIO_MUTED: {
+        const result = next(action);
+        const { active, micOn } = store.getState()['features/live-translation'];
+        const open = !action.muted;
+
+        if (active && micOn !== open) {
+            store.dispatch(setLiveTranslationMic(open));
+        }
+
+        return result;
+    }
+
+    // Somebody else starting or stopping talking is what turns the overlap warning on and off, and it reaches this
+    // device as a presence update rather than as anything audible. Leaving counts as stopping: somebody who hangs up
+    // mid-sentence takes their announced speech state with them rather than announcing the end of it.
+    case PARTICIPANT_LEFT:
+    case PARTICIPANT_UPDATED: {
         const result = next(action);
 
-        _syncMicrophone(store);
+        if (store.getState()['features/live-translation'].active) {
+            _syncOverlapWarning(store);
+        }
+
+        return result;
+    }
+
+    // Choosing to hear somebody in their own voice gives them their volume back, and choosing the translation again
+    // turns them down: the two halves of the choice have to happen together, or a voice is left competing with a
+    // translation of itself.
+    case SET_LIVE_TRANSLATION_UNTRANSLATED: {
+        const result = next(action);
+        const state = store.getState();
+        const track = getTrackByMediaTypeAndParticipant(
+            state['features/base/tracks'], MEDIA_TYPE.AUDIO, action.participantId);
+
+        if (state['features/live-translation'].active && track) {
+            _duck(state, track.jitsiTrack, true);
+        }
 
         return result;
     }
@@ -252,10 +284,11 @@ function _start(store: IStore) {
     _duckAll(store, true);
     _duckAgainShortly(store);
 
-    // The local voice reaches the others as a translated message read out on their side, so letting the conference
-    // microphone through as well would say everything twice.
-    wasAudioMuted = Boolean(getState()['features/base/media'].audio.muted);
-    dispatch(setAudioMuted(true));
+    // The local voice keeps reaching the others as itself, at full volume, alongside the translation read out on their
+    // side: a participant who understands the language spoken should not have to listen to a robot instead. The
+    // dictation listens to the same open microphone rather than taking it over, so the one thing that has to be true at
+    // the start is that the two agree about whether it is open.
+    dispatch(setLiveTranslationMic(!getState()['features/base/media'].audio.muted));
 
     // The panel lives under the tile grid, which is the only layout that gives up the room it needs, so the call opens
     // the screen it is shown on the same way the live captions panel does.
@@ -295,23 +328,18 @@ function _start(store: IStore) {
 }
 
 /**
- * Ends the call and puts the conference microphone back the way it was found.
+ * Ends the call, leaving the conference microphone exactly as the local user has it: the call never took it away, so
+ * there is nothing to give back.
  *
  * @param {IStore} store - The redux store.
  * @returns {void}
  */
 function _stop(store: IStore) {
-    const { dispatch, getState } = store;
-    const { micOn } = getState()['features/live-translation'];
+    const { dispatch } = store;
 
     getLocalMicRecorderNativeModule()?.stopUtteranceSession();
     subscriptions.forEach(subscription => subscription.remove());
     subscriptions = [];
-
-    if (echoTailTimeout) {
-        clearTimeout(echoTailTimeout);
-        echoTailTimeout = undefined;
-    }
 
     pending = 0;
 
@@ -322,11 +350,8 @@ function _stop(store: IStore) {
     dispatch(setLiveTranslationPending(0));
     dispatch(setLiveTranslationDictating(false));
 
-    // Back to transmitting, unless the local user was muted before the call started or closed the microphone during it:
-    // leaving the translated call is not a reason to start broadcasting somebody who had muted themselves.
-    if (!wasAudioMuted && micOn) {
-        dispatch(setAudioMuted(false, true));
-    }
+    // Whoever was talking over whom, it stopped mattering the moment the call did.
+    _hideOverlapWarning(store);
 
     // The audio track speaks for itself again from here on, so the meeting is told to stop reading the announcement.
     _announceMicrophone(store);
@@ -359,7 +384,11 @@ function _duck(state: IReduxState, jitsiTrack: any, ducked: boolean) {
     const { participantsVolume } = state['features/filmstrip'];
     const participantId = jitsiTrack.getParticipantId?.();
     const chosen = participantsVolume[participantId];
-    const volume = ducked ? REMOTE_AUDIO_DUCK_GAIN : chosen ?? REMOTE_AUDIO_DEFAULT_GAIN;
+
+    // Somebody the local user asked to hear in their own voice keeps their volume: nothing is going to be read out over
+    // the top of them, so there is nothing to make room for.
+    const quiet = ducked && !isParticipantUntranslated(state, participantId);
+    const volume = quiet ? REMOTE_AUDIO_DUCK_GAIN : chosen ?? REMOTE_AUDIO_DEFAULT_GAIN;
     const track = jitsiTrack.track;
 
     if (typeof track?._setVolume !== 'function') {
@@ -424,6 +453,56 @@ function _duckAgainShortly(store: IStore) {
 function _cancelDuckRetries() {
     duckRetries.forEach(retry => clearTimeout(retry));
     duckRetries = [];
+}
+
+/**
+ * Warns the local user when somebody else is talking at the same time as they are.
+ *
+ * Only the people talking over each other are told, because they are the only ones who can do anything about it: a
+ * listener hearing two translations arrive together does not need a warning, they need the translations. Nothing is
+ * suppressed either way - both utterances are transcribed and sent, since each was captured on its own device and
+ * neither can contaminate the other. What overlapping speech costs is the listener's attention, and that is what the
+ * warning is about.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _syncOverlapWarning(store: IStore) {
+    const state = store.getState();
+    const { active, dictating, micOn } = state['features/live-translation'];
+    const speakingLocally = active && micOn && dictating;
+
+    // Everybody else's speech state comes out of presence: with the dictation running there is no audio level to read
+    // it from, which is why it is announced in the first place.
+    const othersSpeaking = speakingLocally && Array.from(state['features/base/participants'].remote.values())
+        .some(participant => participant.liveTranslationSpeaking === LIVE_TRANSLATION_SPEAKING_ON);
+
+    if (othersSpeaking === overlapWarned) {
+        return;
+    }
+
+    overlapWarned = othersSpeaking;
+
+    if (othersSpeaking) {
+        store.dispatch(showNotification({
+            appearance: NOTIFICATION_TYPE.WARNING,
+            titleKey: 'liveTranslation.multipleSpeakers',
+            uid: LIVE_TRANSLATION_OVERLAP_UID
+        }, NOTIFICATION_TIMEOUT_TYPE.STICKY));
+    } else {
+        store.dispatch(hideNotification(LIVE_TRANSLATION_OVERLAP_UID));
+    }
+}
+
+/**
+ * Takes the overlap warning away, whether or not it is on screen.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _hideOverlapWarning({ dispatch }: IStore) {
+    overlapWarned = false;
+    dispatch(hideNotification(LIVE_TRANSLATION_OVERLAP_UID));
 }
 
 /**
@@ -577,38 +656,31 @@ function _announceSpeaking({ getState }: IStore) {
 }
 
 /**
- * Deafens or un-deafens the recorder to match what the call is doing: it hears nothing while the local user closed the
- * microphone, nor while the device is reading a message out loud.
+ * Deafens or un-deafens the recorder to match what the local user has their microphone set to.
+ *
+ * The microphone deliberately stays open while the device is reading a message out loud. Closing it there would be the
+ * safer thing to do about echo - what comes out of the loudspeaker can be heard, transcribed and sent back - but it also
+ * makes the call half-duplex: whoever wants to answer has to wait for the translation of the previous sentence to
+ * finish, and what they say in the meantime is lost rather than queued. A conversation is worth more than the echo is
+ * worth avoiding, so the two remaining defences carry it instead: the platform echo canceller on the capture, and the
+ * text backstop in caption-tts/spokenText.ts, which drops a transcript repeating what was just spoken.
  *
  * @param {IStore} store - The redux store.
  * @returns {void}
  */
 function _syncMicrophone({ dispatch, getState }: IStore) {
     const recorder = getLocalMicRecorderNativeModule();
-    const state = getState();
-    const { active, micOn } = state['features/live-translation'];
+    const { active, micOn } = getState()['features/live-translation'];
 
     if (!recorder?.setUtteranceSessionMuted || !active) {
         return;
     }
 
-    if (echoTailTimeout) {
-        clearTimeout(echoTailTimeout);
-        echoTailTimeout = undefined;
-    }
+    recorder.setUtteranceSessionMuted(!micOn);
 
-    if (!micOn || isReadingAloud(state)) {
-        recorder.setUtteranceSessionMuted(true);
+    if (!micOn) {
         dispatch(setLiveTranslationDictating(false));
-
-        return;
     }
-
-    // A room reverberates, so the last syllable out of the loudspeaker is still in the air after the engine reports it
-    // done. Opening the microphone straight away would record it.
-    echoTailTimeout = setTimeout(() => {
-        recorder.setUtteranceSessionMuted(false);
-    }, ECHO_TAIL_MS);
 }
 
 /**
@@ -642,7 +714,12 @@ async function _transcribeAndSend({ dispatch }: IStore, utterance: IMelpUtteranc
         dispatch(setLiveTranslationError(null));
     } catch (error) {
         logger.warn('Could not turn an utterance into a message', error);
-        dispatch(setLiveTranslationError('liveTranslation.failed'));
+
+        // An outage and a rejected sentence look the same to the person talking unless they are told apart: one is
+        // worth waiting out, the other is worth trying again in different words.
+        dispatch(setLiveTranslationError(error instanceof TranscriptionUnreachableError
+            ? 'liveTranslation.serviceDown'
+            : 'liveTranslation.failed'));
     } finally {
         dispatch(setLiveTranslationPending(--pending));
     }

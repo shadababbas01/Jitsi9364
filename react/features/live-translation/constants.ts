@@ -19,9 +19,9 @@ export const LIVE_TRANSLATION_TOOLBAR_RESERVE = 72;
 /**
  * The presence property the state of the microphone is announced through.
  *
- * A translated call keeps the conference microphone muted from beginning to end, whatever the local user has their own
- * microphone set to, so what the meeting can see of their audio track says nothing about whether they are talking. This
- * is what says it instead, and it is sent for as long as the call runs.
+ * The audio track says whether the participant is transmitting; this says whether their dictation is listening, which is
+ * what decides whether anything they say will be translated for the rest of the meeting. The two move together, but only
+ * this one distinguishes somebody in a translated call from somebody who is simply unmuted.
  */
 export const LIVE_TRANSLATION_MIC_PROPERTY = 'liveTranslationMic';
 
@@ -44,9 +44,9 @@ export const LIVE_TRANSLATION_MIC_NONE = '';
 /**
  * The presence property the recorder's speech state is announced through.
  *
- * For the same reason the microphone has to be announced: with the conference microphone muted no audio level ever
- * leaves the device, so nothing the meeting can see says who is talking. This is what the speaking outline on everybody
- * else's copy of the tile is drawn from.
+ * The dictation's own voice activity detector decides this, and it knows sooner and more exactly than a remote audio
+ * level does whether this participant is being listened to right now. The speaking outline on everybody else's copy of
+ * the tile is drawn from it, and so is the warning shown to two people talking at once.
  */
 export const LIVE_TRANSLATION_SPEAKING_PROPERTY = 'liveTranslationSpeaking';
 
@@ -125,7 +125,7 @@ export const REMOTE_AUDIO_DEFAULT_GAIN = 1;
 export const REMOTE_AUDIO_DUCK_RETRIES_MS = [ 1000, 3000 ];
 
 /**
- * How long the microphone stays deaf after the device has stopped speaking. A room reverberates, and the last syllable
- * out of the loudspeaker is still in the air after the engine reports it done.
+ * The notification which tells the local user that somebody is talking over them. Held under one ID so that the warning
+ * is replaced rather than stacked, and can be taken away again the moment the overlap ends.
  */
-export const ECHO_TAIL_MS = 400;
+export const LIVE_TRANSLATION_OVERLAP_UID = 'live-translation-overlap';

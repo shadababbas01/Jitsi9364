@@ -3,7 +3,8 @@ import {
     SET_LIVE_TRANSLATION_DICTATING,
     SET_LIVE_TRANSLATION_ERROR,
     SET_LIVE_TRANSLATION_MIC,
-    SET_LIVE_TRANSLATION_PENDING
+    SET_LIVE_TRANSLATION_PENDING,
+    SET_LIVE_TRANSLATION_UNTRANSLATED
 } from './actionTypes';
 
 /**
@@ -71,5 +72,23 @@ export function setLiveTranslationError(error: string | null) {
     return {
         type: SET_LIVE_TRANSLATION_ERROR,
         error
+    };
+}
+
+/**
+ * Records whether one participant is to be heard in their own voice rather than read out in translation.
+ *
+ * The choice is the local user's alone and is never announced: everybody decides for themselves whose voice they
+ * understand, and somebody who speaks the language does not need a translation of it read over the top.
+ *
+ * @param {string} participantId - The participant this is about.
+ * @param {boolean} untranslated - Whether to hear them untranslated.
+ * @returns {Object}
+ */
+export function setLiveTranslationUntranslated(participantId: string, untranslated: boolean) {
+    return {
+        type: SET_LIVE_TRANSLATION_UNTRANSLATED,
+        participantId,
+        untranslated
     };
 }

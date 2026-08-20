@@ -8,7 +8,8 @@ const DEFAULT_STATE: ILiveTranslationState = {
     dictating: false,
     error: null,
     micOn: true,
-    pending: 0
+    pending: 0,
+    untranslated: {}
 };
 
 /**
@@ -52,4 +53,18 @@ export function getLiveTranslationPanelHeight(state: IReduxState): number {
         Math.max(
             LIVE_TRANSLATION_PANEL_MIN_HEIGHT,
             Math.round(clientHeight * LIVE_TRANSLATION_PANEL_HEIGHT_RATIO)));
+}
+
+/**
+ * Returns whether one participant is to be heard in their own voice rather than read out in translation.
+ *
+ * Two things follow from it, and they belong together: nothing that participant says is spoken by the engine, and their
+ * own audio is left at full volume instead of being turned down to make room for a translation which is not coming.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @param {string} participantId - The participant to ask about.
+ * @returns {boolean}
+ */
+export function isParticipantUntranslated(state: IReduxState, participantId?: string): boolean {
+    return Boolean(participantId && getLiveTranslationState(state).untranslated[participantId]);
 }

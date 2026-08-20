@@ -1,3 +1,4 @@
+import { PARTICIPANT_LEFT } from '../base/participants/actionTypes';
 import ReducerRegistry from '../base/redux/ReducerRegistry';
 
 import {
@@ -5,7 +6,8 @@ import {
     SET_LIVE_TRANSLATION_DICTATING,
     SET_LIVE_TRANSLATION_ERROR,
     SET_LIVE_TRANSLATION_MIC,
-    SET_LIVE_TRANSLATION_PENDING
+    SET_LIVE_TRANSLATION_PENDING,
+    SET_LIVE_TRANSLATION_UNTRANSLATED
 } from './actionTypes';
 
 export interface ILiveTranslationState {
@@ -34,6 +36,12 @@ export interface ILiveTranslationState {
      * How many utterances are being transcribed and sent.
      */
     pending: number;
+
+    /**
+     * The participants the local user would rather hear in their own voice than have read out in translation, by ID.
+     * Absent means translated, which is what a translated call is for.
+     */
+    untranslated: { [participantId: string]: boolean; };
 }
 
 const DEFAULT_STATE: ILiveTranslationState = {
@@ -41,7 +49,8 @@ const DEFAULT_STATE: ILiveTranslationState = {
     dictating: false,
     error: null,
     micOn: true,
-    pending: 0
+    pending: 0,
+    untranslated: {}
 };
 
 ReducerRegistry.register<ILiveTranslationState>('features/live-translation', (
@@ -83,6 +92,40 @@ ReducerRegistry.register<ILiveTranslationState>('features/live-translation', (
             ...state,
             error: action.error
         };
+
+    case SET_LIVE_TRANSLATION_UNTRANSLATED: {
+        const untranslated = { ...state.untranslated };
+
+        if (action.untranslated) {
+            untranslated[action.participantId] = true;
+        } else {
+            delete untranslated[action.participantId];
+        }
+
+        return {
+            ...state,
+            untranslated
+        };
+    }
+
+    // Somebody who has left cannot be heard either way, and the next participant to be given their ID must not inherit
+    // the choice made about them.
+    case PARTICIPANT_LEFT: {
+        const participantId = action.participant?.id;
+
+        if (!participantId || !state.untranslated[participantId]) {
+            return state;
+        }
+
+        const untranslated = { ...state.untranslated };
+
+        delete untranslated[participantId];
+
+        return {
+            ...state,
+            untranslated
+        };
+    }
     }
 
     return state;

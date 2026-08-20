@@ -28,6 +28,7 @@ import {
     getVideoTrackByParticipant
 } from '../../../base/tracks/functions.native';
 import { ITrack } from '../../../base/tracks/types';
+import { getChatTtsSpeakerId } from '../../../caption-tts/functions.native';
 import ConnectionIndicator from '../../../connection-indicator/components/native/ConnectionIndicator';
 import DisplayNameLabel from '../../../display-name/components/native/DisplayNameLabel';
 import { getGifDisplayMode, getGifForParticipant } from '../../../gifs/functions.native';
@@ -97,6 +98,12 @@ interface IProps {
     /**
      * Indicates whether the participant is screen sharing.
      */
+    /**
+     * Whether this participant is taking part in a translated call, in which case their dictation says exactly when they
+     * start and stop talking and nothing else has to be guessed at.
+     */
+    _inTranslatedCall: boolean;
+
     _isScreenShare: boolean;
 
     /**
@@ -159,12 +166,16 @@ interface IProps {
     _speakingFromAudioLevel: boolean;
 
     /**
-     * Whether the participant is speaking into a translated call, where the muted conference track leaves the announced
-     * state as the only thing that can say so.
+     * Whether the participant is speaking into a translated call, as announced by their own dictation.
      */
     _speakingInTranslatedCall: boolean;
 
     _shouldDisplayTileView: boolean;
+
+    /**
+     * Whether what this participant said is being read out in translation on this device right now.
+     */
+    _translating: boolean;
 
     /**
      * The video track that will be displayed in the thumbnail.
@@ -613,6 +624,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
             _audioMuted,
             _fakeParticipant,
             _gifSrc,
+            _inTranslatedCall,
             _isScreenShare: isScreenShare,
             _isVirtualScreenshare,
             _local,
@@ -621,6 +633,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
             _raisedHand,
             _renderDominantSpeakerIndicator,
             _speakingInTranslatedCall,
+            _translating,
             _videoTrack,
             backgroundColor,
             borderRadius,
@@ -654,16 +667,28 @@ class Thumbnail extends PureComponent<IProps, IState> {
         const shouldShowAudioIndicator = (showAudioIndicator ?? true)
             && !(hideAudioIndicatorWhenVideoOn && isVideoOn);
 
-        // Below three participants the conference reports no dominant speaker worth having, so the audio level of the
-        // track stands in for it. In a translated call there is no audio level either, and what the participant
-        // announces is all there is.
-        const isSpeaking = Boolean(_renderDominantSpeakerIndicator)
-            || _speakingInTranslatedCall
-            || (this.state._speakingByAudioLevel && !_audioMuted);
-        const showSpeakingOutline = isSpeaking && !_isVirtualScreenshare && !disableDominantSpeakerIndicator;
+        // Somebody in a translated call has their own voice activity detector reporting them, which says when they stop
+        // as precisely as it says when they start. The dominant speaker deliberately does not: the conference leaves it
+        // on the last person who spoke until somebody else does, which is useful for choosing a large video and useless
+        // for an outline, since it would stay lit long after they finished. Below three participants there is no
+        // dominant speaker worth having either, and the audio level of the track stands in for it.
+        const isSpeaking = _inTranslatedCall
+            ? _speakingInTranslatedCall
+            : Boolean(_renderDominantSpeakerIndicator) || this.state._speakingByAudioLevel;
+
+        // Nobody with their microphone closed is speaking, whatever anything else still says.
+        const showSpeakingOutline = isSpeaking
+            && !_audioMuted
+            && !_isVirtualScreenshare
+            && !disableDominantSpeakerIndicator;
 
         // The red outline says somebody is being recorded; on a remote tile there is room to say who.
         const showRecordingBadge = showSpeakingOutline && Boolean(tileView) && !_local;
+
+        // What somebody said reaches this device as text and is read out in translation a moment later, which is a
+        // second thing worth seeing on their tile - and it lands after they have stopped talking, so it never has to
+        // compete with the recording badge for the same corner.
+        const showTranslatingBadge = _translating && Boolean(tileView) && !_local && !showRecordingBadge;
 
         return (
             <Container
@@ -716,6 +741,18 @@ class Thumbnail extends PureComponent<IProps, IState> {
                                 </Text>
                             </View>
                         ) }
+                        { showTranslatingBadge && (
+                            <View
+                                pointerEvents = 'none'
+                                style = { styles.thumbnailTranslatingBadge as ViewStyle }>
+                                <View style = { styles.thumbnailTranslatingBadgeDot as ViewStyle } />
+                                <Text
+                                    numberOfLines = { 1 }
+                                    style = { styles.thumbnailRecordingBadgeText }>
+                                    { `${_participantDisplayName} is translating` }
+                                </Text>
+                            </View>
+                        ) }
                     </>
                 }
             </Container>
@@ -758,8 +795,10 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         audioMuted = audioTrack?.muted ?? true;
     }
 
-    // And for the same reason there is no audio level to read either, so who is talking is announced as well: the local
-    // user's straight out of the recorder, everybody else's out of presence.
+    // Who is talking is announced rather than measured: the local user's state comes straight out of the recorder, and
+    // everybody else's out of presence. Only participants who are in a translated call have any of this to announce.
+    const inTranslatedCall = Boolean(liveTranslationActive && participant?.local)
+        || Boolean(participant?.liveTranslationMic);
     let speakingInTranslatedCall;
 
     if (liveTranslationActive && participant?.local) {
@@ -802,7 +841,9 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _renderModeratorIndicator: renderModeratorIndicator,
         _shouldDisplayTileView: shouldDisplayTileView(state),
         _speakingFromAudioLevel: participantCount <= 2,
+        _inTranslatedCall: inTranslatedCall,
         _speakingInTranslatedCall: Boolean(speakingInTranslatedCall),
+        _translating: Boolean(id) && getChatTtsSpeakerId(state) === id,
         _videoTrack: videoTrack,
         width: width1,
         height: height1,

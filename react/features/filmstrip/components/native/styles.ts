@@ -265,6 +265,34 @@ export default {
         letterSpacing: 0
     },
 
+    /**
+     * The badge saying that what this participant said is being read out in translation right now. Deliberately not the
+     * red of the recording badge: nobody is being recorded, the device is talking.
+     */
+    thumbnailTranslatingBadge: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.72)',
+        borderColor: BaseTheme.palette.action01,
+        borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: 'row',
+        maxWidth: '70%',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[1],
+        position: 'absolute',
+        top: BaseTheme.spacing[2],
+        zIndex: 5
+    },
+
+    thumbnailTranslatingBadgeDot: {
+        backgroundColor: BaseTheme.palette.action01,
+        borderRadius: 4,
+        height: 8,
+        marginRight: BaseTheme.spacing[1],
+        width: 8
+    },
+
     thumbnailGif: {
         flexGrow: 1,
         resizeMode: 'contain'

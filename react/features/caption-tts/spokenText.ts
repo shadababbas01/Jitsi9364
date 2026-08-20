@@ -1,11 +1,12 @@
 /**
  * What the device has said out loud lately, so that hearing itself back can be recognised for what it is.
  *
- * The microphone is deafened while a message is read aloud, which is what actually prevents the loop, but a gate can
- * only be so tight: the tail of an utterance can reach the microphone in the moment before it closes, and a room with
- * reverberation stretches that moment. This is the backstop. Anything transcribed which matches what was just spoken is
- * the device hearing itself, not somebody talking, and must not be sent back to the meeting - the other side would read
- * it aloud, their microphone would hear that, and the two would talk past each other indefinitely.
+ * The microphone is deliberately not closed while a message is read aloud - a translated call has to stay full duplex, so
+ * that somebody can answer without waiting for the previous translation to finish - which leaves this and the platform
+ * echo canceller as the whole defence rather than as a backstop behind a gate. Anything transcribed which matches what
+ * was just spoken is the device hearing itself, not somebody talking, and must not be sent back to the meeting: the
+ * other side would read it aloud, their microphone would hear that, and the two would talk past each other
+ * indefinitely.
  */
 
 /**

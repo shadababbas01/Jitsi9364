@@ -5,6 +5,7 @@ import { CONFERENCE_FAILED, CONFERENCE_LEFT } from '../base/conference/actionTyp
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { ADD_MESSAGE } from '../chat/actionTypes';
 import { MESSAGE_TYPE_REMOTE } from '../chat/constants';
+import { isParticipantUntranslated } from '../live-translation/functions.any';
 import { translateLiveCaptionTextCached } from '../subtitles/languages';
 
 import { setChatTtsSpeaker } from './actions';
@@ -113,6 +114,13 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
     }
 
     if (!isChatTtsEnabled(store.getState())) {
+        return;
+    }
+
+    // Somebody the local user chose to hear in their own voice is not read out at all. Their audio is left at full
+    // volume for exactly this reason, so speaking as well would put a translation on top of a voice which was already
+    // understood.
+    if (isParticipantUntranslated(store.getState(), action.participantId)) {
         return;
     }
 
