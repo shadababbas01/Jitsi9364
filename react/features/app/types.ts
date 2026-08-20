@@ -70,6 +70,7 @@ import { IReactionsState } from '../reactions/reducer';
 import { IRecentListState } from '../recent-list/reducer';
 import { IRecordingState } from '../recording/reducer';
 import { IRemoteControlState } from '../remote-control/reducer';
+import { IS2SV2State } from '../s2s-v2/reducer';
 import { IScreenShareState } from '../screen-share/reducer';
 import { IScreenshotCaptureState } from '../screenshot-capture/reducer';
 import { IShareRoomState } from '../share-room/reducer';
@@ -164,6 +165,7 @@ export interface IReduxState {
     'features/recent-list': IRecentListState;
     'features/recording': IRecordingState;
     'features/remote-control': IRemoteControlState;
+    'features/s2s-v2': IS2SV2State;
     'features/screen-share': IScreenShareState;
     'features/screenshot-capture': IScreenshotCaptureState;
     'features/settings': ISettingsState;

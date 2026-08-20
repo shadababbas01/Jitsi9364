@@ -9,9 +9,9 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { getParticipantCountForDisplay } from '../../../base/participants/functions';
-import LiveTranslationButton from '../../../live-translation/components/native/LiveTranslationButton';
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
+import S2SV2PanelButton from '../../../s2s-v2/components/native/S2SV2PanelButton';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
 import RaiseHandButton from '../../../toolbox/components/native/RaiseHandButton';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
@@ -85,7 +85,7 @@ const SideToolbar = (props: IProps) => {
                     </View>
                 }
                 <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                    <LiveTranslationButton styles = { styles.sideToolbarButton } />
+                    <S2SV2PanelButton styles = { styles.sideToolbarButton } />
                 </View>
                 {raisedHandsCount > 0 && (
                     <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>

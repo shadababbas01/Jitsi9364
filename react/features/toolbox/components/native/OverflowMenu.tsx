@@ -34,6 +34,7 @@ import VirtualBackgroundButton
 import { getUnreadPollCount } from '../../../polls/functions';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
+import S2SV2Button from '../../../s2s-v2/components/native/S2SV2Button';
 import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../../../visitors/functions';
@@ -464,6 +465,13 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
                     {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
+
+                    {/*
+                      * Shown to moderators only, and it says which of the two things it does: a session is started and
+                      * stopped for the whole meeting, so there is one entry rather than one per participant.
+                      */}
+                    <D />
+                    <S2SV2Button { ...rowProps } />
                     {false && <><D /><TranslatedInCallMessagesOverflowButton { ...topRowProps } /></>}
                     {false && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />

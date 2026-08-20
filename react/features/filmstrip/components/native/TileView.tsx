@@ -14,6 +14,7 @@ import { ILocalParticipant } from '../../../base/participants/types';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import { getLiveTranslationPanelHeight } from '../../../live-translation/functions.any';
+import { getS2SV2PanelHeight } from '../../../s2s-v2/functions';
 import { getCaptionsPanelHeight } from '../../../subtitles/functions.any';
 import { setVisibleRemoteParticipants } from '../../actions.web';
 
@@ -520,7 +521,10 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
             .filter(id => id && id !== localParticipant?.id),
         // The live captions panel takes the bottom of the screen when it is open, so the grid has to lay itself out in
         // what is left of the viewport instead of being clipped by it.
-        _height: responsiveUi.clientHeight - getCaptionsPanelHeight(state) - getLiveTranslationPanelHeight(state),
+        _height: responsiveUi.clientHeight
+            - getCaptionsPanelHeight(state)
+            - getLiveTranslationPanelHeight(state)
+            - getS2SV2PanelHeight(state),
         _localParticipant: localParticipant,
         _participantCount: getParticipantCountWithFake(state),
         _remoteParticipants: remoteParticipants,

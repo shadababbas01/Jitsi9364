@@ -1157,6 +1157,66 @@
         "unavailableTitle": "Recording unavailable",
         "uploadToCloud": "Upload to the cloud"
     },
+    "s2sV2": {
+        "error": {
+            "micBlocked": "Voice translation v2 needs microphone access to transcribe your speech.",
+            "transcribeFailed": "Some speech couldn't be translated just now.",
+            "ttsReconnecting": "Reconnecting translation audio\u2026",
+            "ttsUnavailable": "Translated audio is unavailable right now \u2014 captions will still show in English."
+        },
+        "loadingLanguages": "Loading languages\u2026",
+        "multipleSpeakers": {
+            "label": "Multiple people are speaking"
+        },
+        "noLanguagesAvailable": "No languages available right now.",
+        "notify": {
+            "sessionEnded": "Voice translation v2 has ended."
+        },
+        "panel": {
+            "disclaimer": "Transcripts are machine generated and may not be 100% accurate.",
+            "empty": "Nothing said yet. Translated messages will appear here as people speak.",
+            "languageHelper": "Translated audio will be played in this language.",
+            "languageLabel": "Listen In Language",
+            "suppressLabel": "Suppress Original Voice",
+            "suppressOffHelper": "You'll hear both the original voice and the translation together.",
+            "suppressOnHelper": "Original voices stay quiet while translations play.",
+            "theme": {
+                "dark": "Dark",
+                "label": "Panel appearance",
+                "light": "Light"
+            },
+            "title": "Voice Translation v2",
+            "translating": "Translating\u2026"
+        },
+        "popup": {
+            "description": "Pick the language you'd like everyone's speech translated into.",
+            "dismiss": "Not now",
+            "languageLabel": "Translate to",
+            "proceed": "Proceed",
+            "start": "Start",
+            "startDescription": "Pick the language you'd like to hear translations in. Once you start, everyone else can pick their own language too.",
+            "startTitle": "Start voice translation v2",
+            "suppressLabel": "Lower speakers' original volume",
+            "suppressOffHelper": "You'll hear both the original voice and the translation together.",
+            "suppressOnHelper": "Original voices stay quiet while translations play.",
+            "title": "Voice translation v2 is on"
+        },
+        "searchLanguages": "Search languages",
+        "sideToolbar": {
+            "hide": "Hide voice translation",
+            "show": "Show voice translation"
+        },
+        "stopDialog": {
+            "cancel": "Cancel",
+            "confirm": "Stop",
+            "description": "Everyone will stop hearing translated audio. Anyone with moderator access can turn it back on later.",
+            "title": "Stop voice translation v2?"
+        },
+        "toolsMenu": {
+            "disable": "Disable voice translation v2",
+            "enable": "Enable voice translation v2"
+        }
+    },
     "screenshareDisplayName": "{{name}}'s screen",
     "sectionList": {
         "pullToRefresh": "Pull to refresh"

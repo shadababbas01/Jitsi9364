@@ -54,6 +54,7 @@ import { getIsLobbyVisible } from '../../../lobby/functions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import { isPipEnabled, setPictureInPictureEnabled } from '../../../mobile/picture-in-picture/functions';
+import S2SV2TranslationPanel from '../../../s2s-v2/components/native/S2SV2TranslationPanel';
 import Captions from '../../../subtitles/components/native/Captions';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
@@ -716,6 +717,16 @@ class Conference extends AbstractConference<IProps, State> {
                   */
                     _shouldDisplayTileView && <LiveTranslationPanel />
                 }
+
+                {/*
+                  * The translated session panel, deliberately not conditioned on the layout the way the two above are.
+                  *
+                  * It asks for the tile grid, which gives up room for it, but it cannot be made to depend on getting
+                  * it: tile view is refused outright on a deployment which disables it, and refused silently, which
+                  * would leave a participant in a session they can hear and cannot see. Drawn wherever the meeting
+                  * happens to be, over the large video if that is what is on screen.
+                  */}
+                <S2SV2TranslationPanel />
 
                 {
                     _shouldDisplayTileView

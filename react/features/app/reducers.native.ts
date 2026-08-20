@@ -1,5 +1,6 @@
 import '../caption-tts/reducer';
 import '../live-translation/reducer';
+import '../s2s-v2/reducer';
 import '../mobile/audio-mode/reducer';
 import '../mobile/background/reducer';
 import '../mobile/call-integration/reducer';
