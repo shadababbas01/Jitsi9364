@@ -1,21 +1,38 @@
 /* eslint-disable react/no-multi-comp */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, Pressable, ScrollView, Text, TextStyle, View, ViewStyle } from 'react-native';
+import {
+    Animated,
+    Easing,
+    LayoutChangeEvent,
+    Pressable,
+    ScrollView,
+    Text,
+    TextStyle,
+    View,
+    ViewStyle
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
-import Avatar from '../../../base/avatar/components/Avatar';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge, IconTranslate } from '../../../base/icons/svg';
-import { getLocalParticipant } from '../../../base/participants/functions';
+import { IconTranslate } from '../../../base/icons/svg';
 import { updateSettings } from '../../../base/settings/actions';
-import { getChatReadAloudLanguage, getChatTtsSpeakerId } from '../../../caption-tts/functions.native';
+import {
+    getChatReadAloudLanguage,
+    getChatTtsSpeakerId,
+    getChatTtsSpeakingMessageId
+} from '../../../caption-tts/functions.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 import { setLiveTranslationActive } from '../../actions';
 import { LIVE_TRANSLATION_TOOLBAR_RESERVE } from '../../constants';
-import { getLiveTranslationPanelHeight, getLiveTranslationState } from '../../functions.native';
+import {
+    getLiveTranslationPanelHeight,
+    getLiveTranslationState,
+    getLiveTranslationUtterances
+} from '../../functions.native';
+import { ILiveTranslationUtterance } from '../../reducer';
 
 import LanguagePill from './LanguagePill';
 import styles, { LIVE_TRANSLATION_COLORS } from './styles';
@@ -26,8 +43,7 @@ import styles, { LIVE_TRANSLATION_COLORS } from './styles';
 const WAVEFORM_BARS = 5;
 
 /**
- * The bars drawn next to whoever is talking. A spoken message has no text to show here, so this stands in for it the way
- * the waveform next to a voice note does.
+ * The bars drawn next to the utterance being read out, in place of the level meter its voice would draw.
  *
  * @returns {JSX.Element}
  */
@@ -77,44 +93,54 @@ function Waveform() {
 }
 
 /**
- * A participant, and whether they are the one talking.
+ * One thing somebody said: who said it, what came through, and underneath it the translation being read out loud in its
+ * place.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element}
  */
-function SpeakerRow({ displayName, participantId, speaking, state }: {
+function UtteranceCard({ displayName, onMeasure, pendingLabel, speaking, utterance }: {
     displayName: string;
-    participantId: string;
+    onMeasure: (id: string, y: number) => void;
+    pendingLabel: string;
     speaking: boolean;
-    state: string;
+    utterance: ILiveTranslationUtterance;
 }) {
+    const measure = useCallback(
+        (event: LayoutChangeEvent) => onMeasure(utterance.id, event.nativeEvent.layout.y),
+        [ onMeasure, utterance.id ]);
+
+    // A translation which came back the same as what was said is the same sentence twice: it is either being read out in
+    // the language it arrived in or the service had nothing to change, and either way there is one line to show, not
+    // two. Until it comes back at all there is a line to hold, so the card does not grow when it does.
+    const waiting = utterance.translation === null;
+    const translation = !waiting && utterance.translation !== utterance.text ? utterance.translation : '';
+
     return (
         <View
+            onLayout = { measure }
             style = { [
-                styles.speakerRow,
-                speaking && styles.speakerRowActive
+                styles.transcriptCard,
+                speaking && styles.transcriptCardSpeaking
             ] as ViewStyle[] }>
-            <View style = { styles.avatarWrapper as ViewStyle }>
-                <Avatar
-                    displayName = { displayName }
-                    participantId = { participantId }
-                    size = { 32 } />
-                { speaking && <View style = { styles.avatarRing as ViewStyle } /> }
-            </View>
-            <View style = { styles.speakerText as ViewStyle }>
+            <View style = { styles.senderBadge as ViewStyle }>
                 <Text
                     numberOfLines = { 1 }
-                    style = { styles.speakerName as TextStyle }>
+                    style = { styles.senderBadgeText as TextStyle }>
                     { displayName }
                 </Text>
-                { Boolean(state) && (
+            </View>
+            <View style = { styles.utteranceText as ViewStyle }>
+                <Text style = { styles.utteranceOriginal as TextStyle }>
+                    { utterance.text }
+                </Text>
+                { (translation || waiting) && (
                     <Text
-                        numberOfLines = { 1 }
                         style = { [
-                            styles.speakerState,
-                            speaking && styles.speakerStateActive
+                            styles.utteranceTranslation,
+                            waiting && styles.utteranceTranslationPending
                         ] as TextStyle[] }>
-                        { state }
+                        { waiting ? pendingLabel : translation }
                     </Text>
                 ) }
             </View>
@@ -124,9 +150,13 @@ function SpeakerRow({ displayName, participantId, speaking, state }: {
 }
 
 /**
- * The live translation call, shown under the video in the way the live captions panel is: what the call is doing at the
- * top, the language everything is turned into under it, and where a transcript would be, who is talking right now.
- * Nothing anybody says is written out - it is read aloud.
+ * The live translation call, shown under the video in the way the live captions panel is: what the call is doing on one
+ * line at the top, what has been said under it, and the language everything is turned into and the way out at the
+ * bottom.
+ *
+ * Each thing said is shown as it came through and as it is read out loud, so that the sentence being heard can be
+ * followed and, where the original is half understood, checked against it. They are kept in a list rather than replacing
+ * one another, so the last few minutes of the call can be read back.
  *
  * @returns {JSX.Element | null}
  */
@@ -140,19 +170,62 @@ export default function LiveTranslationPanel() {
     const { active, dictating, error, micOn, pending } = useSelector(getLiveTranslationState);
     const toolboxVisible = useSelector(isToolboxVisible);
     const speakerId = useSelector(getChatTtsSpeakerId);
+    const speakingId = useSelector(getChatTtsSpeakingMessageId);
     const heardLanguage = useSelector(getChatReadAloudLanguage);
-    const localParticipant = useSelector(getLocalParticipant);
+    const utterances = useSelector(getLiveTranslationUtterances);
 
     // Whoever is in the meeting is kept in a map which is written into rather than replaced, so watching the map itself
     // would show the room as it was when the panel was opened and never again. The slice around it is a fresh object on
-    // every participant action, which is what keeps the list up to date as people come and go.
+    // every participant action, which is what keeps the names up to date as people come and go.
     const participants = useSelector((state: IReduxState) => state['features/base/participants']);
-    const { defaultLocalDisplayName, defaultRemoteDisplayName }
+    const { defaultRemoteDisplayName }
         = useSelector((state: IReduxState) => state['features/base/config']);
 
-    const remotes = useMemo(
-        () => Array.from(participants.remote.values()).filter(participant => !participant.fakeParticipant),
-        [ participants ]);
+    const scroll = useRef<ScrollView>(null);
+
+    // Where each card sits in the list, so that the one being read can be scrolled to. Reported by the cards
+    // themselves: they are as tall as what was said, so nothing else knows.
+    const offsets = useRef(new Map<string, number>());
+
+    const measure = useCallback((id: string, y: number) => {
+        offsets.current.set(id, y);
+    }, []);
+
+    const nameOf = useCallback((participantId: string) =>
+        participants.remote.get(participantId)?.name || defaultRemoteDisplayName || '',
+    [ defaultRemoteDisplayName, participants ]);
+
+    // The list follows whatever is being read out. Several messages can arrive faster than they can be spoken, and the
+    // mark on the one the engine has reached is worth nothing if the list has already run past it to the newest.
+    useEffect(() => {
+        const y = speakingId && offsets.current.get(speakingId);
+
+        if (typeof y === 'number') {
+            scroll.current?.scrollTo({
+                animated: true,
+                y
+            });
+        }
+    }, [ speakingId ]);
+
+    // Cards which have scrolled out of the store are not coming back, and their offsets would otherwise be kept for the
+    // rest of the meeting.
+    useEffect(() => {
+        const ids = new Set(utterances.map(utterance => utterance.id));
+
+        offsets.current.forEach((_, id) => {
+            if (!ids.has(id)) {
+                offsets.current.delete(id);
+            }
+        });
+    }, [ utterances ]);
+
+    // Nothing being read means nothing to follow, so the list goes to the newest: it is what the panel is for.
+    const follow = useCallback(() => {
+        if (!speakingId) {
+            scroll.current?.scrollToEnd({ animated: true });
+        }
+    }, [ speakingId ]);
 
     const selectHeard = useCallback((code: string) => {
         dispatch(updateSettings({ chatReadAloudLanguage: code }));
@@ -166,115 +239,100 @@ export default function LiveTranslationPanel() {
         return null;
     }
 
-    const nameOf = (participant?: { local?: boolean; name?: string; }) => participant?.name
-        || (participant?.local ? defaultLocalDisplayName : defaultRemoteDisplayName)
-        || '';
+    // What the call is doing with the sound right now. The local participant's own state comes first: it is the one
+    // thing they can act on, by waiting or by speaking again.
+    let status = t('liveTranslation.listening');
+    let statusStyle: TextStyle | null = null;
 
-    // Everyone the local user has to know about: whoever is talking is at the top, so it is the first thing read.
-    const rows = [];
-
-    if (localParticipant) {
-        // Nothing is said about somebody who is not doing anything: a row of "Quiet" against every name is noise, and
-        // the point of the list is to make the one person who is talking stand out.
-        let localState = '';
-
-        if (dictating) {
-            localState = t('liveTranslation.youAreSpeaking');
-        } else if (pending > 0) {
-            localState = t('liveTranslation.sending');
-        } else if (!micOn) {
-            localState = t('liveTranslation.micIsOff');
-        } else if (error) {
-            localState = t(error);
-        }
-
-        rows.push({
-            displayName: `${nameOf(localParticipant)} (${t('chat.you')})`,
-            id: localParticipant.id,
-            speaking: dictating,
-            state: localState
-        });
+    if (dictating) {
+        status = t('liveTranslation.youAreSpeaking');
+        statusStyle = styles.statusTextActive as TextStyle;
+    } else if (pending > 0) {
+        status = t('liveTranslation.sending');
+    } else if (!micOn) {
+        status = t('liveTranslation.micIsOff');
+    } else if (error) {
+        status = t(error);
+        statusStyle = styles.statusTextError as TextStyle;
+    } else if (speakerId) {
+        status = t('liveTranslation.someoneSpeakingKeepQuiet', { name: nameOf(speakerId) });
+        statusStyle = styles.statusTextActive as TextStyle;
     }
-
-    remotes.forEach(participant => {
-        const speaking = participant.id === speakerId;
-
-        rows.push({
-            displayName: nameOf(participant),
-            id: participant.id,
-            speaking,
-            state: speaking ? t('liveTranslation.speakingNow') : ''
-        });
-    });
-
-    rows.sort((a, b) => Number(b.speaking) - Number(a.speaking));
 
     return (
         <View style = { [ styles.panel, { height } ] as ViewStyle[] }>
-            <View style = { styles.grabber as ViewStyle } />
+            <View
+                style = { [
+                    styles.surface,
 
-            <View style = { styles.surface as ViewStyle }>
-                <View style = { styles.header as ViewStyle }>
-                    <View style = { styles.headerIcon as ViewStyle }>
+                    // The toolbar is out of the way until it is tapped back on, and then it floats over the bottom of
+                    // the panel, so the panel's own contents step aside for exactly as long as it is there.
+                    { paddingBottom: safeAreaBottom + (toolboxVisible ? LIVE_TRANSLATION_TOOLBAR_RESERVE : 0) }
+                ] as ViewStyle[] }>
+                <View style = { styles.statusRow as ViewStyle }>
+                    <View style = { styles.statusIcon as ViewStyle }>
                         <Icon
-                            color = { LIVE_TRANSLATION_COLORS.text }
-                            size = { 18 }
+                            color = { LIVE_TRANSLATION_COLORS.textMuted }
+                            size = { 14 }
                             src = { IconTranslate } />
                     </View>
-                    <View style = { styles.headerCopy as ViewStyle }>
-                        <Text
-                            numberOfLines = { 1 }
-                            style = { styles.liveLabel as TextStyle }>
-                            { t('liveTranslation.title') }
-                        </Text>
-                    </View>
-                    <View style = { styles.headerActions as ViewStyle }>
-                        <LanguagePill
-                            accessibilityLabel = { t('liveTranslation.translateInto') }
-                            label = { t('liveTranslation.translateInto') }
-                            onSelect = { selectHeard }
-                            value = { heardLanguage } />
-                        <Pressable
-                            accessibilityLabel = { t('liveTranslation.turnOff') }
-                            accessibilityRole = 'button'
-                            onPress = { close }
-                            style = { styles.closeButton as ViewStyle }>
-                            <Icon
-                                color = { LIVE_TRANSLATION_COLORS.textMuted }
-                                size = { 16 }
-                                src = { IconCloseLarge } />
-                        </Pressable>
-                    </View>
+                    <Text
+                        numberOfLines = { 1 }
+                        style = { [ styles.statusText, statusStyle ] as TextStyle[] }>
+                        { status }
+                    </Text>
                 </View>
 
-                <Text style = { styles.sectionTitle as TextStyle }>
-                    { t('liveTranslation.participants', 'Participants') }
-                </Text>
-
-                <ScrollView
-                    contentContainerStyle = { [
-                        styles.speakersContent,
-
-                        // The toolbar is out of the way until it is tapped back on, and then it floats over the bottom of
-                        // the panel, so the list steps aside for exactly as long as it is there.
-                        { paddingBottom: safeAreaBottom + (toolboxVisible ? LIVE_TRANSLATION_TOOLBAR_RESERVE : 0) }
-                    ] as ViewStyle[] }
-                    style = { styles.speakers as ViewStyle }>
-                    { rows.length === 0
-                        ? (
-                            <Text style = { styles.emptyText as TextStyle }>
-                                { t('liveTranslation.nobodyHere') }
+                { utterances.length === 0
+                    ? (
+                        <View style = { styles.emptyCard as ViewStyle }>
+                            <Text style = { styles.emptyCardText as TextStyle }>
+                                { t('liveTranslation.waitingForSpeech') }
                             </Text>
-                        )
-                        : rows.map(row => (
-                            <SpeakerRow
-                                displayName = { row.displayName }
-                                key = { row.id }
-                                participantId = { row.id }
-                                speaking = { row.speaking }
-                                state = { row.state } />
-                        )) }
-                </ScrollView>
+                        </View>
+                    )
+                    : (
+                        <ScrollView
+                            contentContainerStyle = { styles.transcriptContent as ViewStyle }
+                            onContentSizeChange = { follow }
+                            ref = { scroll }
+                            style = { styles.transcript as ViewStyle }>
+                            { utterances.map(utterance => (
+                                <UtteranceCard
+                                    displayName = { nameOf(utterance.participantId) }
+                                    key = { utterance.id }
+                                    onMeasure = { measure }
+                                    pendingLabel = { t('liveTranslation.translating') }
+                                    speaking = { utterance.id === speakingId }
+                                    utterance = { utterance } />
+                            )) }
+                        </ScrollView>
+                    ) }
+
+                <View style = { styles.controls as ViewStyle }>
+                    <Text
+                        numberOfLines = { 1 }
+                        style = { styles.controlsLabel as TextStyle }>
+                        { t('liveTranslation.translateTo') }
+                    </Text>
+                    <LanguagePill
+                        accessibilityLabel = { t('liveTranslation.translateInto') }
+                        label = { t('liveTranslation.translateInto') }
+                        onSelect = { selectHeard }
+                        value = { heardLanguage } />
+                    <Pressable
+                        accessibilityLabel = { t('liveTranslation.turnOff') }
+                        accessibilityRole = 'button'
+                        onPress = { close }
+                        style = { styles.ccButton as ViewStyle }>
+                        <Text style = { styles.ccMark as TextStyle }>
+                            { t('liveTranslation.cc') }
+                        </Text>
+                        <Text style = { styles.ccState as TextStyle }>
+                            { t('liveTranslation.on') }
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     );

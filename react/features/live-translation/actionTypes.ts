@@ -3,7 +3,9 @@
  *
  * {
  *      type: SET_LIVE_TRANSLATION_ACTIVE,
- *      active: boolean
+ *      active: boolean,
+ *      broadcast: boolean,
+ *      confirmed: boolean
  * }
  */
 export const SET_LIVE_TRANSLATION_ACTIVE = 'SET_LIVE_TRANSLATION_ACTIVE';
@@ -60,3 +62,29 @@ export const SET_LIVE_TRANSLATION_ERROR = 'SET_LIVE_TRANSLATION_ERROR';
  * }
  */
 export const SET_LIVE_TRANSLATION_UNTRANSLATED = 'SET_LIVE_TRANSLATION_UNTRANSLATED';
+
+/**
+ * The type of (redux) action which records what one participant said, so the panel can show it while it is read out.
+ *
+ * {
+ *      type: ADD_LIVE_TRANSLATION_UTTERANCE,
+ *      id: string,
+ *      participantId: string,
+ *      text: string,
+ *      timestamp: number
+ * }
+ */
+export const ADD_LIVE_TRANSLATION_UTTERANCE = 'ADD_LIVE_TRANSLATION_UTTERANCE';
+
+/**
+ * The type of (redux) action which records the translation of an utterance, once the service has returned it. It arrives
+ * after the utterance itself, so it is a second action rather than part of the first.
+ *
+ * {
+ *      type: SET_LIVE_TRANSLATION_UTTERANCE_TRANSLATION,
+ *      id: string,
+ *      language: string,
+ *      translation: string
+ * }
+ */
+export const SET_LIVE_TRANSLATION_UTTERANCE_TRANSLATION = 'SET_LIVE_TRANSLATION_UTTERANCE_TRANSLATION';

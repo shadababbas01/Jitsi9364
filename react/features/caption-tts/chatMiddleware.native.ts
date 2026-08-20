@@ -5,6 +5,7 @@ import { CONFERENCE_FAILED, CONFERENCE_LEFT } from '../base/conference/actionTyp
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { ADD_MESSAGE } from '../chat/actionTypes';
 import { MESSAGE_TYPE_REMOTE } from '../chat/constants';
+import { addLiveTranslationUtterance, setLiveTranslationUtteranceTranslation } from '../live-translation/actions';
 import { isParticipantUntranslated } from '../live-translation/functions.any';
 import { translateLiveCaptionTextCached } from '../subtitles/languages';
 
@@ -90,7 +91,7 @@ function _getQueue({ dispatch }: IStore): CaptionsTtsQueue {
         queue = new CaptionsTtsQueue((speaking, messageId) => {
             const speakerId = speaking && messageId ? messageSenders.get(messageId) : undefined;
 
-            dispatch(setChatTtsSpeaker(speakerId ?? null, speaking));
+            dispatch(setChatTtsSpeaker(speakerId ?? null, speaking, speaking ? messageId ?? null : null));
         });
     }
 
@@ -154,12 +155,20 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
 
     speechQueue.setEnabled(true);
 
+    // Recorded here rather than where the message arrives, so that what the live translation panel shows is exactly what
+    // is read out: everything turned away above is not spoken, and so has nothing to show.
+    store.dispatch(addLiveTranslationUtterance(
+        messageId, action.participantId, text, action.timestamp ?? Date.now()));
+
     if (!language) {
         // No language was picked, so the message is spoken as it was received, in the voice of the caption language.
+        const voice = toTtsLanguageTag(state['features/subtitles']._language);
+
         rememberSpokenText(text);
+        store.dispatch(setLiveTranslationUtteranceTranslation(messageId, text, voice));
         speechQueue.enqueue({
             id: messageId,
-            language: toTtsLanguageTag(state['features/subtitles']._language),
+            language: voice,
             text
         });
 
@@ -172,6 +181,7 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
         .then(translated => {
             // What goes to the engine is what the microphone might hear back, so that is what has to be remembered.
             rememberSpokenText(translated || text);
+            store.dispatch(setLiveTranslationUtteranceTranslation(messageId, translated || text, language));
             speechQueue.enqueue({
                 id: messageId,
                 language: toTtsLanguageTag(language),
@@ -182,10 +192,13 @@ function _maybeSpeakMessage(store: IStore, action: AnyAction) {
             logger.warn('Failed to translate a chat message before reading it aloud', error);
 
             // Better heard in the language it arrived in than not heard at all.
+            const voice = toTtsLanguageTag(state['features/subtitles']._language);
+
             rememberSpokenText(text);
+            store.dispatch(setLiveTranslationUtteranceTranslation(messageId, text, voice));
             speechQueue.enqueue({
                 id: messageId,
-                language: toTtsLanguageTag(state['features/subtitles']._language),
+                language: voice,
                 text
             });
         });

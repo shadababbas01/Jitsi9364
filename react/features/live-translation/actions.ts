@@ -1,10 +1,12 @@
 import {
+    ADD_LIVE_TRANSLATION_UTTERANCE,
     SET_LIVE_TRANSLATION_ACTIVE,
     SET_LIVE_TRANSLATION_DICTATING,
     SET_LIVE_TRANSLATION_ERROR,
     SET_LIVE_TRANSLATION_MIC,
     SET_LIVE_TRANSLATION_PENDING,
-    SET_LIVE_TRANSLATION_UNTRANSLATED
+    SET_LIVE_TRANSLATION_UNTRANSLATED,
+    SET_LIVE_TRANSLATION_UTTERANCE_TRANSLATION
 } from './actionTypes';
 
 /**
@@ -13,13 +15,16 @@ import {
  * @param {boolean} active - Whether the call is on.
  * @param {boolean} broadcast - Whether the rest of the meeting is asked to join, or told the asking is over. False for
  * a call which is being turned on in answer to somebody else's invitation, which would otherwise invite them back.
+ * @param {boolean} confirmed - Whether the sheet which settles what the call sounds like has already been answered.
+ * False from the button and the chat console, which is what puts that sheet on screen; true from the sheet itself.
  * @returns {Object}
  */
-export function setLiveTranslationActive(active: boolean, broadcast = true) {
+export function setLiveTranslationActive(active: boolean, broadcast = true, confirmed = false) {
     return {
         type: SET_LIVE_TRANSLATION_ACTIVE,
         active,
-        broadcast
+        broadcast,
+        confirmed
     };
 }
 
@@ -90,5 +95,43 @@ export function setLiveTranslationUntranslated(participantId: string, untranslat
         type: SET_LIVE_TRANSLATION_UNTRANSLATED,
         participantId,
         untranslated
+    };
+}
+
+/**
+ * Records what one participant said, as it was received, so that the panel can show it alongside the translation which
+ * is read out.
+ *
+ * @param {string} id - The ID of the message it was said in.
+ * @param {string} participantId - Who said it.
+ * @param {string} text - What they said, in the language they said it in.
+ * @param {number} timestamp - When the message was sent.
+ * @returns {Object}
+ */
+export function addLiveTranslationUtterance(
+        id: string, participantId: string, text: string, timestamp: number) {
+    return {
+        type: ADD_LIVE_TRANSLATION_UTTERANCE,
+        id,
+        participantId,
+        text,
+        timestamp
+    };
+}
+
+/**
+ * Records the translation an utterance is read aloud as.
+ *
+ * @param {string} id - The ID of the utterance being translated.
+ * @param {string} translation - The text the engine is given to speak.
+ * @param {string} language - The language it is spoken in.
+ * @returns {Object}
+ */
+export function setLiveTranslationUtteranceTranslation(id: string, translation: string, language: string) {
+    return {
+        type: SET_LIVE_TRANSLATION_UTTERANCE_TRANSLATION,
+        id,
+        language,
+        translation
     };
 }

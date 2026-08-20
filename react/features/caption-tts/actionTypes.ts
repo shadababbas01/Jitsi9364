@@ -20,11 +20,12 @@ export const SET_CAPTION_TTS_SPEAKING = 'SET_CAPTION_TTS_SPEAKING';
 export const SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE = 'SET_CAPTION_TTS_UNSUPPORTED_LANGUAGE';
 
 /**
- * The type of (redux) action which indicates whose chat message is currently being read aloud, so that the UI can show
- * that participant speaking.
+ * The type of (redux) action which indicates which chat message is currently being read aloud, and whose it is, so that
+ * the UI can show that participant speaking and point at the message being spoken.
  *
  * {
  *      type: SET_CHAT_TTS_SPEAKER,
+ *      messageId: string | null,
  *      participantId: string | null,
  *      speaking: boolean
  * }

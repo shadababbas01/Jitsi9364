@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Modal,
@@ -14,50 +14,29 @@ import {
 
 import Icon from '../../../base/icons/components/Icon';
 import { IconArrowDown, IconCheck } from '../../../base/icons/svg';
-import {
-    ILiveCaptionsLanguage,
-    fetchLiveCaptionsLanguages,
-    toBaseSubtitlesLanguage
-} from '../../../subtitles/languages';
+import { toBaseSubtitlesLanguage } from '../../../subtitles/languages';
 
 import styles, { LIVE_TRANSLATION_COLORS } from './styles';
+import useCaptionLanguages from './useCaptionLanguages';
 
 /**
- * The languages to fall back on while the list is being fetched, or if fetching it fails.
- */
-const FALLBACK_CODES = [ 'en', 'hi', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru' ];
-
-/**
- * One end of the language pair: the name of the language, its code underneath, and a sheet for changing it.
+ * The language everything is turned into: its name, and a sheet for changing it.
  *
  * @param {Object} props - The props of the component.
  * @returns {JSX.Element}
  */
-export default function LanguagePill({ accessibilityLabel, label, onSelect, value }: {
+export default function LanguagePill({ accessibilityLabel, label, onSelect, style, value }: {
     accessibilityLabel: string;
     label: string;
     onSelect: (code: string) => void;
+    style?: ViewStyle;
     value: string;
 }) {
     const { t } = useTranslation();
 
-    const [ languages, setLanguages ] = useState<ILiveCaptionsLanguage[]>([]);
+    const languages = useCaptionLanguages();
     const [ open, setOpen ] = useState(false);
     const [ search, setSearch ] = useState('');
-
-    useEffect(() => {
-        let cancelled = false;
-
-        fetchLiveCaptionsLanguages(FALLBACK_CODES).then(fetched => {
-            if (!cancelled) {
-                setLanguages(fetched);
-            }
-        });
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
 
     const name = useMemo(
         () => languages.find(language => language.code === value)?.label || value.toUpperCase(),
@@ -89,11 +68,11 @@ export default function LanguagePill({ accessibilityLabel, label, onSelect, valu
     return (
         <>
             <Pressable
-                accessibilityLabel = { accessibilityLabel }
                 accessibilityHint = { label }
+                accessibilityLabel = { accessibilityLabel }
                 accessibilityRole = 'button'
                 onPress = { openSheet }
-                style = { styles.languagePill as ViewStyle }>
+                style = { [ styles.languagePill, style ] as ViewStyle[] }>
                 <Text
                     numberOfLines = { 1 }
                     style = { styles.languagePillName as TextStyle }>

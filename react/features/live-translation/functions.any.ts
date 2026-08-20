@@ -1,7 +1,7 @@
 import { IReduxState } from '../app/types';
 
 import { LIVE_TRANSLATION_PANEL_HEIGHT_RATIO, LIVE_TRANSLATION_PANEL_MIN_HEIGHT } from './constants';
-import { ILiveTranslationState } from './reducer';
+import { ILiveTranslationState, ILiveTranslationUtterance } from './reducer';
 
 const DEFAULT_STATE: ILiveTranslationState = {
     active: false,
@@ -9,7 +9,8 @@ const DEFAULT_STATE: ILiveTranslationState = {
     error: null,
     micOn: true,
     pending: 0,
-    untranslated: {}
+    untranslated: {},
+    utterances: []
 };
 
 /**
@@ -67,4 +68,25 @@ export function getLiveTranslationPanelHeight(state: IReduxState): number {
  */
 export function isParticipantUntranslated(state: IReduxState, participantId?: string): boolean {
     return Boolean(participantId && getLiveTranslationState(state).untranslated[participantId]);
+}
+
+/**
+ * Returns what has been said in the call, oldest first, as it was received and as it is read aloud.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {ILiveTranslationUtterance[]}
+ */
+export function getLiveTranslationUtterances(state: IReduxState): ILiveTranslationUtterance[] {
+    return getLiveTranslationState(state).utterances;
+}
+
+/**
+ * Returns whether the other participants' own voices are silenced during a translated call, rather than left as a
+ * murmur under the translation being read out.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isPlayTranslationOnly(state: IReduxState): boolean {
+    return Boolean(state['features/base/settings'].liveTranslationPlayTranslationOnly);
 }

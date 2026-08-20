@@ -76,58 +76,173 @@ export default {
         width: 36
     },
 
-    // "Live translation", what it is doing with the sound, and the way out. Kept to one line: everything this row does
-    // not take is room the participants get.
-    header: {
+    // Where the panel says what it is doing with the sound: heard, sending, or nothing at all. One line, above the
+    // transcript, so the state of the call is read before anything that was said in it.
+    statusRow: {
         alignItems: 'center',
         flexDirection: 'row',
         paddingBottom: BaseTheme.spacing[2]
     },
 
-    headerIcon: {
+    statusIcon: {
+        marginRight: BaseTheme.spacing[1]
+    },
+
+    statusText: {
+        ...CAPTION,
+        color: COLORS.textMuted,
+        flex: 1
+    },
+
+    // The one state which is somebody talking rather than the panel waiting.
+    statusTextActive: {
+        color: COLORS.accent
+    },
+
+    statusTextError: {
+        color: COLORS.action
+    },
+
+    // The transcript: what was said, and what is being read out in its place, oldest at the top. It gets every point of
+    // height the status line and the controls do not need, and scrolls for the rest.
+    transcript: {
+        flex: 1
+    },
+
+    transcriptContent: {
+        paddingBottom: BaseTheme.spacing[1]
+    },
+
+    // One utterance, full width, stacked under the one before it.
+    transcriptCard: {
+        backgroundColor: COLORS.surface,
+        borderColor: COLORS.line,
+        borderRadius: 12,
+        borderWidth: 1,
+        flexDirection: 'row',
+        marginBottom: BaseTheme.spacing[1],
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: BaseTheme.spacing[2]
+    },
+
+    // The one being read out loud, which in a list of them is the one worth finding. Marked rather than moved: it is
+    // where it was said, and the ear is already following it.
+    transcriptCardSpeaking: {
+        backgroundColor: COLORS.accentSoft,
+        borderColor: COLORS.accentLine
+    },
+
+    // Who said it. Beside the words rather than above them, so that the two lines of the utterance stay together, and
+    // held to a share of the width so that a long name cannot take the card over from what was said in it.
+    senderBadge: {
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 999,
-        height: 44,
+        alignSelf: 'flex-start',
+
+        // The one dark mark on a light card. The name has to be read as a label rather than as part of the sentence next
+        // to it, and inverting it is what separates the two without a second type size.
+        backgroundColor: COLORS.text,
+        borderRadius: 4,
+        flexShrink: 1,
         justifyContent: 'center',
         marginRight: BaseTheme.spacing[2],
-        width: 44
+        marginTop: 1,
+        maxWidth: '30%',
+        paddingHorizontal: 5,
+        paddingVertical: 2
     },
 
-    headerCopy: {
+    senderBadgeText: {
+        ...BaseTheme.typography.bodyShortRegularSmall,
+        color: COLORS.surface,
+        fontWeight: 'bold',
+        letterSpacing: 0.4
+    },
+
+    utteranceText: {
+        flex: 1
+    },
+
+    // What was said. Read first and read most, so it carries the weight.
+    utteranceOriginal: {
+        ...BaseTheme.typography.bodyShortBold,
+        color: COLORS.text,
+        lineHeight: 20
+    },
+
+    // What is read aloud in its place. Quieter than the original: it is the same thing said again, and the ear is
+    // getting it anyway.
+    utteranceTranslation: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: COLORS.textMuted,
+        lineHeight: 20,
+        marginTop: BaseTheme.spacing[1]
+    },
+
+    // Held for as long as the translation service takes, so the card does not change height when it answers.
+    utteranceTranslationPending: {
+        fontStyle: 'italic'
+    },
+
+    emptyCardText: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: COLORS.textMuted,
+        textAlign: 'center'
+    },
+
+    emptyCard: {
+        alignItems: 'center',
+        backgroundColor: COLORS.surface,
+        borderColor: COLORS.line,
+        borderRadius: 12,
+        borderWidth: 1,
         flex: 1,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingHorizontal: BaseTheme.spacing[3]
     },
 
-    headerActions: {
+    // The two things the panel can be told to do: what to turn everything into, and to stop. On one line under the
+    // transcript, where a caption bar puts them.
+    controls: {
         alignItems: 'center',
         flexDirection: 'row',
-        marginLeft: BaseTheme.spacing[2]
+
+        // Off the scale by design: the language and the switch are the last things in the panel, and they want clearing
+        // from its bottom edge rather than a whole step of it.
+        paddingBottom: 8,
+        paddingTop: BaseTheme.spacing[2]
     },
 
-    liveLabel: {
-        ...BaseTheme.typography.bodyShortBoldLarge,
-        color: COLORS.text,
-        marginBottom: 1
-    },
-
-    liveSubtitle: {
+    controlsLabel: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: COLORS.textMuted
+        color: COLORS.textMuted,
+        marginRight: BaseTheme.spacing[2]
     },
 
-    closeButton: {
+    // The way out, drawn as the caption switch it is: it says what the panel is doing, and tapping it stops.
+    ccButton: {
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 999,
-        height: 36,
-        justifyContent: 'center',
-        marginLeft: BaseTheme.spacing[1],
-        width: 36
+        borderColor: COLORS.action,
+        borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: 'row',
+        marginLeft: 'auto',
+        paddingHorizontal: BaseTheme.spacing[2],
+        paddingVertical: 7
     },
 
-    // The one setting the panel has. It carries its own label, so it sits on the title line instead of taking a row of
-    // its own away from the participants.
+    ccMark: {
+        ...BaseTheme.typography.bodyShortBold,
+        color: COLORS.action,
+        letterSpacing: 0.5,
+        marginRight: BaseTheme.spacing[1]
+    },
+
+    ccState: {
+        ...BaseTheme.typography.bodyShortRegular,
+        color: COLORS.action
+    },
+
+    // The one setting the panel has, on the controls line next to the label saying what it sets.
     languagePill: {
         alignItems: 'center',
         backgroundColor: '#F3F4F6',
@@ -137,7 +252,6 @@ export default {
         flexDirection: 'row',
         flexShrink: 1,
         justifyContent: 'space-between',
-        marginLeft: 'auto',
         maxWidth: 160,
         paddingHorizontal: BaseTheme.spacing[2] + 2,
         paddingVertical: 9
@@ -154,91 +268,7 @@ export default {
         flexDirection: 'row'
     },
 
-    // Where the transcript would be, had this been a captions panel. It says who is talking instead, and it gets every
-    // point of height the two rows above it do not need.
-    speakers: {
-        flex: 1
-    },
-
-    sectionTitle: {
-        ...CAPTION,
-        color: COLORS.textMuted,
-        marginBottom: BaseTheme.spacing[2],
-        marginTop: BaseTheme.spacing[1]
-    },
-
-    speakersContent: {
-        paddingBottom: BaseTheme.spacing[1]
-    },
-
-    speakerRow: {
-        alignItems: 'center',
-        backgroundColor: COLORS.raised,
-        borderColor: 'transparent',
-        borderRadius: 12,
-        borderWidth: 1,
-        flexDirection: 'row',
-        marginBottom: BaseTheme.spacing[1],
-        paddingHorizontal: BaseTheme.spacing[2],
-        paddingVertical: BaseTheme.spacing[1]
-    },
-
-    speakerRowActive: {
-        backgroundColor: COLORS.accentSoft,
-        borderColor: COLORS.accentLine
-    },
-
-    avatarWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 32,
-        width: 32
-    },
-
-    // Drawn around the avatar of whoever is talking, so the row is recognisable before any of it is read.
-    avatarRing: {
-        borderColor: COLORS.accent,
-        borderRadius: 999,
-        borderWidth: 1.5,
-        bottom: -3,
-        left: -3,
-        position: 'absolute',
-        right: -3,
-        top: -3
-    },
-
-    speakerText: {
-        flex: 1,
-        marginLeft: BaseTheme.spacing[2]
-    },
-
-    speakerName: {
-        ...BaseTheme.typography.bodyShortBold,
-        color: COLORS.text
-    },
-
-    speakerStateRow: {
-        ...BaseTheme.typography.bodyShortRegular,
-        color: COLORS.textMuted
-    },
-
-    speakerState: {
-        ...CAPTION,
-        color: COLORS.textMuted
-    },
-
-    speakerStateActive: {
-        color: COLORS.accent
-    },
-
-    emptyText: {
-        ...BaseTheme.typography.bodyShortRegular,
-        color: COLORS.textMuted,
-        paddingVertical: BaseTheme.spacing[4],
-        textAlign: 'center'
-    },
-
-    // The bars next to whoever is talking, in place of the waveform a spoken message would draw.
+    // The bars next to the utterance being read out, in place of the level meter its voice would draw.
     waveform: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -310,56 +340,112 @@ export default {
         color: COLORS.accent
     },
 
-    // The invitation to join somebody else's translated call. A card at the thumb end of the screen rather than a dialog
-    // in the middle of it: it is answered while the phone is being held, often in one hand. It stands clear of all four
-    // edges so that it reads as something laid on top of the call rather than as part of the window.
+    // The invitation to join somebody else's translated call, and the two things worth settling before joining one.
+    //
+    // A sheet rather than a card floating clear of the edges: it is answered while the phone is being held, often in one
+    // hand, and a sheet puts its buttons where the thumb already is. Only the top corners are rounded, because the bottom
+    // of it is the bottom of the screen.
     inviteSheet: {
         backgroundColor: COLORS.surface,
-        borderRadius: 20,
-
-        // Half a step off the scale. A whole one leaves the card looking marooned, none of it and it is a drawer.
-        marginBottom: 12,
-        marginHorizontal: 12
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16
     },
 
     inviteBody: {
         paddingBottom: BaseTheme.spacing[3],
-        paddingHorizontal: BaseTheme.spacing[4],
-        paddingTop: BaseTheme.spacing[3]
+        paddingHorizontal: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[1]
     },
 
-    // The mark and the question on one line: what is being asked reads in a single movement of the eye rather than as
-    // a symbol followed by a caption underneath it.
+    // The mark, what this is, and who is asking. The mark is aligned with the top of the two lines beside it rather than
+    // centred against them, so the three read as one block starting at one height.
     inviteHeader: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
         flexDirection: 'row',
         marginBottom: BaseTheme.spacing[3]
     },
 
     inviteIcon: {
         alignItems: 'center',
-        backgroundColor: COLORS.raised,
-        borderRadius: 24,
-        height: 48,
+        backgroundColor: COLORS.accentSoft,
+        borderRadius: 20,
+        height: 40,
         justifyContent: 'center',
-        marginRight: BaseTheme.spacing[3],
-        width: 48
+        marginRight: BaseTheme.spacing[2] + 4,
+        width: 40
+    },
+
+    inviteHeaderCopy: {
+        flex: 1,
+        paddingTop: 2
     },
 
     inviteTitle: {
-        ...BaseTheme.typography.bodyShortBoldLarge,
         color: COLORS.text,
-        flexShrink: 1
+        fontSize: 15,
+        fontWeight: '500',
+        lineHeight: 20
     },
 
-    // Full strength rather than muted: there is one line of it and it carries the whole question.
+    // Who started it, which is the whole of what makes the question answerable. Everything else on the sheet is a
+    // setting, and none of it says this.
     inviteDescription: {
-        ...BaseTheme.typography.bodyShortRegularLarge,
-        color: COLORS.text,
-        lineHeight: 22
+        color: COLORS.textMuted,
+        fontSize: 12,
+        lineHeight: 16,
+        marginTop: 2
     },
 
-    // Both answers are the same size and share the width evenly, so neither has to be aimed at.
+    // What the control below it sets. Above the control rather than beside it: the control is as wide as the sheet.
+    inviteFieldLabel: {
+        color: COLORS.text,
+        fontSize: 12,
+        fontWeight: '500',
+        marginBottom: BaseTheme.spacing[1]
+    },
+
+    // What the control cannot say for itself. Under both the language and the switch, in the same voice.
+    inviteFieldHelper: {
+        color: COLORS.textMuted,
+        fontSize: 12,
+        lineHeight: 16,
+        marginTop: BaseTheme.spacing[1] - 1
+    },
+
+    // The language pill, given the width of the sheet and the height a thumb needs.
+    inviteDropdown: {
+        maxWidth: undefined,
+        minHeight: 44,
+        paddingVertical: 0
+    },
+
+    // Between what is heard and how it is heard: two settings which are read one after the other, not compared.
+    inviteDivider: {
+        backgroundColor: COLORS.line,
+        height: 1,
+        marginVertical: BaseTheme.spacing[3]
+    },
+
+    inviteToggleRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        minHeight: 44
+    },
+
+    inviteToggleCopy: {
+        flex: 1,
+        marginRight: BaseTheme.spacing[2] + 4
+    },
+
+    inviteToggleLabel: {
+        color: COLORS.text,
+        fontSize: 14,
+        fontWeight: '500',
+        lineHeight: 20
+    },
+
+    // Both answers share the width evenly, so neither has to be aimed at. Which is which is said by the fill, not by
+    // the size: the one that commits is the one that is coloured in.
     inviteActions: {
         flexDirection: 'row',
         marginTop: BaseTheme.spacing[4]
@@ -370,12 +456,12 @@ export default {
         borderRadius: 8,
         flex: 1,
         justifyContent: 'center',
-        paddingVertical: BaseTheme.spacing[2] + 4
+        minHeight: 44
     },
 
     inviteButtonDecline: {
         backgroundColor: COLORS.surface,
-        borderColor: COLORS.text,
+        borderColor: COLORS.line,
         borderWidth: 1,
         marginRight: BaseTheme.spacing[2] + 4
     },
@@ -385,7 +471,8 @@ export default {
     },
 
     inviteButtonLabel: {
-        ...BaseTheme.typography.bodyShortBoldLarge
+        fontSize: 15,
+        fontWeight: '500'
     },
 
     inviteButtonLabelDecline: {

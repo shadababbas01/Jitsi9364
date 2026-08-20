@@ -25,6 +25,7 @@ const DEFAULT_STATE: ISettingsState = {
     disableSelfView: false,
     displayName: undefined,
     email: undefined,
+    liveTranslationPlayTranslationOnly: false,
     localFlipX: true,
     maxStageParticipants: 1,
     micDeviceId: undefined,
@@ -79,6 +80,11 @@ export interface ISettingsState {
     email?: string;
     hideShareAudioHelper?: boolean;
 
+    /**
+     * Whether the other participants' own voices are silenced during a translated call, rather than left as a murmur
+     * under the translation being read out.
+     */
+    liveTranslationPlayTranslationOnly?: boolean;
     localFlipX?: boolean;
     maxStageParticipants?: number;
     micDeviceId?: string | boolean;
@@ -107,12 +113,12 @@ export interface ISettingsState {
     userSelectedCameraDeviceLabel?: string;
     userSelectedMicDeviceId?: string;
     userSelectedMicDeviceLabel?: string;
-    zoomtype?: 'cover' | 'contain';
     userSelectedNotifications?: {
         [key: string]: boolean;
     };
     videoSettingsVisible?: boolean;
     visible?: boolean;
+    zoomtype?: 'cover' | 'contain';
 }
 
 const STORE_NAME = 'features/base/settings';

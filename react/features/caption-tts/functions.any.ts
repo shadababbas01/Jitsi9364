@@ -8,6 +8,7 @@ import { ICaptionTtsState } from './reducer';
 const DEFAULT_STATE: ICaptionTtsState = {
     chatSpeakerId: null,
     chatSpeaking: false,
+    chatSpeakingMessageId: null,
     speaking: false,
     speakingMessageId: null,
     unsupportedLanguage: null
@@ -77,6 +78,21 @@ export function isReadingAloud(state: IReduxState): boolean {
  */
 export function getChatTtsSpeakerId(state: IReduxState): string | null {
     return getCaptionTtsState(state).chatSpeakerId;
+}
+
+/**
+ * Returns the chat message being read aloud right now, if any.
+ *
+ * Whoever sent it is not enough to point at it: several things one participant said are read out one after another, and
+ * only this says which of them the engine has reached.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {string | null}
+ */
+export function getChatTtsSpeakingMessageId(state: IReduxState): string | null {
+    const { chatSpeaking, chatSpeakingMessageId } = getCaptionTtsState(state);
+
+    return chatSpeaking ? chatSpeakingMessageId : null;
 }
 
 /**

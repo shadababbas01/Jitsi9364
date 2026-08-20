@@ -26,8 +26,6 @@ import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/c
 import { setToolboxVisible } from '../toolbox/actions.native';
 import { setTileView } from '../video-layout/actions.any';
 
-import LiveTranslationInviteSheet from './components/native/LiveTranslationInviteSheet';
-
 import {
     SET_LIVE_TRANSLATION_ACTIVE,
     SET_LIVE_TRANSLATION_DICTATING,
@@ -41,6 +39,7 @@ import {
     setLiveTranslationMic,
     setLiveTranslationPending
 } from './actions';
+import LiveTranslationInviteSheet from './components/native/LiveTranslationInviteSheet';
 import {
     LIVE_TRANSLATION_ENDPOINT,
     LIVE_TRANSLATION_INVITE,
@@ -59,10 +58,11 @@ import {
     REMOTE_AUDIO_DEFAULT_GAIN,
     REMOTE_AUDIO_DUCK_GAIN,
     REMOTE_AUDIO_DUCK_RETRIES_MS,
+    REMOTE_AUDIO_MUTED_GAIN,
     SILENCE_MS,
     TRANSCRIBE_TIMEOUT_MS
 } from './constants';
-import { isParticipantUntranslated } from './functions.any';
+import { isParticipantUntranslated, isPlayTranslationOnly } from './functions.any';
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
@@ -119,6 +119,15 @@ let duckRetries: Array<ReturnType<typeof setTimeout>> = [];
 MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     switch (action.type) {
     case SET_LIVE_TRANSLATION_ACTIVE: {
+        // Whoever starts a translated call answers the same sheet as whoever is asked to join one: which language
+        // everybody is heard in, and whether their own voices are silenced under it, are settled before the call rather
+        // than found out during it. A call turned on in answer to an invitation has been through the sheet already.
+        if (action.active && action.broadcast !== false && !action.confirmed) {
+            _askBeforeStarting(store);
+
+            return;
+        }
+
         const result = next(action);
 
         if (action.active) {
@@ -388,7 +397,10 @@ function _duck(state: IReduxState, jitsiTrack: any, ducked: boolean) {
     // Somebody the local user asked to hear in their own voice keeps their volume: nothing is going to be read out over
     // the top of them, so there is nothing to make room for.
     const quiet = ducked && !isParticipantUntranslated(state, participantId);
-    const volume = quiet ? REMOTE_AUDIO_DUCK_GAIN : chosen ?? REMOTE_AUDIO_DEFAULT_GAIN;
+
+    // How quiet is the local user's own choice: a murmur under the translation, or nothing at all.
+    const quietGain = isPlayTranslationOnly(state) ? REMOTE_AUDIO_MUTED_GAIN : REMOTE_AUDIO_DUCK_GAIN;
+    const volume = quiet ? quietGain : chosen ?? REMOTE_AUDIO_DEFAULT_GAIN;
     const track = jitsiTrack.track;
 
     if (typeof track?._setVolume !== 'function') {
@@ -503,6 +515,24 @@ function _syncOverlapWarning(store: IStore) {
 function _hideOverlapWarning({ dispatch }: IStore) {
     overlapWarned = false;
     dispatch(hideNotification(LIVE_TRANSLATION_OVERLAP_UID));
+}
+
+/**
+ * Puts the sheet which settles what a translated call sounds like on screen, and starts the call if it is saved.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function _askBeforeStarting(store: IStore) {
+    store.dispatch(openSheet(LiveTranslationInviteSheet, {
+        onAllow: () => store.dispatch(setLiveTranslationActive(true, true, true)),
+
+        // Nothing to undo: the call was never started, and the sheet writes no settings unless it is saved.
+        onDecline: () => {
+            // Deliberately empty.
+        },
+        starting: true
+    }));
 }
 
 /**

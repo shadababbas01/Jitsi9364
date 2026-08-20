@@ -111,6 +111,14 @@ export const TRANSCRIBE_TIMEOUT_MS = 60 * 1000;
 export const REMOTE_AUDIO_DUCK_GAIN = 0.05;
 
 /**
+ * The volume the same voices are left at when the local user asked to hear the translation only.
+ *
+ * The murmur above is there so it is audible who is talking and when they have stopped. Somebody who finds it a
+ * distraction rather than a help can have it gone altogether, which is what this is.
+ */
+export const REMOTE_AUDIO_MUTED_GAIN = 0;
+
+/**
  * The volume a remote participant is heard at when the local user has never said otherwise, in the units
  * {@link REMOTE_AUDIO_DUCK_GAIN} is in. What their voice goes back to when the panel is closed.
  */
@@ -129,3 +137,9 @@ export const REMOTE_AUDIO_DUCK_RETRIES_MS = [ 1000, 3000 ];
  * is replaced rather than stacked, and can be taken away again the moment the overlap ends.
  */
 export const LIVE_TRANSLATION_OVERLAP_UID = 'live-translation-overlap';
+
+/**
+ * How many of the most recent utterances the panel keeps, and so how far back its list can be scrolled. Enough to read
+ * back the last few minutes of a call, and a bound, so that a long meeting cannot grow the list without end.
+ */
+export const LIVE_TRANSLATION_UTTERANCE_LIMIT = 30;
