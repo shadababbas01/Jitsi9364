@@ -46,6 +46,7 @@ import { shouldDisplayTileView } from '../../../video-layout/functions.native';
 import { setTileView } from '../../../video-layout/actions.native';
 import VoiceTranslationTileIndicators from '../../../voice-translation/components/native/VoiceTranslationTileIndicators';
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
+import { isS2SV2ParticipantTranslating } from '../../../s2s-v2/functions';
 
 import AudioMutedIndicator from './AudioMutedIndicator';
 import ModeratorIndicator from './ModeratorIndicator';
@@ -176,6 +177,11 @@ interface IProps {
      * Whether what this participant said is being read out in translation on this device right now.
      */
     _translating: boolean;
+
+    /**
+     * Whether this participant's own voice is being translated for other users.
+     */
+    _s2sV2Translating: boolean;
 
     /**
      * The video track that will be displayed in the thumbnail.
@@ -634,6 +640,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
             _renderDominantSpeakerIndicator,
             _speakingInTranslatedCall,
             _translating,
+            _s2sV2Translating,
             _videoTrack,
             backgroundColor,
             borderRadius,
@@ -688,7 +695,9 @@ class Thumbnail extends PureComponent<IProps, IState> {
         // What somebody said reaches this device as text and is read out in translation a moment later, which is a
         // second thing worth seeing on their tile - and it lands after they have stopped talking, so it never has to
         // compete with the recording badge for the same corner.
-        const showTranslatingBadge = _translating && Boolean(tileView) && !_local && !showRecordingBadge;
+        const showTranslatingBadge = (_translating || _s2sV2Translating)
+            && Boolean(tileView)
+            && !showRecordingBadge;
 
         return (
             <Container
@@ -844,6 +853,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _inTranslatedCall: inTranslatedCall,
         _speakingInTranslatedCall: Boolean(speakingInTranslatedCall),
         _translating: Boolean(id) && getChatTtsSpeakerId(state) === id,
+        _s2sV2Translating: Boolean(id) && isS2SV2ParticipantTranslating(state, id),
         _videoTrack: videoTrack,
         width: width1,
         height: height1,

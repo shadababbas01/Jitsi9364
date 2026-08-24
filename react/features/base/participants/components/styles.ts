@@ -128,10 +128,10 @@ export default {
      */
     statusLabelPill: {
         backgroundColor: ColorPalette.red,
-        // borderRadius: 12,
-        // marginBottom: 20,
-        // paddingHorizontal: 10,
-        // paddingVertical: 4
+        borderRadius: 12,
+        marginBottom: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 4
     },
 
     /**
@@ -140,6 +140,32 @@ export default {
     statusLabelPillSmall: {
         backgroundColor: ColorPalette.darkGrey,
         borderRadius: 10,
+        marginBottom: 20,
+        paddingHorizontal: 8,
+        paddingVertical: 2
+    },
+
+    /**
+     * Status label pill for translating state.
+     */
+    statusLabelPillTranslating: {
+        backgroundColor: ColorPalette.darkGrey,
+        borderColor: ColorPalette.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginBottom: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 4
+    },
+
+    /**
+     * Smaller status label pill for translating state.
+     */
+    statusLabelPillTranslatingSmall: {
+        backgroundColor: ColorPalette.darkGrey,
+        borderColor: ColorPalette.white,
+        borderRadius: 10,
+        borderWidth: 1,
         marginBottom: 20,
         paddingHorizontal: 8,
         paddingVertical: 2

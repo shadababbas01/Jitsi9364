@@ -1173,8 +1173,11 @@
             "sessionEnded": "Voice translation v2 has ended."
         },
         "panel": {
+            "automatic": "Automatic",
             "disclaimer": "Transcripts are machine generated and may not be 100% accurate.",
             "empty": "Nothing said yet. Translated messages will appear here as people speak.",
+            "closeTranscript": "End voice translation",
+            "listenIn": "Listen in",
             "languageHelper": "Translated audio will be played in this language.",
             "languageLabel": "Listen In Language",
             "suppressLabel": "Suppress Original Voice",

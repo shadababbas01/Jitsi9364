@@ -27,6 +27,7 @@ import {
 } from '../../tracks/functions';
 import { ITrack } from '../../tracks/types';
 import { getParticipantById, getParticipantDisplayName, isSharedVideoParticipant } from '../functions';
+import { isS2SV2ParticipantTranslating } from '../../../s2s-v2/functions';
 
 import styles from './styles';
 import ThumbnailAudioIndicator from '../../../filmstrip/components/native/ThumbnailAudioIndicator';
@@ -52,6 +53,11 @@ interface IProps {
      * Whether the participant is a shared video participant.
      */
     _isSharedVideoParticipant: boolean;
+
+    /**
+     * Whether the participant is having their speech translated for the room.
+     */
+    _isS2SV2Translating: boolean;
 
     /**
      * Whether the participant's audio is muted.
@@ -465,6 +471,7 @@ class ParticipantView extends Component<IProps> {
             _isOnHold,
             _isLocal,
             _isSharedVideoParticipant,
+            _isS2SV2Translating,
             _renderVideo: renderVideo,
             _sharedVideoEnabled,
             _videoTrack: videoTrack,
@@ -493,8 +500,7 @@ class ParticipantView extends Component<IProps> {
             && !(isLargeVideo && renderVideo);
         const shouldShowStatusLabels = isLargeVideo
             && !_isSharedVideoParticipant
-            && !_isLocal
-            && (_isAudioMuted || _isOnHold);
+            && (_isAudioMuted || _isOnHold || _isS2SV2Translating);
         const statusLabels: Array<string> = [];
 
         if (_isAudioMuted) {
@@ -507,6 +513,10 @@ class ParticipantView extends Component<IProps> {
             statusLabels.push(this.props.t('videothumbnail.onHold'));
         }
 
+        if (_isS2SV2Translating) {
+            statusLabels.push(this.props.t('s2sV2.panel.translating'));
+        }
+
         const statusLabelsView = shouldShowStatusLabels
             ? (
                 <View
@@ -517,11 +527,15 @@ class ParticipantView extends Component<IProps> {
                     {statusLabels.map(label => (
                         <View
                             key={label}
-                            style={(isTileStatus ? styles.statusLabelPillSmall : styles.statusLabelPill) as ViewStyle}>
-                            {/* <Text
+                            style={(
+                                label === this.props.t('s2sV2.panel.translating')
+                                    ? (isTileStatus ? styles.statusLabelPillTranslatingSmall : styles.statusLabelPillTranslating)
+                                    : (isTileStatus ? styles.statusLabelPillSmall : styles.statusLabelPill)
+                            ) as ViewStyle}>
+                            <Text
                                 style={(isTileStatus ? styles.statusLabelTextSmall : styles.statusLabelText) as TextStyle}>
                                 {label}
-                            </Text> */}
+                            </Text>
                         </View>
                     ))}
                 </View>
@@ -567,7 +581,7 @@ class ParticipantView extends Component<IProps> {
                                 containerStyle = {{
                                     ...audioIndicatorContainerStyle,
                                     marginTop: this.props.avatarSize * 0.6
-                                }}
+                                } as ViewStyle}
                             />
                         )}
                     </>}
@@ -611,6 +625,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _isLocal: Boolean(participant?.local),
         _isOnHold: Boolean(participant?.isSilent),
         _isSharedVideoParticipant: isSharedVideoParticipant(participant),
+        _isS2SV2Translating: isS2SV2ParticipantTranslating(state, participantId),
         _participantName: getParticipantDisplayName(state, participantId),
         _renderVideo: shouldRenderParticipantVideo(state, participantId) && !disableVideo,
         _sharedVideoEnabled: isSharedVideoEnabled(state),
