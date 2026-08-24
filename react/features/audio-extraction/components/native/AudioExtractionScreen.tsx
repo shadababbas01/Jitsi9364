@@ -17,11 +17,12 @@ import { getCurrentConference } from '../../../base/conference/functions';
 import { getLocalParticipant } from '../../../base/participants/functions';
 import { getCaptionsTtsNativeModule } from '../../../caption-tts/functions.native';
 import { JSON_TYPE_LOCAL_TRANSCRIPTION, TRANSCRIBED_LANGUAGE_TAG } from '../../../live-transcribe/constants';
+import transcribeWavFile from '../../../live-transcribe/native/transcribeWav';
 import { getLocalMicRecorderNativeModule } from '../../functions.native';
+
 import styles from './styles';
 
 const WINDOW_DURATION_MS = 10_000;
-const TRANSCRIBE_URL = 'https://ai.live.melp.us:5001/transcribe/text';
 
 interface Clip {
     audioSource: string;
@@ -90,51 +91,9 @@ function formatClockLabel(timestamp: number) {
     return `${minutes}:${seconds}`;
 }
 
-function toFileUri(path: string) {
-    return path.startsWith('file://') ? path : `file://${path}`;
-}
-
 function getFileNameFromPath(path: string) {
     const normalized = path.replace(/^file:\/\//, '');
     return normalized.split('/').pop() || 'recording.wav';
-}
-
-async function transcribeWavFile(audioPath: string): Promise<string> {
-    const body = new FormData();
-    body.append('audio', {
-        uri: toFileUri(audioPath),
-        name: getFileNameFromPath(audioPath),
-        type: 'audio/wav',
-    } as any);
-    body.append('mode', 'transcribe');
-    body.append('language', 'en');
-
-    console.info('[audio-extraction] transcription request started', {
-        audioPath
-    });
-
-    const response = await fetch(TRANSCRIBE_URL, {
-        method: 'POST',
-        body,
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.warn('[audio-extraction] transcription api returned a failure status', {
-            audioPath,
-            status: response.status,
-            errorText
-        });
-        throw new Error(`Transcription API returned ${response.status}`);
-    }
-
-    const transcription = await response.text();
-    console.info('[audio-extraction] transcription request succeeded', {
-        audioPath,
-        transcription
-    });
-
-    return transcription;
 }
 
 async function readTranscriptionAloud(text: string): Promise<void> {
@@ -174,6 +133,7 @@ export default function AudioExtractionScreen() {
     const navigation = useNavigation();
     const conference = useSelector((state: IReduxState) => getCurrentConference(state));
     const localParticipant = useSelector((state: IReduxState) => getLocalParticipant(state));
+    const jwt = useSelector((state: IReduxState) => state['features/base/jwt'].jwt);
     const [ clips, setClips ] = useState<Clip[]>([]);
     const [ status, setStatus ] = useState('Ready to record 10-second microphone windows.');
     const [ menuVisible, setMenuVisible ] = useState(false);
@@ -240,7 +200,12 @@ export default function AudioExtractionScreen() {
             setStatus(`Saved clip ${index + 1}. Transcribing...`);
 
             try {
-                const transcription = (await transcribeWavFile(audioSource)).trim();
+                // keepAudio, because this screen plays its clips back: the shared client otherwise deletes a
+                // recording once it has been transcribed.
+                const transcription = (await transcribeWavFile(
+                    audioSource,
+                    getFileNameFromPath(audioSource),
+                    { jwt, keepAudio: true })).trim();
 
                 setClips(prev => prev.map(item =>
                     item.id === clip.id
@@ -286,7 +251,7 @@ export default function AudioExtractionScreen() {
             });
             setStatus('Failed to record microphone audio.');
         }
-    }, [ conference, localParticipant ]);
+    }, [ conference, jwt, localParticipant ]);
 
     useLayoutEffect(() => {
         navigation.setOptions({

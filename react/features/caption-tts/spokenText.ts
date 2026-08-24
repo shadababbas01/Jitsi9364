@@ -32,6 +32,17 @@ const ECHO_SIMILARITY = 0.7;
  */
 const MIN_WORDS_FOR_OVERLAP = 4;
 
+/**
+ * How much of a spoken line a transcript has to account for before one containing the other counts as an echo.
+ *
+ * Containment on its own is far too eager. What gets read aloud is whole sentences, and the commonest things anybody
+ * says in reply - "yes", "tomorrow", "that works for me" - appear inside one of them constantly. Without this, a
+ * translated call silently drops most of the short answers in it, which is indistinguishable from the microphone not
+ * working. Requiring the two to be comparable in length keeps what containment is actually for: the microphone catching
+ * most, but not all, of a line the device just said.
+ */
+const CONTAINMENT_RATIO = 0.6;
+
 interface ISpokenLine {
     at: number;
     normalized: string;
@@ -109,8 +120,14 @@ export function wasRecentlySpoken(text?: string | null): boolean {
             return true;
         }
 
-        // One containing the other covers the common case of the microphone catching only part of what was said.
-        if (line.normalized.includes(normalized) || normalized.includes(line.normalized)) {
+        // One containing the other covers the common case of the microphone catching most, but not all, of what was
+        // said. Only when the two are comparable in length: a short answer which happens to appear somewhere inside a
+        // sentence that was read out is somebody answering it, not an echo of it.
+        const contains = line.normalized.includes(normalized) || normalized.includes(line.normalized);
+        const shorter = Math.min(line.normalized.length, normalized.length);
+        const longer = Math.max(line.normalized.length, normalized.length);
+
+        if (contains && shorter >= longer * CONTAINMENT_RATIO) {
             return true;
         }
 

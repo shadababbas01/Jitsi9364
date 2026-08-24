@@ -448,6 +448,13 @@ class OverflowMenu extends PureComponent<IProps, IState> {
             showLabel: true,
             styles: listRowButtonStyles
         };
+        // For the rows which replace this menu with a sheet of their own rather than merely closing it. There is one
+        // sheet slot, not a stack, and this menu's own dismissal runs after the press: telling it to close as well
+        // would take the replacement down with it and the press would appear to do nothing.
+        const sheetRowProps = {
+            showLabel: true,
+            styles: listRowButtonStyles
+        };
         const topRowProps = {
             afterClick: this._onCancel,
             dispatch,
@@ -471,7 +478,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                       * stopped for the whole meeting, so there is one entry rather than one per participant.
                       */}
                     <D />
-                    <S2SV2Button { ...rowProps } />
+                    <S2SV2Button { ...sheetRowProps } />
                     {false && <><D /><TranslatedInCallMessagesOverflowButton { ...topRowProps } /></>}
                     {false && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />

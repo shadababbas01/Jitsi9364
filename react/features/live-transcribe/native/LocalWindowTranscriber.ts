@@ -1,76 +1,113 @@
-import { getLocalMicRecorderNativeModule } from '../../audio-extraction/functions.native';
-import { CAPTION_WINDOW_MS, CAPTION_WINDOW_RETRY_MS } from '../constants';
+import { DeviceEventEmitter } from 'react-native';
+
+import { IMelpUtterance, getLocalMicRecorderNativeModule, MELP_UTTERANCE_READY_EVENT } from '../../audio-extraction/functions.native';
+import {
+    MAX_UTTERANCE_MS,
+    MIN_UTTERANCE_MS,
+    SILENCE_HANGOVER_MS
+} from '../constants';
 import logger from '../logger';
 
 import transcribeWavFile from './transcribeWav';
 
 /**
- * Records the local microphone in fixed windows and turns each one into a caption.
+ * Records the local microphone in silence-delimited utterances and turns each one into a caption.
  *
- * One window is recorded at a time and handed to the transcription service while the next one is already being
- * recorded, so the microphone is never idle waiting for the network. The windows are transcribed concurrently but
- * reported in the order they were spoken: the service serves overlapping requests out of a shared pool, so a short
- * window can easily overtake the longer one in front of it, and captions which read back out of order are worse than
- * captions which arrive a moment later.
+ * One utterance is handed to the transcription service as soon as the native recorder decides the speaker paused.
+ * Captions still come out in order, but they no longer wait for a fixed window to expire before they can be sent to
+ * the room.
  */
 export default class LocalWindowTranscriber {
     private _destroyed = false;
     private _running = false;
 
     /**
-     * Which window is recorded next. Also names the file, so two windows cannot collide in the cache directory.
+     * Which utterance is recorded next.
      */
     private _sequence = 0;
 
     /**
-     * Which window is reported next, so that captions come out in the order they were spoken.
+     * Which utterance is reported next, so that captions come out in the order they were spoken.
      */
     private _nextToEmit = 0;
 
     /**
-     * The transcripts which are ready but still have an unfinished window in front of them.
+     * The transcripts which are ready but still have an unfinished utterance in front of them.
      */
     private _ready = new Map<number, string>();
+
+    /**
+     * Serializes requests so a late answer cannot arrive under a later utterance.
+     */
+    private _chain: Promise<void> = Promise.resolve();
 
     private _onText: (text: string) => void;
 
     /**
+     * Guards a running session from late results belonging to an older one.
+     */
+    private _generation = 0;
+
+    /**
+     * The active native subscriptions.
+     */
+    private _subscriptions: Array<{ remove: () => void; }> = [];
+
+    /**
+     * Returns the token the transcription service authenticates with, read per utterance rather than held because it
+     * can be refreshed while a meeting is running.
+     */
+    private _getJwt: () => string | undefined;
+
+    /**
      * Initializes a new {@code LocalWindowTranscriber} instance.
      *
-     * @param {Function} onText - Called with each transcript, in the order the windows were spoken.
+     * @param {Function} onText - Called with each transcript, in the order the utterances were spoken.
+     * @param {Function} getJwt - Returns the token to authenticate with.
      */
-    constructor(onText: (text: string) => void) {
+    constructor(onText: (text: string) => void, getJwt: () => string | undefined = () => undefined) {
         this._onText = onText;
+        this._getJwt = getJwt;
     }
 
     /**
-     * Starts recording windows. Does nothing when already running.
+     * Starts recording utterances. Does nothing when already running.
      *
      * @returns {boolean} Whether there is a microphone recorder to run at all.
      */
     start(): boolean {
-        if (!getLocalMicRecorderNativeModule()) {
+        const recorder = getLocalMicRecorderNativeModule();
+
+        if (!recorder?.startUtteranceSession) {
             return false;
         }
 
         if (!this._running && !this._destroyed) {
             this._running = true;
-            this._recordNext();
+            void this._start(recorder);
         }
 
         return true;
     }
 
     /**
-     * Stops recording. Windows already handed to the service are dropped rather than waited for: they describe speech
-     * from before the captions were switched off.
+     * Stops recording. Utterances already handed to the service are dropped rather than waited for: they describe
+     * speech from before the captions were switched off.
      *
      * @returns {void}
      */
     stop() {
         this._running = false;
-        getLocalMicRecorderNativeModule()?.stop();
+        this._generation++;
+        this._sequence = 0;
+        this._nextToEmit = 0;
         this._ready.clear();
+        this._chain = Promise.resolve();
+
+        this._subscriptions.forEach(subscription => subscription.remove());
+        this._subscriptions = [];
+
+        getLocalMicRecorderNativeModule()?.stopUtteranceSession();
     }
 
     /**
@@ -84,64 +121,92 @@ export default class LocalWindowTranscriber {
     }
 
     /**
-     * Records one window and starts the next, then transcribes what it recorded.
+     * Opens the native utterance session and starts listening for pauses.
      *
+     * @param {ReturnType<typeof getLocalMicRecorderNativeModule>} recorder - The native recorder.
      * @returns {Promise<void>}
      */
-    private async _recordNext(): Promise<void> {
-        if (!this._running || this._destroyed) {
+    private async _start(recorder: NonNullable<ReturnType<typeof getLocalMicRecorderNativeModule>>): Promise<void> {
+        const generation = ++this._generation;
+
+        this._subscriptions = [
+            DeviceEventEmitter.addListener(MELP_UTTERANCE_READY_EVENT, (utterance: IMelpUtterance) => {
+                if (!this._running || this._destroyed || generation !== this._generation) {
+                    return;
+                }
+
+                if (!utterance?.path) {
+                    return;
+                }
+
+                if (typeof utterance.durationMs === 'number' && utterance.durationMs < MIN_UTTERANCE_MS) {
+                    logger.info(`Dropped an utterance of ${utterance.durationMs}ms: too short to be speech`);
+
+                    return;
+                }
+
+                const sequence = this._sequence++;
+
+                this._chain = this._chain
+                    .then(() => this._transcribe(sequence, utterance, generation))
+                    .catch(() => { /* Already reported. The chain must survive it. */ });
+            })
+        ];
+
+        try {
+            await recorder.startUtteranceSession(SILENCE_HANGOVER_MS, MAX_UTTERANCE_MS);
+        } catch (error) {
+            logger.warn('Could not start the utterance session', error);
+            this.stop();
+        }
+    }
+
+    /**
+     * Transcribes one recorded utterance.
+     *
+     * @param {number} sequence - Which utterance it is.
+     * @param {IMelpUtterance} utterance - What the recorder captured.
+     * @param {number} generation - Which capture session it belongs to.
+     * @returns {Promise<void>}
+     */
+    private async _transcribe(sequence: number, utterance: IMelpUtterance, generation: number): Promise<void> {
+        if (!this._running || this._destroyed || generation !== this._generation) {
             return;
         }
 
-        const recorder = getLocalMicRecorderNativeModule();
-        const sequence = this._sequence++;
+        const fileName = utterance.path.split('/').pop() || 'utterance.wav';
 
         try {
-            const audioPath = await recorder?.recordToFile(`live-caption-${sequence}.wav`, CAPTION_WINDOW_MS);
+            const text = (await transcribeWavFile(utterance.path, fileName, {
+                jwt: this._getJwt()
+            }) ?? '').trim();
 
-            // Recording the next window comes first, so that the microphone starts again immediately instead of after
-            // this one has been transcribed.
-            this._recordNext();
-
-            if (!audioPath) {
+            if (!text) {
+                logger.info(`Dropped a ${utterance.durationMs}ms utterance: the service heard nothing in it`);
                 this._settle(sequence, '');
 
                 return;
             }
 
-            this._transcribe(sequence, audioPath);
-        } catch (error) {
-            // Something else is holding the recorder, typically the audio extraction screen. Backing off and trying
-            // again is the whole recovery: whoever has it will let go.
-            logger.warn('Could not record a caption window', error);
-            this._settle(sequence, '');
-
-            if (this._running && !this._destroyed) {
-                setTimeout(() => this._recordNext(), CAPTION_WINDOW_RETRY_MS);
+            if (!this._running || this._destroyed || generation !== this._generation) {
+                return;
             }
-        }
-    }
 
-    /**
-     * Transcribes one recorded window.
-     *
-     * @param {number} sequence - Which window it is.
-     * @param {string} audioPath - Where it was recorded to.
-     * @returns {Promise<void>}
-     */
-    private async _transcribe(sequence: number, audioPath: string): Promise<void> {
-        try {
-            this._settle(sequence, await transcribeWavFile(audioPath, `live-caption-${sequence}.wav`));
+            this._settle(sequence, text);
         } catch (error) {
-            logger.warn('Could not transcribe a caption window', error);
+            if (!this._running || this._destroyed || generation !== this._generation) {
+                return;
+            }
+
+            logger.warn('Could not transcribe a caption utterance', error);
             this._settle(sequence, '');
         }
     }
 
     /**
-     * Records what one window came to and reports everything which is now unblocked.
+     * Records what one utterance came to and reports everything which is now unblocked.
      *
-     * @param {number} sequence - Which window settled.
+     * @param {number} sequence - Which utterance settled.
      * @param {string} text - What it came to, empty when it produced nothing.
      * @returns {void}
      */

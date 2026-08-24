@@ -20,7 +20,12 @@ import { TRACK_ADDED, TRACK_UPDATED } from '../base/tracks/actionTypes';
 import { getTrackByMediaTypeAndParticipant } from '../base/tracks/functions.native';
 import { wasRecentlySpoken } from '../caption-tts/spokenText';
 import { sendMessage } from '../chat/actions.native';
-import transcribeWavFile, { TranscriptionUnreachableError } from '../live-transcribe/native/transcribeWav';
+import { STT_LOG_TAG } from '../live-transcribe/constants';
+import transcribeWavFile, {
+    TranscriptionUnreachableError,
+    closeTranscriptionConnection,
+    openTranscriptionConnection
+} from '../live-transcribe/native/transcribeWav';
 import { hideNotification, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
 import { setToolboxVisible } from '../toolbox/actions.native';
@@ -307,6 +312,11 @@ function _start(store: IStore) {
     // The panel needs the bottom of the screen. The toolbar is not gone for good: a tap on the video brings it back.
     dispatch(setToolboxVisible(false));
 
+    // Opened with the call rather than by the first thing said, so the connection is already there when the first
+    // pause hands an utterance over, and so a drop during a silence is repaired during the silence.
+    logger.info(`${STT_LOG_TAG} a translated call is starting; opening the transcription connection`);
+    openTranscriptionConnection(getState()['features/base/jwt'].jwt);
+
     subscriptions = [
         DeviceEventEmitter.addListener(MELP_UTTERANCE_READY_EVENT, (utterance: IMelpUtterance) => {
             if (!utterance?.path) {
@@ -349,6 +359,11 @@ function _stop(store: IStore) {
     getLocalMicRecorderNativeModule()?.stopUtteranceSession();
     subscriptions.forEach(subscription => subscription.remove());
     subscriptions = [];
+
+    // Nothing left to transcribe, so the connection which was doing it goes too rather than being held open for the
+    // rest of the meeting.
+    logger.info(`${STT_LOG_TAG} the translated call is over; closing the transcription connection`);
+    closeTranscriptionConnection();
 
     pending = 0;
 
@@ -720,13 +735,19 @@ function _syncMicrophone({ dispatch, getState }: IStore) {
  * @param {IMelpUtterance} utterance - The recorded utterance.
  * @returns {Promise<void>}
  */
-async function _transcribeAndSend({ dispatch }: IStore, utterance: IMelpUtterance) {
+async function _transcribeAndSend({ dispatch, getState }: IStore, utterance: IMelpUtterance) {
     const fileName = utterance.path.split('/').pop() || 'utterance.wav';
 
     dispatch(setLiveTranslationPending(++pending));
 
     try {
-        const transcript = await transcribeWavFile(utterance.path, fileName, TRANSCRIBE_TIMEOUT_MS);
+        // Read per utterance rather than once when the call starts: a token refreshed mid-call has to reach the socket,
+        // which reconnects with it rather than going on using a connection the old one authorized.
+        const { jwt } = getState()['features/base/jwt'];
+        const transcript = await transcribeWavFile(utterance.path, fileName, {
+            jwt,
+            timeoutMs: TRANSCRIBE_TIMEOUT_MS
+        });
 
         if (!transcript) {
             return;

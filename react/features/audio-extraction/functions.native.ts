@@ -27,6 +27,18 @@ export interface IMelpUtterance {
 }
 
 export interface ILocalMicRecorderNativeModule {
+
+    /**
+     * Deletes a recording, once whatever transcribed it is finished with it. Nothing waits on it.
+     */
+    deleteFile: (path: string) => void;
+
+    /**
+     * Reads a recorded WAV back as Base64, so that it can be put on the transcription socket as one text frame.
+     * JavaScript cannot read a file off the disk on its own, and this module is the one which wrote it.
+     */
+    readFileAsBase64: (path: string) => Promise<string>;
+
     recordToFile: (fileName: string, durationMs: number) => Promise<string>;
 
     /**

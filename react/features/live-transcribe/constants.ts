@@ -9,17 +9,38 @@
 export const MELP_TRANSCRIBE_URL = 'https://ai.live.melp.us/msgtrans/transcribe';
 
 /**
- * The endpoint which turns a recorded WAV straight into text, with no upload step in front of it. It takes the audio as
- * a {@code multipart/form-data} part named {@code audio} alongside {@code mode} and {@code language}, and answers with
- * the transcript as a bare body: plain text, not JSON, so nothing about the answer is parsed.
+ * The socket which turns recorded WAVs into text, and the primary way this is done.
+ *
+ * It replaces the request-per-utterance endpoint which used to live at port 5001 under {@code /transcribe/text}. A
+ * translated call sends an utterance every few seconds for its whole length, and one connection held open for the call
+ * costs a great deal less than a TLS handshake per sentence. The endpoint above remains as the fallback for when the
+ * socket cannot be reached at all.
+ *
+ * The mode, the language and the token go on the query string, since a WebSocket handshake opened from JavaScript cannot
+ * carry headers of its own. See {@code MelpSttClient} for what travels over it once it is open.
  */
-export const MELP_TRANSCRIBE_TEXT_URL = 'https://ai.live.melp.us:5001/transcribe/text';
+export const MELP_TRANSCRIBE_WS_URL = 'wss://ai.live.melp.us/stt/ws/transcribe';
 
 /**
- * The mode {@link MELP_TRANSCRIBE_TEXT_URL} is asked for. Unlike {@link TRANSCRIBE_MODE} this transcribes speech in the
- * language it was spoken in rather than translating it to English.
+ * Prefixes every line written about the life of the transcription connection, wherever it is written from, so that the
+ * whole story can be read out of a device log with one filter on it: {@code adb logcat | grep '\[stt\]'}.
  */
-export const TRANSCRIBE_TEXT_MODE = 'transcribe';
+export const STT_LOG_TAG = '[stt]';
+
+/**
+ * How long to wait for the socket to open before deciding the service is not there.
+ *
+ * Shorter than a transcription takes: this is a handshake against a service which is either up or is not, and an
+ * utterance waiting on it is an utterance the fallback could already have transcribed.
+ */
+export const TRANSCRIBE_WS_CONNECT_TIMEOUT_MS = 8 * 1000;
+
+/**
+ * How long to wait before opening the socket again after it has dropped.
+ *
+ * Every utterance in the meantime goes to the fallback, so this is the cost of a reconnect rather than of an outage.
+ */
+export const TRANSCRIBE_WS_RECONNECT_DELAY_MS = 5 * 1000;
 
 /**
  * How much speech goes into one caption. Long enough that the service has a sentence to work with rather than a
@@ -51,6 +72,26 @@ export const TRANSCRIBE_LANGUAGE = 'en';
  * they are looking at without having to ask the service.
  */
 export const TRANSCRIBED_LANGUAGE_TAG = 'en';
+
+/**
+ * How long a pause ends one utterance and starts the next one.
+ *
+ * Short enough that captions land right after the speaker stops, long enough to avoid splitting normal word gaps into
+ * separate requests.
+ */
+export const SILENCE_HANGOVER_MS = 1000;
+
+/**
+ * The longest utterance the recorder will hand over without a pause, so a monologue is still transcribed as it goes
+ * rather than only after the speaker finally stops.
+ */
+export const MAX_UTTERANCE_MS = 15 * 1000;
+
+/**
+ * The shortest utterance worth transcribing. Anything briefer is likely a cough, a keyboard tap, or background noise
+ * rather than a sentence.
+ */
+export const MIN_UTTERANCE_MS = 300;
 
 /**
  * How long to wait for the service to transcribe an utterance before giving up on it. An utterance which takes longer

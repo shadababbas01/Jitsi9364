@@ -75,8 +75,8 @@ const supported = isLiveTranscribeSupported();
  * the speaker is known for certain, so captions come out attributed without anyone having to guess who was talking, and
  * the work spreads across the participants instead of piling onto whoever happens to be listening.
  *
- * The microphone is recorded in fixed windows and each window is sent to the transcription service as a WAV; see
- * {@code LocalWindowTranscriber}.
+ * The microphone is recorded as silence-delimited utterances and each utterance is sent to the transcription service
+ * as a WAV; see {@code LocalWindowTranscriber}.
  *
  * @param {Store} store - The redux store.
  * @returns {Function}
@@ -182,7 +182,9 @@ function _teardown(store: IStore) {
  */
 function _getTranscriber(store: IStore): LocalWindowTranscriber {
     if (!transcriber) {
-        transcriber = new LocalWindowTranscriber(text => _publish(store, _nextUtteranceId(store), text));
+        transcriber = new LocalWindowTranscriber(
+            text => _publish(store, _nextUtteranceId(store), text),
+            () => store.getState()['features/base/jwt'].jwt);
     }
 
     return transcriber;

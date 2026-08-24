@@ -22,6 +22,7 @@ import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.SystemClock;
+import android.util.Base64;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -35,7 +36,9 @@ import org.jitsi.meet.sdk.log.JitsiMeetLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -103,6 +106,13 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
      * The session holds its thread for as long as it listens, so it cannot share the one clips are recorded on.
      */
     private final ExecutorService sessionExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * Reading a recording back and deleting it get a thread of their own. {@link #executor} is held for the whole length
+     * of whatever it is recording, and an utterance waiting behind a ten second clip to be read is an utterance the
+     * transcription service hears ten seconds late.
+     */
+    private final ExecutorService fileExecutor = Executors.newSingleThreadExecutor();
 
     private final AtomicBoolean recording = new AtomicBoolean(false);
     private final AtomicBoolean sessionRunning = new AtomicBoolean(false);
@@ -229,6 +239,106 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
                 }
             }
         });
+    }
+
+    /**
+     * Reads a recorded WAV back as Base64, so that JavaScript can put it on a socket.
+     *
+     * The transcription service is reached over a WebSocket which takes the whole file as one Base64 text frame, and
+     * JavaScript has no way of its own to read a file off the disk. This module wrote the file, so it is the one which
+     * hands it back.
+     *
+     * Deliberately leaves the file where it is. The socket is not the only way an utterance can be transcribed, and the
+     * fallback uploads the file itself: deleting it here would take it away from whoever needs it next. Callers say
+     * when they are finished with it through {@link #deleteFile}.
+     *
+     * @param path the absolute path of the file, with or without a {@code file://} scheme
+     * @param promise resolved with the Base64 of the file
+     */
+    @ReactMethod
+    public void readFileAsBase64(String path, Promise promise) {
+        final String absolutePath = toAbsolutePath(path);
+
+        if (absolutePath == null) {
+            promise.reject("invalid_path", "No file to read");
+
+            return;
+        }
+
+        fileExecutor.execute(() -> {
+            File file = new File(absolutePath);
+
+            if (!file.isFile()) {
+                promise.reject("file_missing", "No such file: " + absolutePath);
+
+                return;
+            }
+
+            try {
+                // NO_WRAP: the line breaks the default flags insert are not valid inside a JSON string, and the service
+                // reads the frame as one.
+                promise.resolve(Base64.encodeToString(readFully(file), Base64.NO_WRAP));
+            } catch (Exception e) {
+                JitsiMeetLogger.w(e, TAG + " failed to read " + absolutePath);
+                promise.reject("read_failed", "Could not read the recorded audio", e);
+            }
+        });
+    }
+
+    /**
+     * Deletes a recording once whoever asked for it is finished with it.
+     *
+     * A call hands over an utterance every few seconds for its whole length and nothing else ever opens them again, so
+     * without this the cache grows by roughly a megabyte a minute until the operating system decides to reclaim it.
+     *
+     * @param path the absolute path of the file, with or without a {@code file://} scheme
+     */
+    @ReactMethod
+    public void deleteFile(String path) {
+        final String absolutePath = toAbsolutePath(path);
+
+        if (absolutePath == null) {
+            return;
+        }
+
+        // Best effort, and nothing waits on it: a recording which cannot be deleted is one the operating system will
+        // reclaim with the rest of the cache.
+        fileExecutor.execute(() -> new File(absolutePath).delete());
+    }
+
+    /**
+     * Strips the scheme a path may have picked up on its way through JavaScript.
+     *
+     * @param path the path to clean up
+     * @return the path, or {@code null} if there was not one
+     */
+    private static String toAbsolutePath(String path) {
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+
+        return path.startsWith("file://") ? path.substring("file://".length()) : path;
+    }
+
+    /**
+     * Reads a whole file into memory.
+     *
+     * @param file the file to read
+     * @return its contents
+     * @throws IOException if it cannot be read
+     */
+    private static byte[] readFully(File file) throws IOException {
+        try (FileInputStream input = new FileInputStream(file)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream((int) Math.max(1, file.length()));
+            byte[] buffer = new byte[8192];
+            int read;
+
+            while ((read = input.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+
+            return out.toByteArray();
+        }
     }
 
     @ReactMethod
