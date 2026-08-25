@@ -467,7 +467,6 @@ class ParticipantView extends Component<IProps> {
         const {
             _isConnectionInactive,
             _isConnectionInterrupted,
-            _isAudioMuted,
             _isOnHold,
             _isLocal,
             _isSharedVideoParticipant,
@@ -500,14 +499,8 @@ class ParticipantView extends Component<IProps> {
             && !(isLargeVideo && renderVideo);
         const shouldShowStatusLabels = isLargeVideo
             && !_isSharedVideoParticipant
-            && (_isAudioMuted || _isOnHold || _isS2SV2Translating);
+            && (_isOnHold || _isS2SV2Translating);
         const statusLabels: Array<string> = [];
-
-        if (_isAudioMuted) {
-            statusLabels.push(this.props.t('videothumbnail.participantMuted', {
-                participantName: this.props._participantName
-            }));
-        }
 
         if (_isOnHold) {
             statusLabels.push(this.props.t('videothumbnail.onHold'));

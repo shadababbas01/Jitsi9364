@@ -43,6 +43,7 @@ import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nonnull;
 
@@ -116,6 +117,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
 
     private final AtomicBoolean recording = new AtomicBoolean(false);
     private final AtomicBoolean sessionRunning = new AtomicBoolean(false);
+    private final AtomicLong sessionGeneration = new AtomicLong();
 
     /**
      * Whether the running session is ignoring what it hears. Used to deafen it while the device is speaking, so that the
@@ -374,6 +376,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
             return;
         }
 
+        final long generation = sessionGeneration.incrementAndGet();
         final int silence = Math.max(200, silenceMs);
         final int maxUtterance = Math.max(1000, maxUtteranceMs);
 
@@ -381,10 +384,14 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
             AudioRecord audioRecord = null;
 
             try {
+                S2SV2CaptureService.launch(getReactApplicationContext());
+
                 audioRecord = createAudioRecord();
 
                 if (audioRecord == null) {
-                    sessionRunning.set(false);
+                    if (isCurrentSession(generation)) {
+                        sessionRunning.set(false);
+                    }
                     promise.reject("recorder_unavailable", "Unable to initialize microphone recorder");
 
                     return;
@@ -394,7 +401,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
                 audioRecord.startRecording();
                 promise.resolve(true);
 
-                runUtteranceSession(audioRecord, silence, maxUtterance);
+                runUtteranceSession(audioRecord, silence, maxUtterance, generation);
             } catch (Exception e) {
                 JitsiMeetLogger.w(e, TAG + " utterance session failed");
 
@@ -404,10 +411,13 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
                     // The promise was already settled when the session was under way.
                 }
             } finally {
-                sessionRunning.set(false);
-                sessionMuted.set(false);
-                sessionAudioRecord = null;
+                if (isCurrentSession(generation)) {
+                    sessionRunning.set(false);
+                    sessionMuted.set(false);
+                    sessionAudioRecord = null;
+                }
                 releaseEchoCancellation();
+                S2SV2CaptureService.abort(getReactApplicationContext());
 
                 if (audioRecord != null) {
                     try {
@@ -445,6 +455,8 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void stopUtteranceSession() {
         sessionRunning.set(false);
+        sessionGeneration.incrementAndGet();
+        S2SV2CaptureService.abort(getReactApplicationContext());
 
         AudioRecord audioRecord = sessionAudioRecord;
 
@@ -464,7 +476,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
      * @param silenceMs how long a pause ends an utterance
      * @param maxUtteranceMs the longest utterance handed over without a pause
      */
-    private void runUtteranceSession(AudioRecord audioRecord, int silenceMs, int maxUtteranceMs) {
+    private void runUtteranceSession(AudioRecord audioRecord, int silenceMs, int maxUtteranceMs, long generation) {
         int sampleRate = audioRecord.getSampleRate();
         int bufferSize = Math.max(4096, AudioRecord.getMinBufferSize(sampleRate, CHANNEL_CONFIG, AUDIO_FORMAT));
         byte[] buffer = new byte[bufferSize];
@@ -483,12 +495,16 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
         int index = 0;
         double noiseFloor = -1;
 
-        while (sessionRunning.get()) {
+        while (sessionRunning.get() && isCurrentSession(generation)) {
             int read = audioRecord.read(buffer, 0, buffer.length);
 
             if (read <= 0) {
                 continue;
             }
+
+            // The same capture stream feeds the recogniser, so it gets the
+            // same microphone audio without opening a second input path.
+            MelpSpeechRecognizerModule.feedPcm(buffer, read, sampleRate);
 
             if (sessionMuted.get()) {
                 // The device is speaking. Everything heard now is thrown away, including anything already collected:
@@ -661,6 +677,10 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             JitsiMeetLogger.w(e, TAG + " could not emit " + event);
         }
+    }
+
+    private boolean isCurrentSession(long generation) {
+        return sessionGeneration.get() == generation;
     }
 
     private AudioRecord createAudioRecord() {

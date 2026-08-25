@@ -263,7 +263,7 @@ export default {
 
     sideToolbar: {
         position: 'absolute',
-        right: BaseTheme.spacing[4],
+        right: BaseTheme.spacing[2],
         top: BaseTheme.spacing[2],
         zIndex: 2
     },

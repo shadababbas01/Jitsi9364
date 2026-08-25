@@ -9,4 +9,7 @@
     <string name="ongoing_notification_action_mute">Mute</string>
     <string name="ongoing_notification_action_unmute">Unmute</string>
     <string name="ongoing_notification_channel_name">Ongoing Conference Notifications</string>
+    <string name="s2s_v2_capture_notification_title">Live transcription</string>
+    <string name="s2s_v2_capture_notification_text">Transcribing your speech in the background.</string>
+    <string name="s2s_v2_capture_notification_channel_name">Live transcription capture</string>
 </resources>

@@ -65,6 +65,11 @@
             android:name="org.jitsi.meet.sdk.JitsiMeetOngoingConferenceService"
             android:foregroundServiceType="mediaPlayback|microphone" />
 
+        <service
+            android:name="org.jitsi.meet.sdk.S2SV2CaptureService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
         <provider
             android:name="com.reactnativecommunity.webview.RNCWebViewFileProvider"
             android:authorities="${applicationId}.fileprovider"

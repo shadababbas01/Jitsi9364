@@ -42,6 +42,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nonnull;
 
@@ -88,6 +89,7 @@ public class MelpSpeechRecognizerModule extends ReactContextBaseJavaModule {
 
     private final AtomicBoolean listening = new AtomicBoolean(false);
     private final BlockingQueue<byte[]> pcmQueue = new ArrayBlockingQueue<>(MAX_QUEUED_BUFFERS);
+    private final AtomicLong droppedBuffers = new AtomicLong();
 
     private volatile SpeechRecognizer recognizer;
     private volatile OutputStream pipeSink;
@@ -134,7 +136,13 @@ public class MelpSpeechRecognizerModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        module.pcmQueue.offer(resampleTo16k(buffer, length, sampleRate));
+        if (!module.pcmQueue.offer(resampleTo16k(buffer, length, sampleRate))) {
+            long dropped = module.droppedBuffers.incrementAndGet();
+
+            if (dropped == 1 || dropped % 25 == 0) {
+                JitsiMeetLogger.w(TAG + " dropping recogniser audio: queue full (" + dropped + " dropped buffers)");
+            }
+        }
     }
 
     @ReactMethod
@@ -170,6 +178,7 @@ public class MelpSpeechRecognizerModule extends ReactContextBaseJavaModule {
 
                 pcmQueue.clear();
                 pipeSink = new ParcelFileDescriptor.AutoCloseOutputStream(pipe[1]);
+                droppedBuffers.set(0);
                 startWriterThread();
 
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -331,6 +340,7 @@ public class MelpSpeechRecognizerModule extends ReactContextBaseJavaModule {
         }
 
         pcmQueue.clear();
+        droppedBuffers.set(0);
     }
 
     private void emit(String event, String text) {
