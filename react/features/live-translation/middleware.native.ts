@@ -18,6 +18,7 @@ import { getLocalParticipant, getParticipantDisplayName } from '../base/particip
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { TRACK_ADDED, TRACK_UPDATED } from '../base/tracks/actionTypes';
 import { getTrackByMediaTypeAndParticipant } from '../base/tracks/functions.native';
+import { isReadingAloud } from '../caption-tts/functions.any';
 import { wasRecentlySpoken } from '../caption-tts/spokenText';
 import { sendMessage } from '../chat/actions.native';
 import { STT_LOG_TAG } from '../live-transcribe/constants';
@@ -753,9 +754,9 @@ async function _transcribeAndSend({ dispatch, getState }: IStore, utterance: IMe
             return;
         }
 
-        // The backstop to deafening the microphone: what leaked through the gate is the device hearing its own voice,
-        // and sending it back would have the other side read it out and echo it to us in turn.
-        if (wasRecentlySpoken(transcript)) {
+        // Keep the echo backstop only when nothing is being read aloud. While TTS is speaking, let the transcript
+        // through so the local user can still talk over the playback.
+        if (!isReadingAloud(getState()) && wasRecentlySpoken(transcript)) {
             logger.info('Dropped a transcript which repeats what was just read aloud');
 
             return;

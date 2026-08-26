@@ -126,7 +126,7 @@
             "selectLanguage": "Read aloud in",
             "readAloudOff": "Read aloud off",
             "readingAloud": "Reading aloud",
-            "someoneIsSpeaking": "{{name}} is speaking…",
+            "someoneIsSpeaking": "speaking…",
             "startDescription": "Everyone in the call will be asked to join",
         "title": "Live translation",
         "translateInto": "Translate into",

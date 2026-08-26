@@ -534,6 +534,12 @@ export default class MelpSttClient {
         logger.info(`${TAG} answer received: status=${result.status ?? 'none'}, `
             + `${result.transcription ? `${String(result.transcription).length} chars` : 'nothing heard'}, `
             + `service took ${result.transcription_time_sec ?? '?'}s`);
+
+        // Said twice on purpose, for the reason the s2s-v2 channel logs are: the logger reaches the native log, which
+        // is where it belongs and where it is kept, and the console reaches whoever is watching the packager, which is
+        // where somebody debugging a transcript that never arrived is actually looking. On React Native the two are
+        // not the same place, so a frame sent to only one of them is invisible from the other.
+        console.log(`${TAG} answer received`, result);
         pending.resolve(result);
     }
 

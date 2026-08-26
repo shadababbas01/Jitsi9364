@@ -43,10 +43,31 @@ const MIN_WORDS_FOR_OVERLAP = 4;
  */
 const CONTAINMENT_RATIO = 0.6;
 
+/**
+ * The same two measures, for a caller which is comparing against speech recorded while the loudspeaker was going.
+ *
+ * Far tighter, because that is the one case where the thing being compared is usually not an echo at all. Somebody who
+ * speaks over a translation is almost always answering it, and an answer is made of the words of the question: "yes, I
+ * can see your screen" against "can everyone see my screen" shares most of its short words with the line it replies to.
+ * The loose measures exist for a microphone catching a line imperfectly, and applied to a reply they throw away the
+ * conversation.
+ */
+const STRICT_ECHO_SIMILARITY = 0.85;
+const STRICT_CONTAINMENT_RATIO = 0.8;
+
+/**
+ * How alike in length two lines have to be before word overlap is allowed to call one an echo of the other, when the
+ * strict measures are in force.
+ *
+ * The discriminator the overlap rule lacks on its own. An echo of a sentence is about as long as the sentence, because
+ * it is the same sentence heard again; a reply to it is a different length, usually shorter. Comparing lengths costs
+ * nothing and separates the two cases the word counts cannot.
+ */
+const STRICT_LENGTH_RATIO = 0.7;
+
 interface ISpokenLine {
     at: number;
     normalized: string;
-    words: Set<string>;
 }
 
 let spoken: ISpokenLine[] = [];
@@ -93,52 +114,105 @@ export function rememberSpokenText(text?: string | null) {
     forget();
     spoken.push({
         at: Date.now(),
-        normalized,
-        words: new Set(normalized.split(' '))
+        normalized
     });
+}
+
+/**
+ * Returns whether one line of text is the same thing said again as another, closely enough to be an echo of it rather
+ * than somebody's own words.
+ *
+ * Separate from {@link wasRecentlySpoken} because the memory of what this device said out loud is not the only thing
+ * worth comparing a transcript against - what everybody else in the room has just said is another, and it catches the
+ * case this list cannot: a remote participant's own voice coming out of the loudspeaker and being transcribed as though
+ * the local user had said it.
+ *
+ * Normalizing an already normalized string changes nothing, so callers holding either form can pass what they have.
+ *
+ * @param {string} candidate - The transcript in question.
+ * @param {string} previous - Something said earlier, by this device or by somebody in the room.
+ * @param {boolean} strict - Whether to use the tighter measures, which are for a transcript recorded while the
+ * loudspeaker was going and therefore far more likely to be an answer to the line than a repeat of it.
+ * @returns {boolean}
+ */
+export function isEchoOfSpokenText(
+        candidate?: string | null,
+        previous?: string | null,
+        strict = false): boolean {
+    const heard = normalize(candidate ?? '');
+    const said = normalize(previous ?? '');
+
+    if (!heard || !said) {
+        return false;
+    }
+
+    if (heard === said) {
+        return true;
+    }
+
+    const shorter = Math.min(said.length, heard.length);
+    const longer = Math.max(said.length, heard.length);
+
+    // One containing the other covers the common case of the microphone catching most, but not all, of what was said.
+    // Only when the two are comparable in length: a short answer which happens to appear somewhere inside a sentence
+    // that was read out is somebody answering it, not an echo of it.
+    const contains = said.includes(heard) || heard.includes(said);
+
+    if (contains && shorter >= longer * (strict ? STRICT_CONTAINMENT_RATIO : CONTAINMENT_RATIO)) {
+        return true;
+    }
+
+    const words = heard.split(' ');
+
+    if (words.length < MIN_WORDS_FOR_OVERLAP) {
+        return false;
+    }
+
+    // An echo of a sentence is about as long as the sentence. A reply to it is not, and a reply is what speech
+    // recorded over a loudspeaker usually is.
+    if (strict && shorter < longer * STRICT_LENGTH_RATIO) {
+        return false;
+    }
+
+    const earlier = new Set(said.split(' '));
+    const shared = words.filter(word => earlier.has(word)).length;
+
+    return shared / words.length >= (strict ? STRICT_ECHO_SIMILARITY : ECHO_SIMILARITY);
+}
+
+/**
+ * Returns the line this device said out loud which a transcript is an echo of, or null if it is not an echo of any of
+ * them.
+ *
+ * The same question {@link wasRecentlySpoken} answers, answered with the evidence rather than with a yes. A sentence
+ * which never reaches the meeting is the hardest kind of fault to look into, and knowing which line it was held against
+ * is the difference between reading a log and guessing at one.
+ *
+ * @param {string} text - The transcript to check.
+ * @param {boolean} strict - Whether to use the tighter measures, for speech recorded over the loudspeaker.
+ * @returns {string | null}
+ */
+export function findRecentlySpokenMatch(text?: string | null, strict = false): string | null {
+    const normalized = normalize(text ?? '');
+
+    if (!normalized) {
+        return null;
+    }
+
+    forget();
+
+    return spoken.find(line => isEchoOfSpokenText(normalized, line.normalized, strict))?.normalized ?? null;
 }
 
 /**
  * Returns whether a transcript is the device hearing something it said itself.
  *
  * @param {string} text - The transcript to check.
+ * @param {boolean} strict - Whether to use the tighter measures, for speech recorded over the loudspeaker.
  * @returns {boolean}
  */
-export function wasRecentlySpoken(text?: string | null): boolean {
-    const normalized = normalize(text ?? '');
-
-    if (!normalized) {
-        return false;
-    }
-
-    forget();
-
-    const words = normalized.split(' ');
-
-    return spoken.some(line => {
-        if (line.normalized === normalized) {
-            return true;
-        }
-
-        // One containing the other covers the common case of the microphone catching most, but not all, of what was
-        // said. Only when the two are comparable in length: a short answer which happens to appear somewhere inside a
-        // sentence that was read out is somebody answering it, not an echo of it.
-        const contains = line.normalized.includes(normalized) || normalized.includes(line.normalized);
-        const shorter = Math.min(line.normalized.length, normalized.length);
-        const longer = Math.max(line.normalized.length, normalized.length);
-
-        if (contains && shorter >= longer * CONTAINMENT_RATIO) {
-            return true;
-        }
-
-        if (words.length < MIN_WORDS_FOR_OVERLAP) {
-            return false;
-        }
-
-        const shared = words.filter(word => line.words.has(word)).length;
-
-        return shared / words.length >= ECHO_SIMILARITY;
-    });
+export function wasRecentlySpoken(text?: string | null, strict = false): boolean {
+    return findRecentlySpokenMatch(text, strict) !== null;
 }
 
 /**
