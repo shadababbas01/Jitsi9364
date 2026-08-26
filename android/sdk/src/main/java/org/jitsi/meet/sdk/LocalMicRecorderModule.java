@@ -59,7 +59,10 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
     private static final String TAG = NAME;
     private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
-    private static final int[] SAMPLE_RATES = new int[] { 48000, 44100, 32000, 16000 };
+    // 16 kHz first: it is what the transcription service is given on web, it is the rate speech recognition is built
+    // around, and a WAV at that rate is a third of the bytes of the same utterance at 48 kHz - which matters on a
+    // phone, over a socket, once per sentence. The higher rates remain as fallbacks for a device which refuses it.
+    private static final int[] SAMPLE_RATES = new int[] { 16000, 48000, 44100, 32000 };
 
     /**
      * Emitted with {@code path}, {@code index} and {@code durationMs} once an utterance has been written to disk.
@@ -97,6 +100,27 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
     private static final double NOISE_FLOOR_MARGIN = 10;
 
     /**
+     * How much louder speech has to be than usual to start an utterance while this device is reading a translation out
+     * of its own loudspeaker.
+     *
+     * Not a gate. Closing the microphone for the length of every translation means the user simply cannot be heard for
+     * most of an active call, which is worse than the echo it prevents. Raising the bar instead leans on what the
+     * platform echo canceller has already done to the loudspeaker signal: what is left of it does not clear this,
+     * while somebody speaking into the microphone comfortably does.
+     */
+    private static final double PLAYBACK_THRESHOLD_MULTIPLIER = 3.5;
+
+    /**
+     * How much of the end of a forced split is carried into the chunk which follows it.
+     *
+     * Somebody who talks for longer than the cap without pausing is cut at an arbitrary instant, which lands in the
+     * middle of a word as often as not. Half a word transcribes to nothing on both sides of the cut, so the word is
+     * simply lost. Repeating the last moment of audio at the head of the next chunk means the word is whole in one of
+     * them; the duplicate that creates is taken back out of the text afterwards, where it is cheap to find.
+     */
+    private static final int FORCED_SPLIT_OVERLAP_MS = 250;
+
+    /**
      * How quickly the measured noise floor follows the room. Only updated while nobody is speaking.
      */
     private static final double NOISE_FLOOR_SMOOTHING = 0.05;
@@ -124,6 +148,12 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
      * text-to-speech voice cannot be recorded back in and transcribed as if somebody had said it.
      */
     private final AtomicBoolean sessionMuted = new AtomicBoolean(false);
+
+    /**
+     * Whether this device is reading a translation out loud right now. Raises the bar for starting an utterance; never
+     * stops the recording.
+     */
+    private final AtomicBoolean sessionPlaybackActive = new AtomicBoolean(false);
 
     private volatile AudioRecord currentAudioRecord;
 
@@ -449,6 +479,21 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Tells the running session that this device is, or is no longer, reading something out of its own loudspeaker.
+     *
+     * Deliberately not a mute. The recording continues throughout and every sample still reaches the transcription
+     * pipeline; all that changes is how loud something has to be to be taken for the start of a new utterance, and only
+     * while no utterance is already under way. Somebody who has already started talking is never cut off part-way
+     * through by this.
+     *
+     * @param active whether translated audio is audible right now
+     */
+    @ReactMethod
+    public void setUtteranceSessionPlaybackActive(boolean active) {
+        sessionPlaybackActive.set(active);
+    }
+
+    /**
      * Closes the utterance session. Whatever was being said when this is called is still handed over, so that stopping
      * mid-sentence does not lose the sentence.
      */
@@ -484,6 +529,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
         // 16 bit mono, so two bytes carry one sample.
         int bytesPerMs = Math.max(1, (sampleRate * 2) / 1000);
         int preRollBytes = PRE_ROLL_MS * bytesPerMs;
+        int overlapBytes = FORCED_SPLIT_OVERLAP_MS * bytesPerMs;
         int minUtteranceBytes = MIN_UTTERANCE_MS * bytesPerMs;
         int maxUtteranceBytes = maxUtteranceMs * bytesPerMs;
 
@@ -491,6 +537,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
         ArrayDeque<byte[]> preRoll = new ArrayDeque<>();
         int preRollHeld = 0;
         boolean inSpeech = false;
+        boolean continuesPrevious = false;
         int silentBytes = 0;
         int index = 0;
         double noiseFloor = -1;
@@ -528,7 +575,12 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
                 noiseFloor = rms;
             }
 
-            double threshold = Math.max(MIN_SPEECH_RMS, noiseFloor * NOISE_FLOOR_MARGIN);
+            // Raised only for the decision to start an utterance. Once speech has cleared the raised bar the ordinary
+            // threshold carries the rest of it, so a reply which begins over the tail of a translation is not cut off
+            // half way through when it is finally the only thing in the room.
+            boolean playbackActive = sessionPlaybackActive.get();
+            double onsetMultiplier = playbackActive && !inSpeech ? PLAYBACK_THRESHOLD_MULTIPLIER : 1;
+            double threshold = Math.max(MIN_SPEECH_RMS * onsetMultiplier, noiseFloor * NOISE_FLOOR_MARGIN);
             boolean voiced = rms > threshold;
 
             if (voiced) {
@@ -553,8 +605,13 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
                 utterance.write(buffer, 0, read);
                 silentBytes += read;
             } else {
-                // Only the room is being measured, so this is the noise floor.
-                noiseFloor = ((1 - NOISE_FLOOR_SMOOTHING) * noiseFloor) + (NOISE_FLOOR_SMOOTHING * rms);
+                // Only the room is being measured, so this is the noise floor - unless the loudspeaker is going, in
+                // which case what is being measured is this device's own voice. Learning that as the floor would raise
+                // it towards the loudspeaker and leave the microphone deaf to the room for as long afterwards as the
+                // floor took to come back down.
+                if (!playbackActive) {
+                    noiseFloor = ((1 - NOISE_FLOOR_SMOOTHING) * noiseFloor) + (NOISE_FLOOR_SMOOTHING * rms);
+                }
 
                 byte[] held = new byte[read];
 
@@ -571,16 +628,28 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
             boolean tooLong = inSpeech && utterance.size() >= maxUtteranceBytes;
 
             if (pauseEnded || tooLong) {
-                index = finishUtterance(utterance, sampleRate, minUtteranceBytes, index);
-                inSpeech = false;
+                // Read before the chunk is handed over, because handing it over empties it.
+                byte[] carried = tooLong ? tailOf(utterance, overlapBytes) : null;
+
+                index = finishUtterance(utterance, sampleRate, minUtteranceBytes, index, continuesPrevious);
                 silentBytes = 0;
-                emitSpeechState(false);
+
+                if (carried == null) {
+                    inSpeech = false;
+                    continuesPrevious = false;
+                    emitSpeechState(false);
+                } else {
+                    // Still talking. The next chunk opens with the last moment of this one and stays in speech, so the
+                    // word the cut landed in the middle of is whole at the head of it.
+                    utterance.write(carried, 0, carried.length);
+                    continuesPrevious = true;
+                }
             }
         }
 
         // Stopping mid-sentence still hands the sentence over.
         if (inSpeech) {
-            finishUtterance(utterance, sampleRate, minUtteranceBytes, index);
+            finishUtterance(utterance, sampleRate, minUtteranceBytes, index, continuesPrevious);
         }
     }
 
@@ -597,7 +666,8 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
             ByteArrayOutputStream utterance,
             int sampleRate,
             int minUtteranceBytes,
-            int index) {
+            int index,
+            boolean continuesPrevious) {
         byte[] pcm = utterance.toByteArray();
 
         utterance.reset();
@@ -624,6 +694,7 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
             payload.putString("path", outputFile.getAbsolutePath());
             payload.putInt("index", index);
             payload.putInt("durationMs", pcm.length / Math.max(1, (sampleRate * 2) / 1000));
+            payload.putBoolean("continuesPrevious", continuesPrevious);
             emit(EVENT_UTTERANCE, payload);
 
             return index + 1;
@@ -660,6 +731,30 @@ public class LocalMicRecorderModule extends ReactContextBaseJavaModule {
         }
 
         return samples == 0 ? 0 : Math.sqrt((double) sum / samples);
+    }
+
+    /**
+     * Returns the last stretch of an utterance, for carrying into the chunk which follows a forced split.
+     *
+     * @param utterance the utterance about to be handed over
+     * @param overlapBytes how much of the end to keep
+     * @return the tail, or null when there is not enough to be worth carrying
+     */
+    private byte[] tailOf(ByteArrayOutputStream utterance, int overlapBytes) {
+        byte[] pcm = utterance.toByteArray();
+
+        // Rounded down to a whole 16 bit sample, or the carried audio starts half way through one and is noise.
+        int keep = Math.min(pcm.length, overlapBytes) & ~1;
+
+        if (keep <= 0) {
+            return null;
+        }
+
+        byte[] tail = new byte[keep];
+
+        System.arraycopy(pcm, pcm.length - keep, tail, 0, keep);
+
+        return tail;
     }
 
     private void emitSpeechState(boolean speaking) {

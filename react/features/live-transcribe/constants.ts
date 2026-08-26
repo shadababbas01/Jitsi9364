@@ -43,6 +43,20 @@ export const TRANSCRIBE_WS_CONNECT_TIMEOUT_MS = 8 * 1000;
 export const TRANSCRIBE_WS_RECONNECT_DELAY_MS = 5 * 1000;
 
 /**
+ * How often an idle connection is pinged to prove it is still there.
+ *
+ * A socket which nothing has been sent on for a while can be taken away without either end being told: a proxy closes
+ * it on its idle timeout, or the phone moves from wifi to cellular and the old path simply stops existing. Neither
+ * produces a close event, so the socket goes on reporting itself open, the reconnect never runs, and every utterance
+ * after that is dropped for the rest of the call. A frame which gets an answer, or fails to send, is the only way to
+ * tell an open socket from one which merely looks open.
+ *
+ * More likely on a phone than anywhere else, which is why it is here rather than left to the close handler: an app
+ * backgrounded, a doze, a handover between networks are all ordinary and all produce exactly this.
+ */
+export const TRANSCRIBE_WS_HEARTBEAT_MS = 20 * 1000;
+
+/**
  * How much speech goes into one caption. Long enough that the service has a sentence to work with rather than a
  * fragment, short enough that a caption still lands while the room remembers what was said.
  */

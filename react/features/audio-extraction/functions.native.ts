@@ -21,6 +21,12 @@ export const MELP_UTTERANCE_READY_EVENT = 'melpUtteranceReady';
 export const MELP_UTTERANCE_SPEECH_STATE_EVENT = 'melpUtteranceSpeechState';
 
 export interface IMelpUtterance {
+
+    /**
+     * Whether this utterance opens with the last moment of the one before it, because the recorder cut a speaker who
+     * had not paused. The words the two share have to come back out of the text.
+     */
+    continuesPrevious?: boolean;
     durationMs: number;
     index: number;
     path: string;
@@ -46,6 +52,12 @@ export interface ILocalMicRecorderNativeModule {
      * back and transcribed.
      */
     setUtteranceSessionMuted: (muted: boolean) => void;
+
+    /**
+     * Tells the running session that this device is reading something out of its own loudspeaker, which raises the bar
+     * for starting a new utterance without ever stopping the recording.
+     */
+    setUtteranceSessionPlaybackActive: (active: boolean) => void;
 
     /**
      * Keeps the microphone open and reports one utterance per pause through {@link MELP_UTTERANCE_READY_EVENT}.

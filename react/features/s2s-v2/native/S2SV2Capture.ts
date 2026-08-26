@@ -12,6 +12,7 @@ import { getLocalParticipant } from '../../base/participants/functions';
 import { findRecentlySpokenMatch } from '../../caption-tts/spokenText';
 import { isHallucinatedTranscript } from '../../live-transcribe/hallucinations';
 import { transcribeWavOverSocket } from '../../live-transcribe/native/transcribeWav';
+import { removeTranscriptBoundaryOverlap } from '../../live-transcribe/transcriptOverlap';
 import {
     AUDIO_TRACK_GRACE_MS,
     ECHO_TAIL_MS,
@@ -21,10 +22,10 @@ import {
     TRANSCRIBE_TIMEOUT_MS
 } from '../constants';
 import {
+    findEchoOfRecentSpeech,
     getS2SV2SessionId,
     getS2SV2SourceLanguage,
     getS2SV2TranscriptionUrl,
-    findEchoOfRecentSpeech,
     isS2SV2Active
 } from '../functions';
 import logger from '../logger';
@@ -92,6 +93,17 @@ export default class S2SV2Capture {
 
     private _playedUntil = 0;
 
+    /**
+     * When the raised threshold is due to be lowered, held so that playback starting again inside the tail cancels it.
+     */
+    private _playbackRelease?: ReturnType<typeof setTimeout>;
+
+    /**
+     * What the previous chunk came back as, kept only so that the words a forced split repeats can be taken out of the
+     * chunk which follows it.
+     */
+    private _previousText = '';
+
     private _running = false;
 
     private _store: IStore;
@@ -158,20 +170,45 @@ export default class S2SV2Capture {
      * @returns {void}
      */
     setPlaying(playing: boolean) {
-        if (playing === this._playing) {
-            return;
-        }
+        clearTimeout(this._playbackRelease as ReturnType<typeof setTimeout>);
+        this._playbackRelease = undefined;
 
-        this._playing = playing;
+        if (playing !== this._playing) {
+            this._playing = playing;
+
+            if (playing) {
+                this._playingSince = Date.now();
+            } else {
+                // The loudspeaker stops before the room does, so the window stays open a little past the end.
+                this._playedUntil = Date.now() + ECHO_TAIL_MS;
+            }
+        }
 
         if (playing) {
-            this._playingSince = Date.now();
+            this._setRecorderPlaybackActive(true);
 
             return;
         }
 
-        // The loudspeaker stops before the room does, so the window stays open a little past the end of playback.
-        this._playedUntil = Date.now() + ECHO_TAIL_MS;
+        // Held for the tail as well, so audio still decaying in the room is not taken for the start of a sentence.
+        this._playbackRelease = setTimeout(() => {
+            this._playbackRelease = undefined;
+            this._setRecorderPlaybackActive(false);
+        }, ECHO_TAIL_MS);
+    }
+
+    /**
+     * Tells the recorder how hard it should be to start an utterance right now.
+     *
+     * @param {boolean} active - Whether translated audio is audible.
+     * @returns {void}
+     */
+    private _setRecorderPlaybackActive(active: boolean) {
+        try {
+            getLocalMicRecorderNativeModule()?.setUtteranceSessionPlaybackActive?.(active);
+        } catch (error) {
+            logger.warn('Could not tell the recorder about playback', error);
+        }
     }
 
     /**
@@ -233,6 +270,10 @@ export default class S2SV2Capture {
         this._playing = false;
         this._playingSince = 0;
         this._playedUntil = 0;
+        this._previousText = '';
+        clearTimeout(this._playbackRelease as ReturnType<typeof setTimeout>);
+        this._playbackRelease = undefined;
+        this._setRecorderPlaybackActive(false);
 
         try {
             getLocalMicRecorderNativeModule()?.stopUtteranceSession();
@@ -335,15 +376,32 @@ export default class S2SV2Capture {
             // reach the socket, which reconnects with it rather than going on using the old one's connection.
             const state = this._store.getState();
             const { jwt } = state['features/base/jwt'];
-            const text = (await transcribeWavOverSocket(utterance.path, {
+            const heard = (await transcribeWavOverSocket(utterance.path, {
                 baseUrl: getS2SV2TranscriptionUrl(state),
                 jwt,
                 language: getS2SV2SourceLanguage(state),
                 timeoutMs: TRANSCRIBE_TIMEOUT_MS
             }))?.trim();
 
+            // A chunk which opens with the last moment of the one before it - the recorder cut a speaker who had not
+            // paused - opens with the same words too. Taken out here rather than left in, because the seam is a
+            // decision this device made about where to cut and nobody else in the meeting should have to see it.
+            //
+            // Recorded before the drops below and after the strip, so that the next chunk is compared against what was
+            // actually heard rather than against a sentence which was thrown away.
+            const text = utterance.continuesPrevious
+                ? removeTranscriptBoundaryOverlap(this._previousText, heard).trim()
+                : heard;
+
+            this._previousText = heard ?? '';
+
+            if (utterance.continuesPrevious && heard && heard !== text) {
+                logger.info(`Removed ${heard.length - (text?.length ?? 0)} characters repeated across a forced split`);
+            }
+
             logger.info(`The transcription socket answered a ${utterance.durationMs}ms utterance`
-                + `${text ? ` with ${text.length} chars` : ' with nothing'}`);
+                + `${heard ? ` with ${heard.length} chars` : ' with nothing'}`
+                + `${utterance.continuesPrevious ? ' (continues a forced split)' : ''}`);
             console.log(`[s2s-v2] stt answer for a ${utterance.durationMs}ms utterance`
                 + `${couldBeEcho ? ' (recorded over the loudspeaker)' : ''}: ${text || '(nothing heard)'}`);
 

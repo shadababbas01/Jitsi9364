@@ -4,6 +4,7 @@ import {
     TRANSCRIBE_LANGUAGE,
     TRANSCRIBE_MODE,
     TRANSCRIBE_WS_CONNECT_TIMEOUT_MS,
+    TRANSCRIBE_WS_HEARTBEAT_MS,
     TRANSCRIBE_WS_RECONNECT_DELAY_MS
 } from '../constants';
 import logger from '../logger';
@@ -132,6 +133,11 @@ export default class MelpSttClient {
 
     private _pending?: IPendingRequest;
 
+    /**
+     * The idle ping, running for as long as a socket is open.
+     */
+    private _heartbeat?: ReturnType<typeof setInterval>;
+
     private _socket?: WebSocket;
 
     /**
@@ -172,9 +178,11 @@ export default class MelpSttClient {
      * pay for the handshake, and so that a socket which drops during a silence is replaced during the silence instead
      * of being discovered by whoever speaks next.
      *
- * There is deliberately no keepalive. The service reads each utterance as a binary WAV frame, so there is no ping
- * this protocol could carry - an idle connection which the network drops is noticed by its close and replaced from
- * here.
+ * An idle connection is pinged, because being noticed by its close is exactly what a dead socket cannot rely on: a
+ * proxy timing it out or a network path disappearing takes it away without a close event, and it then reports itself
+ * open for the rest of the call while dropping everything. The ping is a JSON text frame rather than audio, and it is
+ * only ever sent when nothing is waiting for an answer - see the ordering rule above, which a stray reply would
+ * otherwise break.
      *
      * @param {string} jwt - The token to authenticate with, if there is one.
      * @returns {void}
@@ -438,6 +446,7 @@ export default class MelpSttClient {
                 this._reconnectDelayMs = TRANSCRIBE_WS_RECONNECT_DELAY_MS;
                 this._openedAt = Date.now();
                 this._rejectedJwt = undefined;
+                this._startHeartbeat();
                 logger.info(`${TAG} CONNECTED on attempt ${attempt} after ${Date.now() - startedAt}ms`);
                 resolve(socket);
             };
@@ -506,9 +515,14 @@ export default class MelpSttClient {
         const pending = this._pending;
 
         if (!pending) {
-            // Nothing is waiting, so this is the late answer to something which already timed out. Dropped rather than
-            // kept: attributing it to the next utterance would put one speaker's words under another's.
-            logger.warn('Dropped a transcription nothing was waiting for');
+            // Nothing is waiting. Either the service answered the idle ping, which is ordinary and says only that the
+            // connection is alive, or this is the late answer to something which already timed out - dropped rather
+            // than kept, because attributing it to the next utterance would put one speaker's words under another's.
+            if (this._looksLikeATranscript(event?.data)) {
+                logger.warn(`${TAG} dropped a transcription nothing was waiting for`);
+            } else {
+                logger.debug(`${TAG} the connection answered the idle ping`);
+            }
 
             return;
         }
@@ -644,6 +658,68 @@ export default class MelpSttClient {
     }
 
     /**
+     * Returns whether an unexpected frame is an answer to an utterance rather than to the idle ping.
+     *
+     * @param {any} data - Whatever arrived.
+     * @returns {boolean}
+     */
+    private _looksLikeATranscript(data: any): boolean {
+        if (typeof data !== 'string') {
+            return true;
+        }
+
+        try {
+            const frame = JSON.parse(data);
+
+            return 'transcription' in frame || 'status' in frame;
+        } catch (error) {
+            return true;
+        }
+    }
+
+    /**
+     * Starts pinging an idle connection, so that one which has quietly stopped existing is found out.
+     *
+     * @returns {void}
+     */
+    private _startHeartbeat() {
+        this._stopHeartbeat();
+
+        this._heartbeat = setInterval(() => {
+            const socket = this._socket;
+
+            // Never while something is waiting for an answer. Frames carry no request identifier and are matched to
+            // requests by arrival alone, so a reply to a ping landing on a waiting utterance would hand one speaker's
+            // words to another. Silence is also the only time the ping is needed: a connection carrying audio is
+            // already proving itself.
+            if (!socket || socket.readyState !== WebSocket.OPEN || this._pending) {
+                return;
+            }
+
+            try {
+                socket.send(JSON.stringify({ type: 'ping' }));
+            } catch (error) {
+                logger.warn(`${TAG} the idle ping could not be sent; dropping the connection`, error);
+                this._teardownSocket();
+                this._noteReconnectFailure();
+                this._scheduleReconnect();
+            }
+        }, TRANSCRIBE_WS_HEARTBEAT_MS);
+    }
+
+    /**
+     * Stops pinging.
+     *
+     * @returns {void}
+     */
+    private _stopHeartbeat() {
+        if (this._heartbeat) {
+            clearInterval(this._heartbeat);
+            this._heartbeat = undefined;
+        }
+    }
+
+    /**
      * Increases the reconnect delay after an unexpected failure.
      *
      * @returns {void}
@@ -662,6 +738,8 @@ export default class MelpSttClient {
      */
     private _teardownSocket() {
         const socket = this._socket;
+
+        this._stopHeartbeat();
 
         this._socket = undefined;
         this._socketJwt = undefined;

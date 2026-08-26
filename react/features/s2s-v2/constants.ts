@@ -11,6 +11,7 @@ export const S2S_V2_ENDPOINT = 's2s-v2';
 export const S2S_V2_SESSION_START = 'session-start';
 export const S2S_V2_SESSION_END = 'session-end';
 export const S2S_V2_TRANSCRIPT = 'transcript';
+export const S2S_V2_PLAYBACK = 'playback';
 
 /**
  * The language the speech service is told to expect, when a session does not say otherwise.
@@ -43,6 +44,14 @@ export const PROCESSED_MESSAGE_LIMIT = 500;
  * so a session which ended in between says nothing.
  */
 export const LATE_JOINER_RESEND_DELAYS_MS = [ 2000, 5000 ];
+
+/**
+ * When a listener tells a speaker again that it has started or stopped reading their words out.
+ *
+ * Said three times for the same reason a session is: the message goes to one participant over a channel which is
+ * frequently not open at the moment it is wanted, and there is no acknowledgement to tell the sender it arrived.
+ */
+export const PLAYBACK_RESEND_DELAYS_MS = [ 1500, 4000 ];
 
 /**
  * Where the speech service is reached. The same deployment the rest of the app synthesizes through: pointing translated
@@ -206,7 +215,7 @@ export const SPEAKING_LEVEL_THRESHOLD = 0.02;
  * How long a participant has to stay quiet before they stop counting as talking. Without it the indicator flickers on
  * every pause between words.
  */
-export const SPEAKING_HANGOVER_MS = 500;
+export const SPEAKING_HANGOVER_MS = 1200;
 
 /**
  * How much of the screen the panel takes: half of it, with the video keeping the other half.

@@ -11,6 +11,7 @@ import {
     DEFAULT_SOURCE_LANGUAGE,
     PROCESSED_MESSAGE_LIMIT,
     S2S_V2_ENDPOINT,
+    S2S_V2_PLAYBACK,
     S2S_V2_SESSION_END,
     S2S_V2_SESSION_START,
     S2S_V2_TRANSCRIPT,
@@ -96,6 +97,36 @@ export interface IS2SV2Transcript extends IS2SV2Message {
      * slow translation cannot reorder the conversation.
      */
     timestamp: number;
+}
+
+/**
+ * Tells one speaker that this device has started, or stopped, reading a translation of their words out loud.
+ *
+ * Unicast to the speaker alone, because it is about the two of them: nobody else in the room is affected by what one
+ * listener's loudspeaker is doing. Carried so that a speaker can be shown that they are being heard in translation
+ * somewhere, and so that a web client - which sends and expects this - is not talking to a device which never answers.
+ */
+export interface IS2SV2Playback extends IS2SV2Message {
+
+    /**
+     * The listener whose device is doing the reading.
+     */
+    listenerId: string;
+
+    /**
+     * Whether the reading is going on right now.
+     */
+    playing: boolean;
+
+    /**
+     * The session it belongs to.
+     */
+    sessionId: string;
+
+    /**
+     * Whose words are being read. The receiver checks this is itself before believing any of it.
+     */
+    speakerId: string;
 }
 
 /**
@@ -205,6 +236,30 @@ export function buildTranscript(
 }
 
 /**
+ * Builds one listener's report that it is, or is no longer, reading a speaker's words out.
+ *
+ * @param {string} sessionId - The session it belongs to.
+ * @param {string} speakerId - Whose words are being read.
+ * @param {string} listenerId - Who is reading them.
+ * @param {boolean} playing - Whether the reading is going on right now.
+ * @returns {IS2SV2Playback}
+ */
+export function buildPlayback(
+        sessionId: string,
+        speakerId: string,
+        listenerId: string,
+        playing: boolean): IS2SV2Playback {
+    return {
+        action: S2S_V2_PLAYBACK,
+        listenerId,
+        name: S2S_V2_ENDPOINT,
+        playing,
+        sessionId,
+        speakerId
+    };
+}
+
+/**
  * Returns whether a received payload is one of ours.
  *
  * The channel is shared with several other features, so anything which is not ours is not a fault and is not worth a
@@ -265,6 +320,23 @@ export function isTranscript(message: IS2SV2Message): message is IS2SV2Transcrip
         && Boolean(candidate.messageId)
         && typeof candidate.speakerId === 'string'
         && typeof candidate.originalText === 'string';
+}
+
+/**
+ * Returns whether a message of ours is a well formed playback report.
+ *
+ * @param {IS2SV2Message} message - The message to check.
+ * @returns {boolean}
+ */
+export function isPlayback(message: IS2SV2Message): message is IS2SV2Playback {
+    const candidate = message as IS2SV2Playback;
+
+    return message.action === S2S_V2_PLAYBACK
+        && typeof candidate.sessionId === 'string'
+        && typeof candidate.speakerId === 'string'
+        && Boolean(candidate.speakerId)
+        && typeof candidate.listenerId === 'string'
+        && typeof candidate.playing === 'boolean';
 }
 
 /**

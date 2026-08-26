@@ -13,8 +13,10 @@ import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { PARTICIPANT_JOINED } from '../base/participants/actionTypes';
 import {
     getLocalParticipant,
+    getParticipantById,
     getParticipantDisplayName,
-    isLocalParticipantModerator
+    isLocalParticipantModerator,
+    isParticipantModerator
 } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { TRACK_ADDED, TRACK_REMOVED, TRACK_UPDATED } from '../base/tracks/actionTypes';
@@ -54,6 +56,7 @@ import S2SV2LanguagePopup from './components/native/S2SV2LanguagePopup';
 import {
     DEFAULT_SOURCE_LANGUAGE,
     LATE_JOINER_RESEND_DELAYS_MS,
+    PLAYBACK_RESEND_DELAYS_MS,
     S2S_V2_MIC_ERROR_UID,
     S2S_V2_TRANSCRIBE_ERROR_UID,
     S2S_V2_TRANSLATING_OFF,
@@ -85,15 +88,18 @@ import {
 import { unwatchAll, unwatchTrack, watchAll, watchTrack } from './native/speakerDetection';
 import {
     IS2SV2Message,
+    IS2SV2Playback,
     IS2SV2SessionEnd,
     IS2SV2SessionStart,
     IS2SV2Transcript,
     ProcessedMessages,
+    buildPlayback,
     buildSessionEnd,
     buildSessionStart,
     buildTranscript,
     createMessageIdFactory,
     generateSessionId,
+    isPlayback,
     isS2SV2Message,
     isSessionEnd,
     isSessionStart,
@@ -143,6 +149,17 @@ const nextMessageId = createMessageIdFactory();
  * drop them.
  */
 let pendingResends: Array<ReturnType<typeof setTimeout>> = [];
+
+/**
+ * The playback reports still to be repeated to a speaker, held for the same reason.
+ */
+let pendingPlaybackResends: Array<ReturnType<typeof setTimeout>> = [];
+
+/**
+ * Which speaker this device last told that it was reading them out, so that the same speaker can be told when it
+ * stops. The speech engine announces who it has started on and never who it has finished with.
+ */
+let playbackReportedFor: string | null = null;
 
 /**
  * Reads translated sentences out loud. Made on the first session and kept afterwards, so that a second session does not
@@ -233,6 +250,105 @@ function _send(state: IReduxState, payload: IS2SV2Message, target = '', retry = 
             setTimeout(() => _send(state, payload, target, false), SEND_RETRY_DELAY_MS);
         }
     }
+}
+
+/**
+ * Tells one speaker that this device has started, or stopped, reading their words out in translation.
+ *
+ * Said three times over a few seconds rather than once. The channel it goes on has no acknowledgement and is
+ * frequently not open at the moment it is wanted, and a report which is lost leaves the speaker believing the opposite
+ * of what is true until the next one happens to arrive.
+ *
+ * Nothing local hangs off this - which participant is turned down, and by how much, is decided on this device from
+ * what its own speech engine is doing. It travels for the far side's benefit: a web client sends and expects it, and a
+ * speaker who is never told is a speaker whose own screen cannot say they are being heard in translation anywhere.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {string} speakerId - Whose words are being read, or nobody.
+ * @param {boolean} playing - Whether the reading is going on right now.
+ * @returns {void}
+ */
+function _reportPlayback(store: IStore, speakerId: string | null) {
+    const previous = playbackReportedFor;
+
+    playbackReportedFor = speakerId;
+
+    // Whoever was being read a moment ago has to be told it has stopped, and they are not who the engine is naming
+    // now: the engine says who it has started on, and says nothing at all about who it has finished with. Told first,
+    // so that a speaker who is followed immediately by another sees the two reports in the order they happened.
+    if (previous && previous !== speakerId) {
+        _sendPlaybackReliably(store, previous, false);
+    }
+
+    if (speakerId) {
+        _sendPlaybackReliably(store, speakerId, true);
+    }
+}
+
+/**
+ * Sends one playback report to one speaker, and again twice over the next few seconds.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {string} speakerId - Whose words are being read.
+ * @param {boolean} playing - Whether the reading is going on.
+ * @returns {void}
+ */
+function _sendPlaybackReliably({ getState }: IStore, speakerId: string, playing: boolean) {
+    const report = () => {
+        const state = getState();
+        const sessionId = getS2SV2SessionId(state);
+        const listenerId = getLocalParticipant(state)?.id;
+
+        if (!sessionId || !listenerId) {
+            return;
+        }
+
+        _send(state, buildPlayback(sessionId, speakerId, listenerId, playing), speakerId);
+    };
+
+    report();
+
+    PLAYBACK_RESEND_DELAYS_MS.forEach(delay => {
+        // Each attempt takes itself off the list once it has run, so a long session does not accumulate a timer per
+        // sentence for the whole of it.
+        const resend: ReturnType<typeof setTimeout> = setTimeout(() => {
+            pendingPlaybackResends = pendingPlaybackResends.filter(pending => pending !== resend);
+            report();
+        }, delay);
+
+        pendingPlaybackResends.push(resend);
+    });
+}
+
+/**
+ * Handles one listener telling this device that it is reading the local participant's words out.
+ *
+ * Checked rather than trusted, twice over: the report has to belong to the session which is running here, and it has
+ * to be about this device. It arrives unicast, but the routing is not what makes it ours to believe.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {IS2SV2Playback} message - What arrived.
+ * @returns {void}
+ */
+function _onPlayback(store: IStore, message: IS2SV2Playback) {
+    const state = store.getState();
+
+    if (getS2SV2SessionId(state) !== message.sessionId) {
+        return;
+    }
+
+    if (message.speakerId !== getLocalParticipant(state)?.id) {
+        logger.debug(`Ignored a playback report about ${message.speakerId}, which is not this device`);
+
+        return;
+    }
+
+    // Recorded in the log and nowhere else, deliberately. Nothing on this screen is drawn from it today: what is shown
+    // about a participant being translated comes from this device's own view of its own speech engine, which cannot be
+    // wrong about itself and needs no permission from the network. Accepting the report is what the protocol asks for
+    // and what a web client on the other end is entitled to; inventing a second, contradictable source for something
+    // already on screen is not.
+    logger.info(`${message.listenerId} ${message.playing ? 'started' : 'stopped'} reading this device's words aloud`);
 }
 
 /**
@@ -331,6 +447,9 @@ function _teardown(store: IStore) {
     processed.clear();
     pendingResends.forEach(resend => clearTimeout(resend));
     pendingResends = [];
+    pendingPlaybackResends.forEach(resend => clearTimeout(resend));
+    pendingPlaybackResends = [];
+    playbackReportedFor = null;
     transcribeFailureReported = false;
     _announceTranslating(store, false);
 
@@ -402,17 +521,36 @@ function _teardown(store: IStore) {
 function _onSessionStart(store: IStore, message: IS2SV2SessionStart, from?: string) {
     const { dispatch } = store;
 
-    // Taken at its word. Whether the announcer holds the moderator role is deliberately not checked here: an
-    // announcement reaches a new arrival before the presence which says who anybody is, so a check at this point
-    // rejects the legitimate announcements it exists to protect - and rejects exactly the ones that matter, since a
-    // device already in the meeting when a session started needs no announcement to know about it.
-    //
-    // Starting a session stays a moderator's to do on the sending side: the control is theirs alone and the send is
-    // gated on the role. What is given up by not checking again here is protection against a device which has been
-    // modified to send the message anyway. The cost of that is a translated session nobody asked for, which any
-    // moderator can end.
     if (from && from !== message.startedBy) {
         logger.warn(`Session ${message.sessionId} was announced by ${from} on behalf of ${message.startedBy}`);
+    }
+
+    // Only a moderator may start a session, and hiding the control from everybody else is a courtesy rather than the
+    // rule: a device which has been modified to send the announcement anyway is refused here.
+    //
+    // Refused only when there is something to refuse it on, though, and that qualification is the whole difficulty.
+    // An announcement reaches a new arrival before the presence which says who anybody is, so at the moment the
+    // message most needs to be believed the participant list is frequently empty of the person who sent it. Checking a
+    // participant who is not there yet and rejecting on the answer would reject exactly the announcements this exists
+    // to protect - a late joiner would sit through the whole session having refused to be told about it.
+    //
+    // So: known and not a moderator is a refusal; not known yet is not evidence of anything and is let through with a
+    // line in the log. That is weaker than refusing outright, and deliberately - the cost of the gap is a translated
+    // session nobody asked for, which any moderator can end, against the cost of the strict form, which is a
+    // participant silently excluded from a legitimate one.
+    const announcer = message.startedBy
+        && getParticipantById(store.getState(), message.startedBy);
+
+    if (announcer && !isParticipantModerator(announcer)) {
+        logger.warn(`Refused session ${message.sessionId}: ${message.startedBy} is not a moderator`);
+        console.log(`[s2s-v2] session-start ${message.sessionId} refused: announcer is not a moderator`);
+
+        return;
+    }
+
+    if (message.startedBy && !announcer) {
+        logger.info(`Session ${message.sessionId} was announced by ${message.startedBy}, who is not in the `
+            + 'participant list yet; accepting it rather than refusing a session which has not arrived in presence');
     }
 
     const first = !announcedSessions.has(message.sessionId);
@@ -634,6 +772,7 @@ function _getTts(store: IStore): S2SV2Speaker {
             // Told, not obeyed. The microphone stays open throughout - this only lets the capture know which of its
             // utterances were recorded over a loudspeaker and could therefore be echoes of it.
             capture?.setPlaying(Boolean(speakerId));
+            _reportPlayback(store, speakerId);
             store.dispatch(setS2SV2TranscriptSpeaking(messageId));
         }
     });
@@ -1088,6 +1227,8 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
                 _onSessionEnd(store, data);
             } else if (isTranscript(data)) {
                 _onTranscript(store, data);
+            } else if (isPlayback(data)) {
+                _onPlayback(store, data);
             } else {
                 logger.debug(`Ignored a malformed "${data.action}" message`);
             }
