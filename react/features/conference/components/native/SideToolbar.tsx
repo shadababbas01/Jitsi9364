@@ -12,9 +12,12 @@ import { getParticipantCountForDisplay } from '../../../base/participants/functi
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
 import S2SV2PanelButton from '../../../s2s-v2/components/native/S2SV2PanelButton';
+import { MAX_S2S_V2_PARTICIPANTS } from '../../../s2s-v2/constants';
+import { isS2SV2Active } from '../../../s2s-v2/functions';
 import ToggleCameraButton from '../../../toolbox/components/native/ToggleCameraButton';
 import RaiseHandButton from '../../../toolbox/components/native/RaiseHandButton';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
+import { getParticipantCount, isLocalParticipantModerator } from '../../../base/participants/functions';
 
 import styles from './styles';
 import ChatButton from '../../../chat/components/native/ChatButton';
@@ -22,6 +25,7 @@ import ChatButton from '../../../chat/components/native/ChatButton';
 interface IProps {
     _audioDeviceButtonEnabled: boolean;
     _isParticipantsPaneEnabled: boolean;
+    _showS2SV2Button: boolean;
     _toggleCameraButtonEnabled: boolean;
     _visible: boolean;
 }
@@ -30,6 +34,7 @@ const SideToolbar = (props: IProps) => {
     const {
         _audioDeviceButtonEnabled,
         _isParticipantsPaneEnabled,
+        _showS2SV2Button,
         _toggleCameraButtonEnabled,
         _visible
     } = props;
@@ -84,9 +89,11 @@ const SideToolbar = (props: IProps) => {
                         <ChatButton styles = { styles.sideToolbarButton } />
                     </View>
                 }
-                <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                    <S2SV2PanelButton styles = { styles.sideToolbarButton } />
-                </View>
+                {_showS2SV2Button && (
+                    <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
+                        <S2SV2PanelButton styles = { styles.sideToolbarButton } />
+                    </View>
+                )}
                 {raisedHandsCount > 0 && (
                     <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
                         <View style = { styles.sideToolbarButtonBadgeWrapper as ViewStyle }>
@@ -113,6 +120,8 @@ function _mapStateToProps(state: IReduxState) {
     return {
         _audioDeviceButtonEnabled: getFeatureFlag(state, AUDIO_DEVICE_BUTTON_ENABLED, true),
         _isParticipantsPaneEnabled: isParticipantsPaneEnabled(state),
+        _showS2SV2Button: getParticipantCount(state) <= MAX_S2S_V2_PARTICIPANTS
+            && (isS2SV2Active(state) || isLocalParticipantModerator(state)),
         _toggleCameraButtonEnabled: getFeatureFlag(state, TOGGLE_CAMERA_BUTTON_ENABLED, true),
         _visible: isToolboxVisible(state)
     };

@@ -3,13 +3,14 @@ import { connect } from 'react-redux';
 import { IReduxState } from '../../../app/types';
 import { translate } from '../../../base/i18n/functions';
 import { IconTranslate } from '../../../base/icons/svg';
-import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { getParticipantCount, isLocalParticipantModerator } from '../../../base/participants/functions';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import {
     setS2SV2LanguagePopupVisible,
     setS2SV2StopConfirmVisible,
     startS2SV2Session
 } from '../../actions';
+import { MAX_S2S_V2_PARTICIPANTS } from '../../constants';
 import { isS2SV2Active } from '../../functions';
 
 interface IProps extends AbstractButtonProps {
@@ -77,5 +78,5 @@ class S2SV2Button extends AbstractButton<IProps> {
 
 export default translate(connect((state: IReduxState) => ({
     _active: isS2SV2Active(state),
-    visible: isLocalParticipantModerator(state)
+    visible: isLocalParticipantModerator(state) && getParticipantCount(state) <= MAX_S2S_V2_PARTICIPANTS
 }))(S2SV2Button));

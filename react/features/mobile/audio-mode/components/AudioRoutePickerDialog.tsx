@@ -18,6 +18,7 @@ import {
 } from '../../../base/icons/svg';
 import { StyleType } from '../../../base/styles/functions.any';
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
+import { selectAudioDevice } from '../functions';
 
 import styles from './styles';
 
@@ -228,7 +229,7 @@ class AudioRoutePickerDialog extends Component<IProps, IState> {
     _onSelectDeviceFn(device: IDevice) {
         return () => {
             this.props.dispatch(hideSheet());
-            AudioMode.setAudioDevice(device.uid || device.type);
+            selectAudioDevice(device.uid || device.type);
         };
     }
 

@@ -726,7 +726,7 @@ class Conference extends AbstractConference<IProps, State> {
                   * would leave a participant in a session they can hear and cannot see. Drawn wherever the meeting
                   * happens to be, over the large video if that is what is on screen.
                   */}
-                <S2SV2TranslationPanel />
+                <S2SV2TranslationPanel onPress = { this._onClick } />
 
                 {
                     _shouldDisplayTileView

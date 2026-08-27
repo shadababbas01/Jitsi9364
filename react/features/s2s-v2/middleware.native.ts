@@ -13,18 +13,22 @@ import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { PARTICIPANT_JOINED } from '../base/participants/actionTypes';
 import {
     getLocalParticipant,
+    getParticipantCount,
     getParticipantById,
     getParticipantDisplayName,
     isLocalParticipantModerator,
     isParticipantModerator
 } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
+import StateListenerRegistry from '../base/redux/StateListenerRegistry';
 import { TRACK_ADDED, TRACK_REMOVED, TRACK_UPDATED } from '../base/tracks/actionTypes';
 import { STT_LOG_TAG } from '../live-transcribe/constants';
 import {
     closeTranscriptionConnection,
     openTranscriptionConnection
 } from '../live-transcribe/native/transcribeWav';
+import { AUDIO_DEVICE_SPEAKER } from '../mobile/audio-mode/constants';
+import { isPrivateAudioDeviceSelected, selectAudioDevice } from '../mobile/audio-mode/functions';
 import { hideNotification, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
 import { translateLiveCaptionText } from '../subtitles/languages';
@@ -56,6 +60,7 @@ import S2SV2LanguagePopup from './components/native/S2SV2LanguagePopup';
 import {
     DEFAULT_SOURCE_LANGUAGE,
     LATE_JOINER_RESEND_DELAYS_MS,
+    MAX_S2S_V2_PARTICIPANTS,
     PLAYBACK_RESEND_DELAYS_MS,
     S2S_V2_MIC_ERROR_UID,
     S2S_V2_TRANSCRIBE_ERROR_UID,
@@ -105,6 +110,7 @@ import {
     isSessionStart,
     isTranscript
 } from './protocol';
+import { stopS2SV2Session } from './actions';
 
 /**
  * Keeps the meeting informed whether the local participant is currently having an utterance translated for everybody
@@ -701,6 +707,23 @@ function _onTranscript(store: IStore, message: IS2SV2Transcript) {
 }
 
 /**
+ * Ends S2S-v2 when the meeting grows beyond the supported participant limit.
+ */
+StateListenerRegistry.register(
+    /* selector */ getParticipantCount,
+    /* listener */ (participantCount: number, store: IStore, previousParticipantCount: number) => {
+        if (participantCount <= MAX_S2S_V2_PARTICIPANTS
+                || previousParticipantCount > MAX_S2S_V2_PARTICIPANTS
+                || !isS2SV2Active(store.getState())
+                || !isLocalParticipantModerator(store.getState())) {
+            return;
+        }
+
+        store.dispatch(stopS2SV2Session());
+    }
+);
+
+/**
  * Turns one utterance into the language this listener asked for.
  *
  * Never rejects. A translation which cannot be had is answered with the English it was given: the utterance is shown
@@ -1133,6 +1156,19 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
             }
 
             store.dispatch(setTileView(true));
+
+            // Translated speech is read out of this device while the room carries on talking, and a listener with the
+            // panel open is holding the phone in front of them to read it rather than against their ear: on the
+            // earpiece, the translation is the one thing they cannot hear. The route is left where it is once it has
+            // been moved - putting the panel away does not stop the reading, so it must not take the loudspeaker away
+            // either - and the toolbar's audio route button follows the change of its own accord, because it draws
+            // itself from whichever route native reports as selected.
+            //
+            // A headset is left alone. Somebody wearing one is already hearing the translation privately, and moving
+            // them to the loudspeaker would play the meeting to whoever happens to be standing around them.
+            if (!isPrivateAudioDeviceSelected(state)) {
+                selectAudioDevice(AUDIO_DEVICE_SPEAKER);
+            }
         }
 
         return result;

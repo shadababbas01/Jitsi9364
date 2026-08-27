@@ -14,6 +14,11 @@ export const S2S_V2_TRANSCRIPT = 'transcript';
 export const S2S_V2_PLAYBACK = 'playback';
 
 /**
+ * The largest meeting size at which S2S-v2 stays available.
+ */
+export const MAX_S2S_V2_PARTICIPANTS = 5;
+
+/**
  * The language the speech service is told to expect, when a session does not say otherwise.
  *
  * Sent on {@link S2S_V2_SESSION_START} and used by every device's own transcribe call. There is no control which sets

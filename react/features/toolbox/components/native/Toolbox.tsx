@@ -7,6 +7,7 @@ import { IReduxState, IStore } from '../../../app/types';
 import ColorSchemeRegistry from '../../../base/color-scheme/ColorSchemeRegistry';
 import Platform from '../../../base/react/Platform.native';
 import AudioDeviceToggleButton from '../../../mobile/audio-mode/components/AudioDeviceToggleButton';
+import { isSpeakerSelected } from '../../../mobile/audio-mode/functions';
 import { iAmVisitor } from '../../../visitors/functions';
 import { customButtonPressed } from '../../actions.native';
 import { getVisibleNativeButtons, isToolboxVisible } from '../../functions.native';
@@ -26,9 +27,9 @@ interface IProps {
     _iAmVisitor: boolean;
 
     /**
-     * Currently selected audio route type.
+     * Whether the call is coming out of the phone's loudspeaker.
      */
-    _selectedAudioRouteType?: string;
+    _speakerOn: boolean;
 
     /**
      * Whether local video is muted.
@@ -60,7 +61,7 @@ interface IProps {
 function Toolbox(props: IProps) {
     const {
         _iAmVisitor,
-        _selectedAudioRouteType,
+        _speakerOn,
         _videoMuted,
         _styles,
         _visible,
@@ -176,7 +177,7 @@ function Toolbox(props: IProps) {
             borderRadius: 24
         }
     };
-    const audiorouteUsesWhiteBg = _selectedAudioRouteType === 'SPEAKER';
+    const audiorouteUsesWhiteBg = _speakerOn;
 
     const renderToolboxButtons = () => {
         if (!orderedButtons.length) {
@@ -248,11 +249,9 @@ function Toolbox(props: IProps) {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
-    const selectedDevice = state['features/mobile/audio-mode'].devices.find(device => device.selected);
-
     return {
         _iAmVisitor: iAmVisitor(state),
-        _selectedAudioRouteType: selectedDevice?.type,
+        _speakerOn: isSpeakerSelected(state),
         _videoMuted: Boolean(state['features/base/media']?.video?.muted),
         _styles: ColorSchemeRegistry.get(state, 'Toolbox'),
         _visible: isToolboxVisible(state),

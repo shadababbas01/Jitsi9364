@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
+index 996648c..aa6fbda 100644
+--- a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
++++ b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
+@@ -40,6 +40,39 @@ import java.util.concurrent.ExecutionException;
+ public class WebRTCModule extends ReactContextBaseJavaModule {
+     static final String TAG = WebRTCModule.class.getCanonicalName();
+ 
++    /** Receives a copy of the PCM captured by WebRTC's call microphone. */
++    public interface AudioSamplesListener {
++        void onAudioSamples(int audioFormat, int channelCount, int sampleRate, byte[] data);
++    }
++
++    private static volatile AudioSamplesListener audioSamplesListener;
++
++    public static void setAudioSamplesListener(AudioSamplesListener listener) {
++        audioSamplesListener = listener;
++    }
++
++    public static void clearAudioSamplesListener(AudioSamplesListener listener) {
++        if (audioSamplesListener == listener) {
++            audioSamplesListener = null;
++        }
++    }
++
++    private static void onAudioSamplesReady(JavaAudioDeviceModule.AudioSamples samples) {
++        AudioSamplesListener listener = audioSamplesListener;
++
++        if (listener == null) {
++            return;
++        }
++
++        byte[] data = samples.getData();
++
++        listener.onAudioSamples(
++            samples.getAudioFormat(),
++            samples.getChannelCount(),
++            samples.getSampleRate(),
++            data.clone());
++    }
++
+     PeerConnectionFactory mFactory;
+     VideoEncoderFactory mVideoEncoderFactory;
+     VideoDecoderFactory mVideoDecoderFactory;
+@@ -90,7 +123,10 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
+         }
+ 
+         if (adm == null) {
+-            adm = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
++            adm = JavaAudioDeviceModule.builder(reactContext)
++                .setEnableVolumeLogger(false)
++                .setSamplesReadyCallback(WebRTCModule::onAudioSamplesReady)
++                .createAudioDeviceModule();
+         }
+ 
+         Log.d(TAG, "Using video encoder factory: " + encoderFactory.getClass().getCanonicalName());

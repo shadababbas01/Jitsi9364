@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge, IconTheme, IconVolumeOff, IconVolumeUp } from '../../../base/icons/svg';
+import { IconCloseLarge, IconTheme, IconVolumeOff, IconVolumeUp, IconVolumeUpToolBox } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import {
     setS2SV2PanelVisible,
@@ -185,6 +185,12 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
 
     const height = measuredHeight || '50%';
     const iconColor = theme === 'dark' ? '#FFFFFF' : '#202124';
+
+    // The one control which says whether anything is coming out of the loudspeaker is drawn in the plainest colour each
+    // theme has - black on the light panel, white on the dark one - rather than in the softer ink the header icons use.
+    // It is read at a glance while somebody is listening rather than looked for, and on the light panel it sits on a
+    // tinted square when it is on, which the softer ink does not stand far enough off.
+    const speakerIconColor = theme === 'dark' ? '#FFFFFF' : '#000000';
 
     return (
         <Animated.View
@@ -371,9 +377,9 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                             suppress ? styles.squareButtonActive : styles.squareButtonInactive
                         ] as ViewStyle[] }>
                         <Icon
-                            color = { iconColor }
+                            color = { speakerIconColor }
                             size = { 18 }
-                            src = { suppress ? IconVolumeOff : IconVolumeUp } />
+                            src = { theme === 'dark' ?  IconVolumeOff : IconVolumeUpToolBox } />
                     </Pressable>
                 </View>
 

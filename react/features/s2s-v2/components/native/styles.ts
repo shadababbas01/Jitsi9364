@@ -51,6 +51,7 @@ export default {
         alignSelf: 'center',
         backgroundColor: S2S_V2_COLORS.divider,
         borderRadius: 2,
+        marginTop: BaseTheme.spacing[1],
         height: 4,
         width: 36
     },

@@ -17,7 +17,7 @@ import { CHAT_ENABLED } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { translate } from '../../../base/i18n/functions';
 import { IconInfo, IconMessage, IconUsers, IconVolumeUp } from '../../../base/icons/svg';
-import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { getParticipantCount, isLocalParticipantModerator } from '../../../base/participants/functions';
 import { IParticipantsState } from '../../../base/participants/reducer';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import BreakoutRoomsButton
@@ -35,6 +35,8 @@ import { getUnreadPollCount } from '../../../polls/functions';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
 import S2SV2Button from '../../../s2s-v2/components/native/S2SV2Button';
+import { MAX_S2S_V2_PARTICIPANTS } from '../../../s2s-v2/constants';
+import { isS2SV2Active } from '../../../s2s-v2/functions';
 import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../../../visitors/functions';
@@ -373,6 +375,11 @@ interface IProps {
     _isVoiceTranslationButtonVisible: boolean;
 
     /**
+     * Whether the S2S-v2 row should be visible.
+     */
+    _isS2SV2ButtonVisible: boolean;
+
+    /**
      * Toolbar buttons.
      */
     _mainMenuButtons?: Array<IToolboxNativeButton>;
@@ -439,6 +446,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
         const {
             _isBreakoutRoomsSupported,
             _isClosedCaptionsEnabled,
+            _isS2SV2ButtonVisible,
             _isVoiceTranslationButtonVisible,
             dispatch
         } = this.props;
@@ -477,8 +485,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                       * Shown to moderators only, and it says which of the two things it does: a session is started and
                       * stopped for the whole meeting, so there is one entry rather than one per participant.
                       */}
-                    <D />
-                    <S2SV2Button { ...sheetRowProps } />
+                    {_isS2SV2ButtonVisible && <><D /><S2SV2Button { ...sheetRowProps } /></>}
                     {false && <><D /><TranslatedInCallMessagesOverflowButton { ...topRowProps } /></>}
                     {false && <><D /><TranslatedVoiceTranslationOverflowButton { ...topRowProps } /></>}
                     <D />
@@ -617,6 +624,8 @@ function _mapStateToProps(state: IReduxState) {
     return {
         _isBreakoutRoomsSupported: conference?.getBreakoutRooms()?.isSupported(),
         _isClosedCaptionsEnabled: areClosedCaptionsEnabled(state),
+        _isS2SV2ButtonVisible: getParticipantCount(state) <= MAX_S2S_V2_PARTICIPANTS
+            && (isS2SV2Active(state) || isLocalParticipantModerator(state)),
         _isVoiceTranslationButtonVisible: isVoiceTranslationEnabled(state)
             || (isVoiceTranslationAvailable(state) && isLocalParticipantModerator(state)),
         _shouldDisplayReactionsButtons: shouldDisplayReactionsButtons(state),

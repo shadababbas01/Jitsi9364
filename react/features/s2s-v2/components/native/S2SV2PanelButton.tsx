@@ -3,13 +3,14 @@ import { connect } from 'react-redux';
 import { IReduxState } from '../../../app/types';
 import { translate } from '../../../base/i18n/functions';
 import { IconTranslate } from '../../../base/icons/svg';
-import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { getParticipantCount, isLocalParticipantModerator } from '../../../base/participants/functions';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../../base/toolbox/components/AbstractButton';
 import {
     setS2SV2LanguagePopupVisible,
     setS2SV2PanelVisible,
     startS2SV2Session
 } from '../../actions';
+import { MAX_S2S_V2_PARTICIPANTS } from '../../constants';
 import { getS2SV2State, isS2SV2Active } from '../../functions';
 
 interface IProps extends AbstractButtonProps {
@@ -122,6 +123,8 @@ export default translate(connect((state: IReduxState) => {
         _active: active,
         _moderator: isLocalParticipantModerator(state),
         _open: getS2SV2State(state).showPanel,
+        visible: getParticipantCount(state) <= MAX_S2S_V2_PARTICIPANTS
+            && (active || isLocalParticipantModerator(state)),
 
         // With a session running everybody needs the way back to the panel, whether or not their device can speak into
         // it: a participant who can only listen is still in the session. With no session running there is nothing to

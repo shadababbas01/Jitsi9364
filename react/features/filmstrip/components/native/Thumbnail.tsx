@@ -559,7 +559,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
             }
         }
 
-        const { _audioTrack, _speakingFromAudioLevel } = this.props;
+        const { _audioMuted, _audioTrack, _speakingFromAudioLevel } = this.props;
         const trackChanged = prevProps._audioTrack?.jitsiTrack !== _audioTrack?.jitsiTrack;
 
         if (trackChanged || prevProps._speakingFromAudioLevel !== _speakingFromAudioLevel) {
@@ -572,6 +572,12 @@ class Thumbnail extends PureComponent<IProps, IState> {
             } else {
                 this._clearSpeaking();
             }
+        }
+
+        // Closing the microphone ends the outline there and then, rather than leaving the hold behind the last loud
+        // sample to run itself out.
+        if (_audioMuted && !prevProps._audioMuted) {
+            this._clearSpeaking();
         }
     }
 
@@ -683,9 +689,10 @@ class Thumbnail extends PureComponent<IProps, IState> {
             ? _speakingInTranslatedCall
             : Boolean(_renderDominantSpeakerIndicator) || this.state._speakingByAudioLevel;
 
-        // Nobody with their microphone closed is speaking, whatever anything else still says.
-        const showSpeakingOutline = isSpeaking
-            && !_audioMuted
+        // A closed microphone takes the outline down at once. Whoever the conference still believes spoke last, and
+        // however recently the audio level was loud, somebody who has muted is not speaking.
+        const showSpeakingOutline = !_audioMuted
+            && isSpeaking
             && !_isVirtualScreenshare
             && !disableDominantSpeakerIndicator;
 
