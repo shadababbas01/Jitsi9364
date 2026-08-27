@@ -2,11 +2,16 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TextStyle, View, ViewStyle } from 'react-native';
 
-import { TRANSCRIPT_LANGUAGE } from '../../constants';
+import Avatar from '../../../base/avatar/components/Avatar';
 import { IS2SV2TranscriptEntry } from '../../reducer';
 
 import { S2SV2Theme } from './palettes';
 import getS2SV2PanelStyles from './panelStyles';
+
+/**
+ * How big the speaker's picture is drawn, sized to sit on one line with their name and the time.
+ */
+const SPEAKER_AVATAR_SIZE = 24;
 
 interface IProps {
 
@@ -51,7 +56,7 @@ function _time(timestamp: number): string {
 }
 
 /**
- * One utterance in the transcript: which language it arrived in, who said it, when, what they said, and what it came to.
+ * One utterance in the transcript: who said it, when, what they said, and what it came to.
  *
  * Both lines are always shown and neither can be hidden. What was said is the record and what it came to is what the
  * listener is acting on, so a reader who wants to check one against the other should not have to ask for it.
@@ -71,10 +76,11 @@ export default function S2SV2TranscriptRow({ entry, first, pending, speaking, th
                 (pending || speaking) && styles.transcriptEntryPending
             ] as ViewStyle[] }>
             <View style = { styles.transcriptMeta as ViewStyle }>
-                <View style = { styles.transcriptBadge as ViewStyle }>
-                    <Text style = { styles.transcriptBadgeLabel as TextStyle }>
-                        { TRANSCRIPT_LANGUAGE.toUpperCase() }
-                    </Text>
+                <View style = { styles.transcriptAvatar as ViewStyle }>
+                    <Avatar
+                        displayName = { entry.speakerName }
+                        participantId = { entry.speakerId }
+                        size = { SPEAKER_AVATAR_SIZE } />
                 </View>
                 <Text
                     numberOfLines = { 1 }

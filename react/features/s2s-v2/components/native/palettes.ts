@@ -24,11 +24,6 @@ export interface IS2SV2Palette {
     background: string;
 
     /**
-     * Behind the small language tag on an utterance.
-     */
-    badge: string;
-
-    /**
      * Behind the things which sit on the panel: the transcript, and each of the two controls.
      */
     card: string;
@@ -70,7 +65,6 @@ export interface IS2SV2Palette {
 const DARK: IS2SV2Palette = {
     accent: BaseTheme.palette.action01,
     background: BaseTheme.palette.ui01,
-    badge: BaseTheme.palette.ui03,
     card: BaseTheme.palette.ui02,
     danger: '#F0655B',
     divider: BaseTheme.palette.ui04,
@@ -90,7 +84,6 @@ const DARK: IS2SV2Palette = {
 const LIGHT: IS2SV2Palette = {
     accent: '#1B6FE0',
     background: '#F4F4F7',
-    badge: '#E2E2EA',
     card: '#FFFFFF',
     danger: '#C0362C',
     divider: '#DCDCE4',

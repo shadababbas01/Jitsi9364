@@ -173,18 +173,10 @@ function _create(palette: IS2SV2Palette) {
             marginBottom: BaseTheme.spacing[1]
         },
 
-        // Which language the utterance arrived in. Always English, and shown anyway, because a reader comparing the
-        // two lines should be able to see which is the one that was said.
-        transcriptBadge: {
-            backgroundColor: palette.badge,
-            borderRadius: 6,
-            paddingHorizontal: BaseTheme.spacing[1],
-            paddingVertical: 2
-        },
-
-        transcriptBadgeLabel: {
-            ...BaseTheme.typography.bodyShortBold,
-            color: palette.textMuted
+        // Who said it, shown as their picture so the line can be attributed at a glance.
+        transcriptAvatar: {
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const
         },
 
         transcriptSpeaker: {
