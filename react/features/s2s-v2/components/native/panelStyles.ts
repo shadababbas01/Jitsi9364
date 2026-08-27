@@ -183,12 +183,15 @@ function _create(palette: IS2SV2Palette) {
             ...BaseTheme.typography.bodyShortBold,
             color: palette.text,
             flex: 1,
+            minWidth: 0,
             marginLeft: BaseTheme.spacing[2]
         },
 
         transcriptTime: {
             ...BaseTheme.typography.bodyShortRegularSmall,
-            color: palette.textMuted
+            color: palette.textMuted,
+            flexShrink: 0,
+            marginLeft: BaseTheme.spacing[2]
         },
 
         transcriptOriginal: {
@@ -368,7 +371,9 @@ function _create(palette: IS2SV2Palette) {
 
         listRowText: {
             ...BaseTheme.typography.bodyShortRegular,
-            color: palette.textMuted
+            color: palette.textMuted,
+            flex: 1,
+            minWidth: 0
         },
 
         listRowTextActive: {

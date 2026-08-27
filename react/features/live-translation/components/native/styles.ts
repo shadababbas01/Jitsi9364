@@ -260,6 +260,8 @@ export default {
     languagePillName: {
         ...BaseTheme.typography.bodyShortBold,
         color: COLORS.text,
+        flex: 1,
+        minWidth: 0,
         flexShrink: 1
     },
 
@@ -333,6 +335,8 @@ export default {
     sheetRowText: {
         ...BaseTheme.typography.bodyShortRegularLarge,
         color: COLORS.text,
+        flex: 1,
+        minWidth: 0,
         flexShrink: 1
     },
 

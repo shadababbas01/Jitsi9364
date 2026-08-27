@@ -1195,7 +1195,7 @@
             "description": "Pick the language you'd like everyone's voice translated into.",
             "dismiss": "Not now",
             "languageLabel": "Translate to",
-            "proceed": "Proceed",
+            "proceed": "Translate me",
             "suppressLabel": "Lower speakers' original volume",
             "suppressOffHelper": "You'll hear both the original voice and the translation together.",
             "suppressOnHelper": "Original voices stay quiet while translations play.",

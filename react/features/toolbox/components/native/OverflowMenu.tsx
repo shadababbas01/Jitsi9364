@@ -479,7 +479,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 style = { overflowSheetStyle }>
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
-                    {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>}
+                    {/* {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>} */}
 
                     {/*
                       * Shown to moderators only, and it says which of the two things it does: a session is started and

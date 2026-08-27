@@ -32,8 +32,10 @@ export default createStyleSheet({
      * Style for the {@code Text} element in a row.
      */
     deviceText: {
+        flex: 1,
         color: BaseTheme.palette.text01,
         fontSize: 16,
+        minWidth: 0,
         marginLeft: BaseTheme.spacing[5]
     },
 

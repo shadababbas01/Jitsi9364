@@ -52,7 +52,7 @@ function _time(timestamp: number): string {
     const at = new Date(timestamp);
     const hours = at.getHours();
 
-    return `${hours % 12 || 12}:${String(at.getMinutes()).padStart(2, '0')}${hours < 12 ? 'AM' : 'PM'}`;
+    return `${hours % 12 || 12}:${String(at.getMinutes()).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`;
 }
 
 /**
@@ -87,7 +87,9 @@ export default function S2SV2TranscriptRow({ entry, first, pending, speaking, th
                     style = { styles.transcriptSpeaker as TextStyle }>
                     { entry.speakerName }
                 </Text>
-                <Text style = { styles.transcriptTime as TextStyle }>
+                <Text
+                    numberOfLines = { 1 }
+                    style = { styles.transcriptTime as TextStyle }>
                     { _time(entry.timestamp) }
                 </Text>
             </View>

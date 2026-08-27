@@ -117,6 +117,7 @@ export default {
 
     languagePillCopy: {
         flex: 1,
+        minWidth: 0,
         marginRight: BaseTheme.spacing[2]
     },
 
@@ -128,7 +129,9 @@ export default {
 
     languagePillName: {
         ...BaseTheme.typography.bodyShortRegularLarge,
-        color: S2S_V2_COLORS.text
+        color: S2S_V2_COLORS.text,
+        flex: 1,
+        minWidth: 0
     },
 
     // The open list.
@@ -172,7 +175,9 @@ export default {
 
     listRowText: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: S2S_V2_COLORS.textMuted
+        color: S2S_V2_COLORS.textMuted,
+        flex: 1,
+        minWidth: 0
     },
 
     listRowTextActive: {
