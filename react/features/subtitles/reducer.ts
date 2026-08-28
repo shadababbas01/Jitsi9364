@@ -4,6 +4,7 @@ import { TRANSCRIBER_LEFT } from '../transcribing/actionTypes';
 import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
+    SET_CAPTIONS_STARTED_BY,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
@@ -25,6 +26,7 @@ const defaultState = {
     _language: null,
     messages: [],
     panelOpen: false,
+    startedBy: undefined,
     subtitlesHistory: [],
     _hasError: false
 };
@@ -38,6 +40,15 @@ export interface ISubtitlesState {
     _transcriptMessages: Map<string, ITranscriptMessage>;
     messages: ITranscriptMessage[];
     panelOpen: boolean;
+
+    /**
+     * Which participant turned live captions on, as the control message which announced it said.
+     *
+     * Tracked so that every device can turn captions off by itself when that participant leaves, rather than waiting
+     * for somebody to tell it to. Deliberately not restricted to moderators - the starter may have been the only
+     * moderator in the room, and captions running on after they have gone is the failure this exists to prevent.
+     */
+    startedBy?: string;
     subtitlesHistory: Array<ISubtitle>;
 }
 
@@ -60,14 +71,26 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
             _displaySubtitles: action.displaySubtitles,
             _language: action.language,
             _requestingSubtitles: action.enabled,
+
+            // Compared against the state as it is now rather than against the action alone. A session which is already
+            // running and re-announces the same enabled state - which happens on every late-joiner acknowledgement -
+            // must not wipe a transcript which is actively growing; only a genuine off-to-on transition starts a new
+            // conversation, and that is the one which should not resurrect the last one.
+            subtitlesHistory: _startsFresh(state, action.enabled) ? [] : state.subtitlesHistory,
+            startedBy: action.enabled ? action.startedBy ?? state.startedBy : undefined,
             _hasError: false
         };
-    case TOGGLE_REQUESTING_SUBTITLES:
+    case TOGGLE_REQUESTING_SUBTITLES: {
+        const enabled = !state._requestingSubtitles;
+
         return {
             ...state,
-            _requestingSubtitles: !state._requestingSubtitles,
+            _requestingSubtitles: enabled,
+            subtitlesHistory: _startsFresh(state, enabled) ? [] : state.subtitlesHistory,
+            startedBy: enabled ? action.startedBy ?? state.startedBy : undefined,
             _hasError: false
         };
+    }
     case TRANSCRIBER_LEFT:
         return {
             ...state,
@@ -112,10 +135,30 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
             ...state,
             panelOpen: action.open
         };
+    case SET_CAPTIONS_STARTED_BY:
+        return {
+            ...state,
+            startedBy: action.participantId
+        };
     }
 
     return state;
 });
+
+/**
+ * Returns whether a caption state change starts a new transcript rather than continuing the one already on screen.
+ *
+ * Only a genuine off-to-on transition does. Turning captions off and back on should not bring the previous
+ * conversation back with them, but an already-running session which re-announces the same enabled state - as happens
+ * every time a late joiner is caught up - must leave a growing transcript alone.
+ *
+ * @param {ISubtitlesState} state - The state as it is before the change.
+ * @param {boolean} enabled - Whether captions are on after it.
+ * @returns {boolean}
+ */
+function _startsFresh(state: ISubtitlesState, enabled: boolean) {
+    return Boolean(enabled) && !state._requestingSubtitles;
+}
 
 /**
  * Reduces a specific Redux action REMOVE_TRANSCRIPT_MESSAGE of the feature

@@ -2,15 +2,8 @@ import { AnyAction } from 'redux';
 
 import { IStore } from '../app/types';
 import { ENDPOINT_MESSAGE_RECEIVED, NON_PARTICIPANT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
-import { MEET_FEATURES } from '../base/jwt/constants';
-import { isJwtFeatureEnabled } from '../base/jwt/functions';
-import JitsiMeetJS from '../base/lib-jitsi-meet';
 import { TRANSCRIBER_ID } from '../base/participants/constants';
-import { isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
-import { showErrorNotification } from '../notifications/actions';
-import { RECORDING_METADATA_ID } from '../recording/constants';
-import { TRANSCRIBER_JOINED } from '../transcribing/actionTypes';
 import { getLocalTranslationPreferences, isVoiceTranslationEnabled } from '../voice-translation/functions';
 import { toBaseVoiceLanguage } from '../voice-translation/languages';
 
@@ -22,14 +15,11 @@ import {
 import {
     removeCachedTranscriptMessage,
     removeTranscriptMessage,
-    setRequestingSubtitles,
-    setSubtitlesError,
     storeSubtitle,
     updateTranscriptMessage
 } from './actions.any';
 import { notifyTranscriptionChunkReceived } from './functions';
 import { areClosedCaptionsEnabled, isCCTabEnabled } from './functions.any';
-import logger from './logger';
 import { ISubtitle, ITranscriptMessage } from './types';
 
 /**
@@ -45,21 +35,10 @@ const JSON_TYPE_TRANSCRIPTION_RESULT = 'transcription-result';
 const JSON_TYPE_TRANSLATION_RESULT = 'translation-result';
 
 /**
- * The local participant property which is used to set whether the local
- * participant wants to have a transcriber in the room.
- */
-const P_NAME_REQUESTING_TRANSCRIPTION = 'requestingTranscription';
-
-/**
  * The local participant property which is used to store the language
  * preference for translation for a participant.
  */
 const P_NAME_TRANSLATION_LANGUAGE = 'translation_language';
-
-/**
- * The dial command to use for starting a transcriber.
- */
-const TRANSCRIBER_DIAL_NUMBER = 'jitsi_meet_transcribe';
 
 /**
 * Time after which the rendered subtitles will be removed.
@@ -171,17 +150,8 @@ MiddlewareRegistry.register(store => next => action => {
         _requestingSubtitlesChange(store, toggledValue, state._language);
         break;
     }
-    case TRANSCRIBER_JOINED: {
-        const { transcription } = store.getState()['features/base/config'];
-
-        if (transcription?.autoCaptionOnTranscribe) {
-            store.dispatch(setRequestingSubtitles(true));
-        }
-
-        break;
-    }
     case SET_REQUESTING_SUBTITLES:
-        _requestingSubtitlesChange(store, action.enabled, action.language, action.forceBackendRecordingOn);
+        _requestingSubtitlesChange(store, action.enabled, action.language);
         break;
 
     case SET_SUBTITLES_LANGUAGE: {
@@ -464,68 +434,36 @@ function _getPrimaryLanguageCode(language: string) {
 }
 
 /**
- * Toggle the local property 'requestingTranscription'. This will cause Jicofo
- * and Jigasi to decide whether the transcriber needs to be in the room.
+ * Publishes the translation language this participant reads in.
+ *
+ * All that is left of what used to be the Jigasi handshake. Captions are produced on the participant's own device now,
+ * by the native utterance recorder and the transcription socket, so there is no transcriber to ask Jicofo for, none to
+ * dial, and no backend recording metadata to turn on around it. That machinery did not merely go unused on a
+ * deployment without a transcriber - the dial rejected, and its failure handler switched the captions back off and
+ * raised a "transcribing failed" notification, so the feature died on the spot every time it was switched on.
+ *
+ * The language stays because it is the participant's own property rather than the transcriber's: the voice
+ * translation feature reads it off presence to know what to translate for them.
  *
  * @param {Store} store - The redux store.
- * @param {boolean} enabled - Whether subtitles should be enabled or not.
- * @param {string} language - The language to use for translation.
- * @param {boolean} forceBackendRecordingOn - Whether to force backend recording is on or not. This is used only when
- * we start recording, stopping is based on whether isTranscribingEnabled is already set.
+ * @param {boolean} enabled - Whether subtitles are on.
+ * @param {string} language - The language to translate into.
  * @private
  * @returns {void}
  */
 function _requestingSubtitlesChange(
-        { dispatch, getState }: IStore,
+        { getState }: IStore,
         enabled: boolean,
-        language?: string | null,
-        forceBackendRecordingOn: boolean = false) {
-    const state = getState();
-    const { conference } = state['features/base/conference'];
-    const backendRecordingOn = conference?.getMetadataHandler()?.getMetadata()?.asyncTranscription;
+        language?: string | null) {
+    if (!enabled) {
+        return;
+    }
+
+    const { conference } = getState()['features/base/conference'];
 
     conference?.setLocalParticipantProperty(
-        P_NAME_REQUESTING_TRANSCRIPTION,
-        enabled);
-
-    if (enabled && conference?.getTranscriptionStatus() === JitsiMeetJS.constants.transcriptionStatus.OFF
-        && (isJwtFeatureEnabled(getState(), MEET_FEATURES.TRANSCRIPTION, false)
-            || isLocalParticipantModerator(getState()))) {
-
-        if (!backendRecordingOn) {
-            conference?.dial(TRANSCRIBER_DIAL_NUMBER)
-                .catch((e: any) => {
-                    logger.error('Error dialing', e);
-
-                    // let's back to the correct state
-                    dispatch(setRequestingSubtitles(false, false, null));
-
-                    dispatch(showErrorNotification({
-                        titleKey: 'transcribing.failed'
-                    }));
-                    dispatch(setSubtitlesError(true));
-                });
-        }
-
-        if (backendRecordingOn || forceBackendRecordingOn) {
-            conference?.getMetadataHandler()?.setMetadata(RECORDING_METADATA_ID, {
-                isTranscribingEnabled: true
-            });
-        }
-    }
-
-    if (enabled) {
-        conference?.setLocalParticipantProperty(
-            P_NAME_TRANSLATION_LANGUAGE,
-            language ? language.replace('translation-languages:', '') : '');
-    }
-
-    if (!enabled && (backendRecordingOn || forceBackendRecordingOn)
-        && conference?.getMetadataHandler()?.getMetadata()[RECORDING_METADATA_ID]?.isTranscribingEnabled) {
-        conference?.getMetadataHandler()?.setMetadata(RECORDING_METADATA_ID, {
-            isTranscribingEnabled: false
-        });
-    }
+        P_NAME_TRANSLATION_LANGUAGE,
+        language ? language.replace('translation-languages:', '') : '');
 }
 
 /**

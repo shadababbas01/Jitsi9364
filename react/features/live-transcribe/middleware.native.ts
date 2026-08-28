@@ -12,7 +12,11 @@ import { getLocalParticipant, getParticipantDisplayName } from '../base/particip
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { SETTINGS_UPDATED } from '../base/settings/actionTypes';
 import { APP_STATE_CHANGED } from '../mobile/background/actionTypes';
+import { CLEAR_S2S_V2_SESSION, SET_S2S_V2_SESSION } from '../s2s-v2/actionTypes';
+import { isS2SV2Active } from '../s2s-v2/functions';
+import { SET_REQUESTING_SUBTITLES, TOGGLE_REQUESTING_SUBTITLES } from '../subtitles/actionTypes';
 import { removeTranscriptMessage, storeSubtitle, updateTranscriptMessage } from '../subtitles/actions.any';
+import { isLiveTranscriptionActive } from '../subtitles/functions.any';
 
 import { setLiveTranscribeError, setLiveTranscribeRunning } from './actions';
 import {
@@ -82,14 +86,19 @@ const supported = isLiveTranscribeSupported();
  * @returns {Function}
  */
 MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
+    // Showing what other people said needs no recorder of our own, so this is asked before the support check rather
+    // than behind it. A device which cannot capture - every iOS device today - still reads the room's captions.
+    if (action.type === ENDPOINT_MESSAGE_RECEIVED) {
+        _maybeShowRemoteCaption(store, action);
+
+        return next(action);
+    }
+
     if (!supported) {
         return next(action);
     }
 
     switch (action.type) {
-    case ENDPOINT_MESSAGE_RECEIVED:
-        _maybeShowRemoteCaption(store, action);
-        break;
 
     case APP_STATE_CHANGED: {
         const result = next(action);
@@ -100,6 +109,12 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         return result;
     }
 
+    // The room-wide session is one of the two things which can call for the microphone, so its transitions have to
+    // reach _sync in the same way the local setting's do.
+    case SET_REQUESTING_SUBTITLES:
+    case TOGGLE_REQUESTING_SUBTITLES:
+    case SET_S2S_V2_SESSION:
+    case CLEAR_S2S_V2_SESSION:
     case CONFERENCE_JOINED:
     case SET_AUDIO_MUTED:
     case SETTINGS_UPDATED: {
@@ -134,10 +149,25 @@ function _sync(store: IStore) {
     const { conference } = state['features/base/conference'];
     const muted = state['features/base/media'].audio.muted;
 
+    // Two independent things call for the microphone, and either is enough. The local setting is the participant's own
+    // standing choice to be transcribed; the room-wide session is live captions being on for the whole meeting, which
+    // works precisely because every device transcribes its own microphone rather than one device trying to transcribe
+    // the mixed audio of everybody else.
+    const requested = isLiveTranscribeEnabled(state);
+
+    // There is one native utterance recorder on the device and one event it reports through, and both the live
+    // captions session and s2s-v2 drive those while they are running. Two taps at once would hand every utterance to
+    // both listeners - each sentence transcribed twice and published twice - and whichever stopped first would call
+    // stopUtteranceSession and take the other's microphone away with it.
+    //
+    // So this standing local preference gives way to either session. Nothing is lost by it: both of them already
+    // capture this device's speech, through this same recorder and this same socket, and publish it to the room.
+    const recorderTakenBySession = isS2SV2Active(state) || isLiveTranscriptionActive(state);
+
     // Muting has to stop the tap rather than merely discard what it produces. The audio device module keeps recording
     // while a track is muted, so a muted participant whose speech was still being transcribed would be publishing
     // captions of a conversation they believe nobody can hear.
-    const wanted = Boolean(isLiveTranscribeEnabled(state) && conference && !muted && foreground);
+    const wanted = Boolean(requested && !recorderTakenBySession && conference && !muted && foreground);
 
     if (wanted === desired) {
         return;

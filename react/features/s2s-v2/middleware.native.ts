@@ -31,7 +31,10 @@ import { AUDIO_DEVICE_SPEAKER } from '../mobile/audio-mode/constants';
 import { isPrivateAudioDeviceSelected, selectAudioDevice } from '../mobile/audio-mode/functions';
 import { hideNotification, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
+import { setSubtitlesPanelOpen } from '../subtitles/actions.any';
+import { isLiveTranscriptionActive } from '../subtitles/functions.any';
 import { translateLiveCaptionText } from '../subtitles/languages';
+import { carriesParticipant } from '../subtitles/sessionProtocol';
 import { setToolboxVisible } from '../toolbox/actions.native';
 import { setTileView } from '../video-layout/actions.any';
 
@@ -634,6 +637,23 @@ function _onTranscript(store: IStore, message: IS2SV2Transcript) {
         return;
     }
 
+    // Somebody else's feature, wearing this one's name.
+    //
+    // Live Speech Translation publishes its transcripts under the same name and action as a translated session, which
+    // is a compatibility decision made on the wire and not one this side gets to revisit. The two must not be confused
+    // for each other, because the consequence is audible: a translated session reads what arrives out loud, and a
+    // caption transcript read out loud is a sentence nobody asked to hear, spoken over the person still saying it, out
+    // of a loudspeaker whose microphone is open.
+    //
+    // Two things tell them apart, and either is enough. The caption flow always names the participant who spoke, in a
+    // block this feature's own builder never sends. And a device with captions running locally is in the caption flow
+    // whatever arrives, so a transcript reaching it belongs there rather than here.
+    if (carriesParticipant(message) || isLiveTranscriptionActive(state)) {
+        logger.debug('Ignored a Live Speech Translation transcript: it belongs to the captions flow, not to a session');
+
+        return;
+    }
+
     // A transcript is proof that a session is running, and better proof than the announcement of one: it is the thing
     // the announcement was about. A device which never received the announcement - it was sent before it arrived, or
     // sent on a channel which was not open, or the moderator who would have resent it has since left - would otherwise
@@ -1150,6 +1170,11 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         const state = store.getState();
 
         if (action.visible && isS2SV2Active(state)) {
+            // The two panels are mutually exclusive. Both are drawn in the room the tile grid gives up for them, so
+            // opening one over the other would leave the meeting with two half-screen panels and no video between
+            // them. The live captions side does the same in return when it opens.
+            store.dispatch(setSubtitlesPanelOpen(false));
+
             if (!tileViewForced) {
                 tileViewForced = true;
                 wasTileViewEnabled = state['features/video-layout'].tileViewEnabled;

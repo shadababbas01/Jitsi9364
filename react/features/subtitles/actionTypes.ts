@@ -80,3 +80,13 @@ export const SET_SUBTITLES_LANGUAGE = 'SET_SUBTITLES_LANGUAGE';
  * Action to show or hide the live captions panel alongside the video on mobile.
  */
 export const SET_SUBTITLES_PANEL_OPEN = 'SET_SUBTITLES_PANEL_OPEN';
+
+/**
+ * Action which records which participant turned live captions on.
+ *
+ * {
+ *      type: SET_CAPTIONS_STARTED_BY,
+ *      participantId: string
+ * }
+ */
+export const SET_CAPTIONS_STARTED_BY = 'SET_CAPTIONS_STARTED_BY';

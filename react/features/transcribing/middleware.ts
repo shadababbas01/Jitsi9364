@@ -1,25 +1,15 @@
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
-import { showErrorNotification } from '../notifications/actions';
 
-import { TRANSCRIBER_LEFT } from './actionTypes';
 import './subscriber';
 
 /**
  * Implements the middleware of the feature transcribing.
  *
+ * The transcriber bot leaving used to raise a "transcribing failed" notification. Captions are produced on each
+ * participant's own device now, so a bot leaving - or never having been there, which is the ordinary case - says
+ * nothing about whether captions are working, and the notification only ever appeared over a session which was fine.
+ *
  * @param {Store} store - The redux store.
  * @returns {Function}
  */
-MiddlewareRegistry.register(({ dispatch }) => next => action => {
-    switch (action.type) {
-    case TRANSCRIBER_LEFT:
-        if (action.abruptly) {
-            dispatch(showErrorNotification({
-                titleKey: 'transcribing.failed'
-            }));
-        }
-        break;
-    }
-
-    return next(action);
-});
+MiddlewareRegistry.register(() => next => action => next(action));

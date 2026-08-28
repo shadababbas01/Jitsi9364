@@ -307,6 +307,16 @@ public class JitsiMeetActivity extends AppCompatActivity
         JitsiMeetLogger.i("Recording link available: " + extraData);
     }
 
+    /**
+     * Called when live captions are turned on or off for the meeting.
+     *
+     * The {@code on} extra is the boolean state, as a string, in the same way every other extra on a broadcast event
+     * arrives.
+     */
+    protected void onLiveCaptionsStatusChanged(HashMap<String, Object> extraData) {
+        JitsiMeetLogger.i("Live captions status changed: " + extraData);
+    }
+
     protected void onReadyToClose() {
         JitsiMeetLogger.i("SDK is ready to close");
         isReadyToClose = true;
@@ -432,6 +442,9 @@ public class JitsiMeetActivity extends AppCompatActivity
                     break;
                 case RECORDING_LINK_AVAILABLE:
                     onRecordingLinkAvailable(event.getData());
+                    break;
+                case LIVE_CAPTIONS_STATUS_CHANGED:
+                    onLiveCaptionsStatusChanged(event.getData());
                     break;
             }
         }

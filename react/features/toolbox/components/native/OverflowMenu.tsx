@@ -37,7 +37,8 @@ import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any'
 import S2SV2Button from '../../../s2s-v2/components/native/S2SV2Button';
 import { MAX_S2S_V2_PARTICIPANTS } from '../../../s2s-v2/constants';
 import { isS2SV2Active } from '../../../s2s-v2/functions';
-import { areClosedCaptionsEnabled, isLiveCaptionsActive } from '../../../subtitles/functions.any';
+import { setRequestingSubtitles, setSubtitlesPanelOpen } from '../../../subtitles/actions.any';
+import { areClosedCaptionsEnabled, isLiveTranscriptionActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../../../visitors/functions';
 import { isVoiceTranslationAvailable, isVoiceTranslationEnabled } from '../../../voice-translation/functions';
@@ -95,6 +96,7 @@ class OverflowAttendeesButton extends AbstractButton<IOverflowParticipantsButton
 
 interface ILiveCaptionsOverflowButtonProps extends AbstractButtonProps {
     _isLiveCaptionsActive: boolean;
+    _language: string | null;
 }
 
 const liveCaptionsActiveStyles = {
@@ -117,12 +119,37 @@ const liveCaptionsActiveStyles = {
 };
 
 class LiveCaptionsOverflowButton extends AbstractButton<ILiveCaptionsOverflowButtonProps> {
-    override accessibilityLabel = 'liveCaptionsPanel.title';
+    override accessibilityLabel = 'liveCaptionsPanel.liveSpeechTranslation';
     override icon = IconInfo;
-    override label = 'liveCaptionsPanel.title';
+    override label = 'liveCaptionsPanel.liveSpeechTranslation';
 
+    /**
+     * Starts live speech translation for the meeting, or brings its panel back when it is already running.
+     *
+     * Deliberately not a toggle. Ending the session takes captions away from everybody in the room, and an entry
+     * which starts it on one press and ends it on the next puts that one mistaken press away - from the moderator
+     * who most likely only wanted to look at the transcript again after closing it. So a press while it is running
+     * reopens the panel, and ending it lives in one place: "Stop captions", inside the panel, where the thing being
+     * stopped is on screen in front of whoever is stopping it.
+     *
+     * Starting is the whole of what a press does. The session middleware announces it to everybody else, brings up
+     * the transcription connection and opens the panel, so this has to know about none of them.
+     *
+     * The language is passed through as it stands rather than reset: which language this listener reads in is their
+     * own standing choice and is no part of what the room is being told.
+     *
+     * @returns {void}
+     */
     override _handleClick() {
-        navigate(screen.conference.liveCaptions);
+        const { _isLiveCaptionsActive, _language, dispatch } = this.props;
+
+        if (_isLiveCaptionsActive) {
+            dispatch(setSubtitlesPanelOpen(true));
+
+            return;
+        }
+
+        dispatch(setRequestingSubtitles(true, false, _language));
     }
 
     override _getElementAfter() {
@@ -220,7 +247,13 @@ class InCallMessagesOverflowButton extends AbstractButton<IInCallMessagesOverflo
 
 const TranslatedOverflowAttendeesButton = translate(OverflowAttendeesButton);
 const TranslatedLiveCaptionsOverflowButton = translate(connect((state: IReduxState) => ({
-    _isLiveCaptionsActive: isLiveCaptionsActive(state)
+    _isLiveCaptionsActive: isLiveTranscriptionActive(state),
+    _language: state['features/subtitles']._language,
+
+    // A moderator always has it, because starting the session is theirs to do. Everybody else is shown it only once a
+    // moderator has turned it on - before that there is nothing for them to reach, and an entry which does nothing is
+    // worse than no entry.
+    visible: isLocalParticipantModerator(state) || isLiveTranscriptionActive(state)
 }))(LiveCaptionsOverflowButton));
 const TranslatedInCallMessagesOverflowButton = translate(connect((state: IReduxState) => ({
     _isPollsDisabled: Boolean(arePollsDisabled(state)),
@@ -479,7 +512,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                 style = { overflowSheetStyle }>
                 <View style = { overflowMenuStyles.list as ViewStyle }>
                     <OpenCarmodeButton { ...topRowProps } />
-                    {/* {true && <><D /><TranslatedLiveCaptionsOverflowButton { ...topRowProps } /></>} */}
+                    <D />
+                    <TranslatedLiveCaptionsOverflowButton { ...topRowProps } />
 
                     {/*
                       * Shown to moderators only, and it says which of the two things it does: a session is started and

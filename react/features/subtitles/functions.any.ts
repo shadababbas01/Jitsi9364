@@ -22,11 +22,45 @@ export function canStartSubtitles(state: IReduxState) {
 /**
  * Returns whether live captions/transcription is active in the meeting.
  *
+ * The legacy check, and only the legacy check: it asks after the Jigasi transcriber bot. On a deployment which
+ * produces captions on the client instead there is no bot and no transcriber JID, so this is permanently false there.
+ *
+ * Prefer {@link isLiveTranscriptionActive} for anything gating UI on "are captions running right now". This one is
+ * kept for the places which genuinely mean "is the transcriber bot in the room", and for deployments which still use
+ * one.
+ *
  * @param {IReduxState} state - The redux state.
  * @returns {boolean}
  */
 export function isLiveCaptionsActive(state: IReduxState) {
     return isTranscribing(state) || Boolean(state['features/transcribing'].transcriberJID);
+}
+
+/**
+ * Returns whether live transcription is running in the meeting right now, by whichever route produces it.
+ *
+ * The one selector to use anywhere UI needs to know whether the feature is on. It covers both paths: the legacy Jigasi
+ * transcriber bot, and the client-STT path where every device transcribes its own microphone and
+ * {@code _requestingSubtitles} is the room-wide flag kept in step by the live captions control channel.
+ *
+ * Checking {@code isTranscribing} alone - which is what the older call sites do - reports false for the entire length
+ * of a client-STT session, which is why a panel gated on it never appeared.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isLiveTranscriptionActive(state: IReduxState) {
+    return isLiveCaptionsActive(state) || Boolean(state['features/subtitles']._requestingSubtitles);
+}
+
+/**
+ * Returns which participant turned live captions on, if they are on.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {string|undefined}
+ */
+export function getCaptionsStartedBy(state: IReduxState) {
+    return state['features/subtitles'].startedBy;
 }
 
 /**
@@ -92,7 +126,7 @@ export function isCCTabEnabled(state: IReduxState) {
  * @returns {boolean}
  */
 export function isCaptionsPanelOpen(state: IReduxState) {
-    return Boolean(state['features/subtitles'].panelOpen) && isLiveCaptionsActive(state);
+    return Boolean(state['features/subtitles'].panelOpen) && isLiveTranscriptionActive(state);
 }
 
 /**

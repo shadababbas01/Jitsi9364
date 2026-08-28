@@ -19,13 +19,10 @@ import { showWarningNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 import {
     SET_REQUESTING_SUBTITLES,
-    SET_SUBTITLES_LANGUAGE,
-    STORE_SUBTITLE,
-    UPDATE_TRANSCRIPT_MESSAGE
+    SET_SUBTITLES_LANGUAGE
 } from '../subtitles/actionTypes';
 import { isLiveCaptionsActive } from '../subtitles/functions.any';
-import { normalizeSubtitlesLanguage, translateLiveCaptionTextCached } from '../subtitles/languages';
-import { ISubtitle } from '../subtitles/types';
+import { normalizeSubtitlesLanguage } from '../subtitles/languages';
 import { TRANSCRIBER_JOINED, TRANSCRIBER_LEFT } from '../transcribing/actionTypes';
 import { isVoiceTranslationEnabled } from '../voice-translation/functions';
 
@@ -35,10 +32,8 @@ import {
     getCaptionTtsState,
     isCaptionTtsEnabled,
     isCaptionTtsSupported,
-    resolveSpokenLanguage,
     toTtsLanguageTag
 } from './functions.native';
-import logger from './logger';
 import CaptionsTtsQueue from './native/CaptionsTtsQueue';
 
 /**
@@ -78,13 +73,16 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     }
 
     switch (action.type) {
-    case STORE_SUBTITLE:
-        _maybeSpeakSubtitle(store, action.subtitle);
-        break;
-
-    case UPDATE_TRANSCRIPT_MESSAGE:
-        _maybeSpeakStageCaption(store, action.transcriptMessageID, action.newTranscriptMessage?.final);
-        break;
+    // Captions are deliberately not read aloud, neither the local participant's own nor anybody else's.
+    //
+    // Reading a translation out is not a second way of receiving the same caption, it is a competing one: the room is
+    // still talking while it plays, so the listener is asked to follow a voice and a conversation at once, and the
+    // line being read is always behind the line being said. Reading the local participant's own words is worse again
+    // - it puts this device's voice out of its own loudspeaker and back into the microphone which is still open,
+    // where the capture's echo filter has to catch a sentence which should never have been spoken at all.
+    //
+    // The panel shows both the words and what they mean, which is the whole of what this feature is for. Chat
+    // messages are still read aloud; that path is separate and is not touched by this.
 
     case SETTINGS_UPDATED: {
         if (typeof action.settings?.readCaptionsAloud !== 'boolean') {
@@ -309,85 +307,4 @@ function _shouldSpeak({ getState }: IStore): boolean {
     // The voice translation feature speaks the remote participant through its own server side engine, so letting the
     // device engine speak as well would say everything twice.
     return isCaptionTtsEnabled(state) && !isVoiceTranslationEnabled(state);
-}
-
-/**
- * Reads a caption stored for the closed captions tab aloud, translating it first when the caption UI would.
- *
- * @param {IStore} store - The redux store.
- * @param {ISubtitle} subtitle - The stored caption.
- * @returns {void}
- */
-function _maybeSpeakSubtitle(store: IStore, subtitle?: ISubtitle) {
-    if (!subtitle || subtitle.interim || !subtitle.text?.trim() || !_shouldSpeak(store)) {
-        return;
-    }
-
-    if (!_claimMessage(subtitle.id)) {
-        return;
-    }
-
-    const state = store.getState();
-    const { jwt } = state['features/base/jwt'];
-    const { translateTo, voiceLanguage } = resolveSpokenLanguage(subtitle, state['features/subtitles']._language);
-    const speechQueue = _getQueue(store);
-
-    speechQueue.setEnabled(true);
-
-    // Covers joining a meeting whose captions are already running, where none of the actions which normally settle this
-    // are dispatched.
-    _syncRemoteAudio(store);
-
-    if (!translateTo) {
-        speechQueue.enqueue({
-            id: subtitle.id,
-            language: voiceLanguage,
-            text: subtitle.text
-        });
-
-        return;
-    }
-
-    translateLiveCaptionTextCached(subtitle.id, subtitle.text, translateTo, jwt)
-        .then(text => {
-            if (_shouldSpeak(store)) {
-                speechQueue.enqueue({
-                    id: subtitle.id,
-                    language: voiceLanguage,
-                    text
-                });
-            }
-        })
-        .catch(error => {
-            logger.warn('Failed to translate a caption before speaking it', error);
-        });
-}
-
-/**
- * Reads a caption rendered over the stage aloud. Those are already translated by the transcriber, so they are spoken in
- * the caption language the local user picked.
- *
- * @param {IStore} store - The redux store.
- * @param {string} messageId - The ID of the caption.
- * @param {string} text - The final caption text, if this update carries one.
- * @returns {void}
- */
-function _maybeSpeakStageCaption(store: IStore, messageId: string, text?: string) {
-    if (!text?.trim() || !_shouldSpeak(store)) {
-        return;
-    }
-
-    if (!_claimMessage(messageId)) {
-        return;
-    }
-
-    const speechQueue = _getQueue(store);
-
-    speechQueue.setEnabled(true);
-    _syncRemoteAudio(store);
-    speechQueue.enqueue({
-        id: messageId,
-        language: toTtsLanguageTag(store.getState()['features/subtitles']._language),
-        text
-    });
 }

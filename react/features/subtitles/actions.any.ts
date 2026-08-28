@@ -3,6 +3,7 @@ import { DEFAULT_LANGUAGE } from '../base/i18n/i18next';
 import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
+    SET_CAPTIONS_STARTED_BY,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
@@ -12,6 +13,19 @@ import {
     UPDATE_TRANSCRIPT_MESSAGE
 } from './actionTypes';
 import { ISubtitle } from './types';
+
+/**
+ * What a caption state change carries beyond the state itself, when it did not originate with the local user.
+ *
+ * Live captions are a property of the room rather than of one device, so every transition is broadcast and every
+ * receiver applies it. Both fields exist to make that safe: {@code fromRemoteSync} stops a receiver re-broadcasting
+ * what it was just told, which would otherwise loop the room, and {@code startedBy} lets every device turn captions
+ * off by itself when whoever started them leaves, without waiting to be told.
+ */
+export interface ICaptionsSyncOptions {
+    fromRemoteSync?: boolean;
+    startedBy?: string;
+}
 
 /**
  * Signals that a transcript has to be removed from the state.
@@ -69,13 +83,16 @@ export function updateTranscriptMessage(transcriptMessageID: string,
 /**
  * Signals that the local user has toggled the ClosedCaption button.
  *
+ * @param {ICaptionsSyncOptions} options - Where the toggle came from, when it did not come from this device's own user.
  * @returns {{
  *      type: TOGGLE_REQUESTING_SUBTITLES
  * }}
  */
-export function toggleRequestingSubtitles() {
+export function toggleRequestingSubtitles(options: ICaptionsSyncOptions = {}) {
     return {
-        type: TOGGLE_REQUESTING_SUBTITLES
+        type: TOGGLE_REQUESTING_SUBTITLES,
+        fromRemoteSync: Boolean(options.fromRemoteSync),
+        startedBy: options.startedBy
     };
 }
 
@@ -86,6 +103,9 @@ export function toggleRequestingSubtitles() {
  * @param {boolean} displaySubtitles - Whether to display subtitles or not.
  * @param {string} language - The language of the subtitles.
  * @param {boolean} forceBackendRecordingOn - Whether to force that backend recording is on.
+ * @param {ICaptionsSyncOptions} options - Who turned the captions on, and whether this dispatch is the result of a
+ * message from somebody else rather than of something the local user did. The latter is what stops a receiver
+ * re-broadcasting what it has just been told.
  * @returns {{
  *    type: SET_REQUESTING_SUBTITLES,
  *    backendRecordingOn: boolean,
@@ -98,13 +118,16 @@ export function setRequestingSubtitles(
         enabled: boolean,
         displaySubtitles = true,
         language: string | null = `translation-languages:${DEFAULT_LANGUAGE}`,
-        forceBackendRecordingOn: boolean = false) {
+        forceBackendRecordingOn: boolean = false,
+        options: ICaptionsSyncOptions = {}) {
     return {
         type: SET_REQUESTING_SUBTITLES,
         displaySubtitles,
         enabled,
         forceBackendRecordingOn,
-        language
+        fromRemoteSync: Boolean(options.fromRemoteSync),
+        language,
+        startedBy: options.startedBy
     };
 }
 
@@ -163,5 +186,21 @@ export function setSubtitlesPanelOpen(open: boolean) {
     return {
         type: SET_SUBTITLES_PANEL_OPEN,
         open
+    };
+}
+
+/**
+ * Records which participant turned live captions on.
+ *
+ * Dispatched on the starter's own device, which is the one place the answer is known for certain and the one place it
+ * does not arrive in a message. Every other device learns it from the control message instead.
+ *
+ * @param {string} participantId - Who turned them on.
+ * @returns {Object}
+ */
+export function setCaptionsStartedBy(participantId: string) {
+    return {
+        type: SET_CAPTIONS_STARTED_BY,
+        participantId
     };
 }

@@ -35,7 +35,7 @@ import {
 } from '../../../live-transcribe/functions.native';
 import { setSubtitlesLanguage, setSubtitlesPanelOpen } from '../../../subtitles/actions.any';
 import { CAPTIONS_PANEL_TOOLBAR_RESERVE } from '../../../subtitles/constants';
-import { getCaptionsPanelHeight, isLiveCaptionsActive } from '../../../subtitles/functions.any';
+import { getCaptionsPanelHeight, isLiveTranscriptionActive } from '../../../subtitles/functions.any';
 import {
     normalizeSubtitlesLanguage,
     toBaseSubtitlesLanguage,
@@ -125,7 +125,7 @@ export default function CaptionsPanel() {
     const height = useSelector(getCaptionsPanelHeight);
     const safeAreaBottom = useSelector((state: IReduxState) =>
         state['features/base/responsive-ui'].safeAreaInsets?.bottom ?? 0);
-    const captionsActive = useSelector(isLiveCaptionsActive);
+    const captionsActive = useSelector(isLiveTranscriptionActive);
     const history = useSelector((state: IReduxState) => state['features/subtitles'].subtitlesHistory);
     const subtitlesLanguage = useSelector((state: IReduxState) => state['features/subtitles']._language);
     const preferences = useSelector(getLocalTranslationPreferences);

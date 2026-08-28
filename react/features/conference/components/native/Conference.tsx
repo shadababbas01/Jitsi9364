@@ -39,7 +39,6 @@ import { StyleType } from '../../../base/styles/functions.any';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
 import { isParticipantAudioMuted } from '../../../base/tracks/functions.native';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
-import CaptionsPanel from '../../../chat/components/native/CaptionsPanel';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
 import Filmstrip from '../../../filmstrip/components/native/Filmstrip';
 import FloatingLocalThumbnail from '../../../filmstrip/components/native/FloatingLocalThumbnail';
@@ -56,6 +55,7 @@ import { screen } from '../../../mobile/navigation/routes';
 import { isPipEnabled, setPictureInPictureEnabled } from '../../../mobile/picture-in-picture/functions';
 import S2SV2TranslationPanel from '../../../s2s-v2/components/native/S2SV2TranslationPanel';
 import Captions from '../../../subtitles/components/native/Captions';
+import LiveCaptionsPanel from '../../../subtitles/components/native/LiveCaptionsPanel';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
@@ -705,11 +705,14 @@ class Conference extends AbstractConference<IProps, State> {
                 <TestConnectionInfo />
 
                 {/*
-                  * The live captions panel sits under the tile grid, which has already reserved room for it, and above
-                  * the toolbox so the toolbar keeps floating on top.
-                  */
-                    _shouldDisplayTileView && <CaptionsPanel />
-                }
+                  * The live captions panel, drawn from the same styles as the translated session panel below and put
+                  * on screen the same way: not conditioned on the layout.
+                  *
+                  * It asks for the tile grid, which gives up room for it, but it cannot be made to depend on getting
+                  * it. Tile view is refused outright on a deployment which disables it, and refused silently, which
+                  * would leave a participant reading nothing while the room was being captioned around them.
+                  */}
+                <LiveCaptionsPanel onPress = { this._onClick } />
 
                 {/*
                   * The live translation call sits in the same place, for the same reason: the tile grid has already

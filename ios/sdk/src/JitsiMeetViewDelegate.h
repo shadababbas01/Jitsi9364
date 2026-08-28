@@ -144,4 +144,11 @@
  */
 - (void)recordingStatusChanged:(NSDictionary *)data;
 
+/**
+ * Called when live captions have been turned on or off for the meeting.
+ *
+ * The `data` dictionary contains an `on` key holding the new state.
+ */
+- (void)liveCaptionsStatusChanged:(NSDictionary *)data;
+
 @end

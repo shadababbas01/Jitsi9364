@@ -201,7 +201,12 @@
         "noMessages": "No live captions yet. Captions will appear here once speech is detected."
     },
     "liveCaptionsPanel": {
-        "title": "Live Captions"
+        "disclaimer": "Captions are generated automatically and may not be accurate.",
+        "empty": "Captions will appear here as people speak.",
+        "liveSpeechTranslation": "Live Speech Translation",
+        "stop": "Stop captions",
+        "title": "Live Captions",
+        "you": "You"
     },
     "liveStreaming": {
         "busy": "We're working on freeing streaming resources. Please try again in a few minutes.",

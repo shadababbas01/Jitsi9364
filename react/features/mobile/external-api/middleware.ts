@@ -61,6 +61,7 @@ import { RECORDING_SESSION_UPDATED } from '../../recording/actionTypes';
 import { RECORDING_TYPES } from '../../recording/constants';
 import { getActiveSession } from '../../recording/functions';
 import { setRequestingSubtitles } from '../../subtitles/actions.any';
+import { isLiveTranscriptionActive } from '../../subtitles/functions.any';
 import { CUSTOM_BUTTON_PRESSED } from '../../toolbox/actionTypes';
 import { muteLocal } from '../../video-menu/actions.native';
 import { navigate } from '../navigation/components/conference/ConferenceNavigationContainerRef';
@@ -121,6 +122,11 @@ const PARTICIPANTS_INFO_RETRIEVED = 'PARTICIPANTS_INFO_RETRIEVED';
  * Event which will be emitted on the native side to indicate the recording status has changed.
  */
 const RECORDING_STATUS_CHANGED = 'RECORDING_STATUS_CHANGED';
+
+/**
+ * Event which will be emitted on the native side to indicate live captions were turned on or off.
+ */
+const LIVE_CAPTIONS_STATUS_CHANGED = 'LIVE_CAPTIONS_STATUS_CHANGED';
 
 const externalAPIEnabled = isExternalAPIAvailable();
 
@@ -400,6 +406,24 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
  * The listener is debounced to avoid state thrashing that might occur,
  * especially when switching in or out of p2p.
  */
+/**
+ * Tells a host app embedding the SDK when live captions are turned on or off.
+ *
+ * Derived from the state rather than from the actions which change it, because there are several of those - the local
+ * user reaching for the control, a control message from another participant, a late-joiner acknowledgement, the
+ * participant who started captions leaving - and an event which fired for some of them and not others would be worse
+ * than none. A listener on the answer itself cannot miss a route, and cannot fire twice for one change.
+ */
+externalAPIEnabled && StateListenerRegistry.register(
+    /* selector */ isLiveTranscriptionActive,
+    /* listener */ (on: boolean, store: IStore) => {
+        sendEvent(
+            store,
+            LIVE_CAPTIONS_STATUS_CHANGED,
+            /* data */ { on });
+    }
+);
+
 externalAPIEnabled && StateListenerRegistry.register(
     /* selector */ state => state['features/base/tracks'],
     /* listener */ debounce((tracks: ITrack[], store: IStore) => {

@@ -16,6 +16,7 @@ import '../mobile/wake-lock/middleware';
 import '../mobile/react-native-sdk/middleware';
 import '../mobile/virtual-background/middleware.native';
 import '../share-room/middleware';
+import '../subtitles/sessionMiddleware.native';
 import '../shared-video/middleware';
 import '../toolbox/middleware.native';
 import '../whiteboard/middleware.native';

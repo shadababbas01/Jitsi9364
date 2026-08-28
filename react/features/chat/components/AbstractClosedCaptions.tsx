@@ -9,10 +9,9 @@ import { IMessageGroup, groupMessagesBySender } from '../../base/util/messageGro
 // @ts-ignore
 import { StartRecordingDialog } from '../../recording/components/Recording';
 import { setRequestingSubtitles } from '../../subtitles/actions.any';
-import { canStartSubtitles } from '../../subtitles/functions.any';
+import { canStartSubtitles, isLiveTranscriptionActive } from '../../subtitles/functions.any';
 import { normalizeSubtitlesLanguage } from '../../subtitles/languages';
 import { ISubtitle } from '../../subtitles/types';
-import { isTranscribing } from '../../transcribing/functions';
 import { notifyTranscriptionStarted, setTranscriptionStartedByCurrentUser } from '../actions.any';
 
 type FlowStatus = 'idle' | 'starting' | 'stopping';
@@ -34,9 +33,9 @@ const AbstractClosedCaptions = (Component: ComponentType<AbstractProps>) => () =
     const dispatch = useDispatch();
     const subtitles = useSelector((state: IReduxState) => state['features/subtitles'].subtitlesHistory);
     const language = useSelector((state: IReduxState) => state['features/subtitles']._language);
-    const _isTranscribing = useSelector(isTranscribing);
-    const transcriberJID = useSelector((state: IReduxState) => state['features/transcribing'].transcriberJID);
-    const effectiveIsTranscribing = Boolean(_isTranscribing || transcriberJID);
+    // Both routes count. Asking after the transcriber bot alone reports false for the whole of a client-STT session,
+    // which left this screen offering "start" while captions were already running and never letting anyone stop them.
+    const effectiveIsTranscribing = useSelector(isLiveTranscriptionActive);
     const selectedLanguage = normalizeSubtitlesLanguage(language) || (effectiveIsTranscribing ? 'en' : null);
     const _canStartSubtitles = useSelector(canStartSubtitles);
     const _isLocalModerator = useSelector(isLocalParticipantModerator);

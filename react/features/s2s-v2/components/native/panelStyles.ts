@@ -151,6 +151,10 @@ function _create(palette: IS2SV2Palette) {
         transcriptEntry: {
             borderTopColor: palette.divider,
             borderTopWidth: 1,
+
+            // Above and below, not only above. The rule belongs to the entry beneath it, so without the lower half the
+            // last line of one utterance is drawn hard against the line separating it from the next.
+            paddingBottom: BaseTheme.spacing[2],
             paddingTop: BaseTheme.spacing[2]
         },
 
@@ -170,7 +174,12 @@ function _create(palette: IS2SV2Palette) {
         transcriptMeta: {
             alignItems: 'center' as const,
             flexDirection: 'row' as const,
-            marginBottom: BaseTheme.spacing[1]
+            marginBottom: BaseTheme.spacing[1],
+
+            // The row ends at the card's own padding, which leaves the time hard against the edge and its last
+            // character clipped. Held off it by its own margin rather than by widening the card, so the transcript
+            // text keeps the full width and only the clock moves.
+            paddingRight: BaseTheme.spacing[1]
         },
 
         // Who said it, shown as their picture so the line can be attributed at a glance.
@@ -190,6 +199,10 @@ function _create(palette: IS2SV2Palette) {
         transcriptTime: {
             ...BaseTheme.typography.bodyShortRegularSmall,
             color: palette.textMuted,
+
+            // Never squeezed and never wrapped. A long display name takes the room it needs from the name, which
+            // ellipsizes, rather than from the clock, which becomes unreadable the moment a character is taken off it.
+            flexGrow: 0,
             flexShrink: 0,
             marginLeft: BaseTheme.spacing[2]
         },
