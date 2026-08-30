@@ -13,12 +13,12 @@ import {
     SET_S2S_V2_SUPPRESS_ORIGINAL_VOICE,
     SET_S2S_V2_TARGET_LANGUAGE,
     SET_S2S_V2_THEME,
-    SET_S2S_V2_TRANSCRIPT_TRANSLATION,
+    SET_S2S_V2_TRANSCRIPT_SPEAKING,
     SET_S2S_V2_TRANSCRIPT_TRANSLATING,
-    SET_S2S_V2_TRANSCRIPT_SPEAKING
+    SET_S2S_V2_TRANSCRIPT_TRANSLATION
 } from './actionTypes';
 import { S2SV2Theme } from './components/native/palettes';
-import { DEFAULT_SOURCE_LANGUAGE } from './constants';
+import { DEFAULT_SOURCE_LANGUAGE, DEFAULT_TARGET_LANGUAGE } from './constants';
 
 /**
  * One utterance, as it is shown.
@@ -98,6 +98,11 @@ export interface IS2SV2State {
     sourceLanguage: string;
 
     /**
+     * Which transcript is currently being read aloud, if any.
+     */
+    speakingMessageId: string | null;
+
+    /**
      * Which moderator started it.
      */
     startedBy?: string;
@@ -141,11 +146,6 @@ export interface IS2SV2State {
      * Which utterances are still being translated, keyed by message ID and carrying the speaker ID they belong to.
      */
     translating: { [messageId: string]: string; };
-
-    /**
-     * Which transcript is currently being read aloud, if any.
-     */
-    speakingMessageId: string | null;
 }
 
 const STORE_NAME = 'features/s2s-v2';
@@ -158,7 +158,7 @@ const DEFAULT_STATE: IS2SV2State = {
     showStopConfirm: false,
     sourceLanguage: DEFAULT_SOURCE_LANGUAGE,
     suppressOriginalVoice: true,
-    targetLanguage: '',
+    targetLanguage: DEFAULT_TARGET_LANGUAGE,
     theme: 'dark',
     transcripts: {},
     translating: {},

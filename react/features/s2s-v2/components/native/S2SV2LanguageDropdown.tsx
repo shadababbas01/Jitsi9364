@@ -16,6 +16,7 @@ import {
 import Icon from '../../../base/icons/components/Icon';
 import { IconArrowDown, IconCheck } from '../../../base/icons/svg';
 import { toBaseSubtitlesLanguage } from '../../../subtitles/languages';
+import { DEFAULT_TARGET_LANGUAGE } from '../../constants';
 
 import { S2SV2Theme, getS2SV2Palette } from './palettes';
 import getS2SV2PanelStyles from './panelStyles';
@@ -95,10 +96,22 @@ export default function S2SV2LanguageDropdown(
     const [ open, setOpen ] = useState(false);
     const [ search, setSearch ] = useState('');
 
-    const name = useMemo(
-        () => languages.find(language => language.code === value)?.label
-            || (value ? value.toUpperCase() : t('s2sV2.loadingLanguages')),
-        [ languages, t, value ]);
+    const name = useMemo(() => {
+        const baseValue = toBaseSubtitlesLanguage(value);
+        const selected = languages.find(language => toBaseSubtitlesLanguage(language.code) === baseValue);
+
+        if (selected) {
+            return selected.label;
+        }
+
+        // English is usable before the asynchronous language catalogue arrives, so its label should be usable too.
+        // This keeps both the popup and the panel stable instead of briefly replacing the selection with "Loading".
+        if (baseValue === DEFAULT_TARGET_LANGUAGE) {
+            return t(`translation-languages:${DEFAULT_TARGET_LANGUAGE}`);
+        }
+
+        return value ? value.toUpperCase() : t('s2sV2.loadingLanguages');
+    }, [ languages, t, value ]);
 
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();

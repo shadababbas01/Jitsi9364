@@ -9,6 +9,12 @@ import { S2S_V2_FALLBACK_LANGUAGE_CODES } from '../../constants';
 let request: Promise<ILiveCaptionsLanguage[]> | undefined;
 
 /**
+ * The resolved, sorted catalogue. A popup is replaced by the panel after the listener makes a selection; retaining the
+ * result lets the panel render that selection on its first frame instead of briefly returning to an empty/loading list.
+ */
+let cachedLanguages: ILiveCaptionsLanguage[] = [];
+
+/**
  * Returns the languages a session can be listened to in, sorted by what they are called, and empty until they are
  * known.
  *
@@ -19,7 +25,7 @@ let request: Promise<ILiveCaptionsLanguage[]> | undefined;
  * @returns {ILiveCaptionsLanguage[]}
  */
 export default function useS2SV2Languages(): ILiveCaptionsLanguage[] {
-    const [ languages, setLanguages ] = useState<ILiveCaptionsLanguage[]>([]);
+    const [ languages, setLanguages ] = useState<ILiveCaptionsLanguage[]>(cachedLanguages);
 
     useEffect(() => {
         let cancelled = false;
@@ -27,8 +33,10 @@ export default function useS2SV2Languages(): ILiveCaptionsLanguage[] {
         request = request ?? fetchLiveCaptionsLanguages(S2S_V2_FALLBACK_LANGUAGE_CODES);
 
         request.then(fetched => {
+            cachedLanguages = [ ...fetched ].sort((first, second) => first.label.localeCompare(second.label));
+
             if (!cancelled) {
-                setLanguages([ ...fetched ].sort((first, second) => first.label.localeCompare(second.label)));
+                setLanguages(cachedLanguages);
             }
         });
 

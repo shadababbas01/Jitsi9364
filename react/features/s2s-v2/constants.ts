@@ -27,6 +27,14 @@ export const MAX_S2S_V2_PARTICIPANTS = 5;
 export const DEFAULT_SOURCE_LANGUAGE = 'en';
 
 /**
+ * The language a listener starts with before choosing another one.
+ *
+ * Kept separate from the source language even though both are English today: one describes what the transcription
+ * service hears, while this one is a local listening preference which may be changed and persisted.
+ */
+export const DEFAULT_TARGET_LANGUAGE = 'en';
+
+/**
  * The language every transcript is carried in, whatever was spoken. The speech service normalizes to English, so the
  * field is a constant rather than a measurement. It travels as a field all the same, so that a future service which
  * returns something else needs no protocol bump.

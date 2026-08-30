@@ -2,7 +2,12 @@ import { IReduxState } from '../app/types';
 import { isEchoOfSpokenText } from '../caption-tts/spokenText';
 
 import { S2SV2Theme } from './components/native/palettes';
-import { DEFAULT_SOURCE_LANGUAGE, ECHO_ROOM_LOOKBACK, S2S_V2_PANEL_HEIGHT_RATIO } from './constants';
+import {
+    DEFAULT_SOURCE_LANGUAGE,
+    DEFAULT_TARGET_LANGUAGE,
+    ECHO_ROOM_LOOKBACK,
+    S2S_V2_PANEL_HEIGHT_RATIO
+} from './constants';
 import { IS2SV2State, IS2SV2TranscriptEntry } from './reducer';
 
 const DEFAULT_STATE: IS2SV2State = {
@@ -13,7 +18,7 @@ const DEFAULT_STATE: IS2SV2State = {
     showStopConfirm: false,
     sourceLanguage: DEFAULT_SOURCE_LANGUAGE,
     suppressOriginalVoice: true,
-    targetLanguage: '',
+    targetLanguage: DEFAULT_TARGET_LANGUAGE,
     theme: 'dark',
     transcripts: {},
     translating: {},
@@ -57,7 +62,9 @@ export function getS2SV2SessionId(state: IReduxState): string | undefined {
  * @returns {string}
  */
 export function getS2SV2TargetLanguage(state: IReduxState): string {
-    return getS2SV2State(state).targetLanguage;
+    // Older builds persisted an empty string. Treat it as the new default so existing installations get English
+    // immediately instead of keeping the loading placeholder until they make a selection themselves.
+    return getS2SV2State(state).targetLanguage || DEFAULT_TARGET_LANGUAGE;
 }
 
 /**

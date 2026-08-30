@@ -13,8 +13,8 @@ import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { PARTICIPANT_JOINED } from '../base/participants/actionTypes';
 import {
     getLocalParticipant,
-    getParticipantCount,
     getParticipantById,
+    getParticipantCount,
     getParticipantDisplayName,
     isLocalParticipantModerator,
     isParticipantModerator
@@ -32,7 +32,6 @@ import { isPrivateAudioDeviceSelected, selectAudioDevice } from '../mobile/audio
 import { hideNotification, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
 import { setSubtitlesPanelOpen } from '../subtitles/actions.any';
-import { isLiveTranscriptionActive } from '../subtitles/functions.any';
 import { translateLiveCaptionText } from '../subtitles/languages';
 import { carriesParticipant } from '../subtitles/sessionProtocol';
 import { setToolboxVisible } from '../toolbox/actions.native';
@@ -56,7 +55,8 @@ import {
     setS2SV2Session,
     setS2SV2TranscriptSpeaking,
     setS2SV2TranscriptTranslating,
-    setS2SV2TranscriptTranslation
+    setS2SV2TranscriptTranslation,
+    stopS2SV2Session
 } from './actions';
 import DisableS2SV2Dialog from './components/native/DisableS2SV2Dialog';
 import S2SV2LanguagePopup from './components/native/S2SV2LanguagePopup';
@@ -113,7 +113,6 @@ import {
     isSessionStart,
     isTranscript
 } from './protocol';
-import { stopS2SV2Session } from './actions';
 
 /**
  * Keeps the meeting informed whether the local participant is currently having an utterance translated for everybody
@@ -645,10 +644,11 @@ function _onTranscript(store: IStore, message: IS2SV2Transcript) {
     // caption transcript read out loud is a sentence nobody asked to hear, spoken over the person still saying it, out
     // of a loudspeaker whose microphone is open.
     //
-    // Two things tell them apart, and either is enough. The caption flow always names the participant who spoke, in a
-    // block this feature's own builder never sends. And a device with captions running locally is in the caption flow
-    // whatever arrives, so a transcript reaching it belongs there rather than here.
-    if (carriesParticipant(message) || isLiveTranscriptionActive(state)) {
+    // The active session identifier is authoritative. Some compatible S2S senders enrich genuine session transcripts
+    // with the same participant metadata used by the captions flow, so the presence of that block alone cannot reject
+    // a message which belongs to the session running here. It remains useful for keeping an unrelated caption
+    // transcript from making this device join a second session when no matching S2S session is active.
+    if (carriesParticipant(message) && getS2SV2SessionId(state) !== message.sessionId) {
         logger.debug('Ignored a Live Speech Translation transcript: it belongs to the captions flow, not to a session');
 
         return;
