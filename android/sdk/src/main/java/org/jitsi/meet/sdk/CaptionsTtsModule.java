@@ -27,10 +27,13 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +92,20 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      * system default is used for the rest of the session rather than being asked for and refused every time.
      */
     private boolean preferredEngineUnavailable;
+
+    /**
+     * The voices {@link #tts} has, read once and kept.
+     *
+     * Enumerating them is not free, the answer does not change while an engine
+     * lives, and it is wanted for every sentence which asks for a voice by
+     * name. Dropped along with the engine.
+     */
+    private volatile List<Voice> voices;
+
+    /**
+     * The same voices, by the name {@link #getVoices} reported them under.
+     */
+    private final Map<String, Voice> voicesByName = new ConcurrentHashMap<>();
 
     /**
      * Promises of the utterances which are currently being spoken, mapped by
@@ -155,6 +172,10 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      * @return the engine, which is not usable until {@link #onEngineInit} says so.
      */
     private TextToSpeech createEngine() {
+        // The voices belong to the engine which reported them, and this is a different one.
+        voices = null;
+        voicesByName.clear();
+
         TextToSpeech engine = preferredEngineUnavailable
             ? new TextToSpeech(getReactApplicationContext(), this::onEngineInit)
             : new TextToSpeech(getReactApplicationContext(), this::onEngineInit, PREFERRED_ENGINE);
@@ -194,7 +215,8 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * Speaks the given text and resolves once it has been spoken.
+     * Speaks the given text in whichever voice the engine considers the best one for the language, and resolves once
+     * it has been spoken.
      *
      * @param text The text to be spoken.
      * @param language A BCP-47 language tag, such as {@code en-US}.
@@ -203,6 +225,32 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void speak(String text, String language, double rate, Promise promise) {
+        speakAs(text, language, rate, null, 0, promise);
+    }
+
+    /**
+     * Speaks the given text in a named voice and resolves once it has been spoken.
+     *
+     * Which voice a language is read in is otherwise the engine's own choice, and it is the same choice every time, so
+     * every participant in a translated call comes out sounding like the same person. Naming the voice is what lets a
+     * caller give each speaker one of their own, and {@code pitch} tells two speakers apart when the engine has fewer
+     * voices for a language than the room has people talking.
+     *
+     * A name the engine does not know, or one belonging to a different language, is not an error: the best voice for
+     * the language is used instead, exactly as {@link #speak} would have. Refusing to speak because a voice is missing
+     * would cost the listener the sentence, which is far worse than hearing it in a voice they heard somebody else in.
+     *
+     * @param text The text to be spoken.
+     * @param language A BCP-47 language tag, such as {@code en-US}.
+     * @param rate The speech rate, where {@code 1} is the engine's default.
+     * @param voiceName The name of the voice to read it in, as {@link #getVoices} reported it, or {@code null} to
+     * leave the choice to the engine.
+     * @param pitch The pitch to read it at, where {@code 1} is the engine's default and anything at or below zero
+     * means the same.
+     * @param promise Resolved with whether the text was spoken in full.
+     */
+    @ReactMethod
+    public void speakAs(String text, String language, double rate, String voiceName, double pitch, Promise promise) {
         TextToSpeech engine = tts;
 
         if (!ttsReady || engine == null) {
@@ -222,7 +270,10 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
 
             if (engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 engine.setLanguage(locale);
-                applyBestVoice(engine, locale);
+
+                if (!applyNamedVoice(engine, voiceName, locale)) {
+                    applyBestVoice(engine, locale);
+                }
             } else {
                 JitsiMeetLogger.w(TAG + " no voice available for " + language);
                 promise.resolve(false);
@@ -232,6 +283,10 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
         }
 
         engine.setSpeechRate((float) (rate > 0 ? rate : 1));
+
+        // Set on every utterance rather than only on the ones which ask for it, so that a pitch left behind by the
+        // speaker before this one cannot follow the next sentence into a feature which never asked for one.
+        engine.setPitch((float) (pitch > 0 ? pitch : 1));
 
         String utteranceId = "melp-caption-" + utteranceCounter.incrementAndGet();
 
@@ -286,6 +341,9 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
         }
 
         engine.setSpeechRate((float) (rate > 0 ? rate : 1));
+
+        // Whatever the last spoken sentence was pitched at is not this one's business.
+        engine.setPitch(1);
 
         File outputFile = new File(getReactApplicationContext().getCacheDir(), fileName);
         File parentDir = outputFile.getParentFile();
@@ -377,6 +435,58 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Returns the voices the engine has for a language, so that a caller can hand different speakers different ones.
+     *
+     * Reported rather than chosen here: which speaker gets which voice is a decision about the conversation, and the
+     * engine knows nothing about the conversation. Voices which are advertised but not installed are reported too,
+     * flagged as such, because a caller which is spreading speakers across the voices needs to know they exist and
+     * cannot be used.
+     *
+     * @param language A BCP-47 language tag, such as {@code en-US}, or {@code null} for every voice there is.
+     * @param promise Resolved with one entry per voice.
+     */
+    @ReactMethod
+    public void getVoices(String language, Promise promise) {
+        TextToSpeech engine = tts;
+        WritableArray result = Arguments.createArray();
+
+        if (!ttsReady || engine == null) {
+            promise.resolve(result);
+
+            return;
+        }
+
+        Locale wanted = language == null || language.isEmpty() ? null : Locale.forLanguageTag(language);
+
+        for (Voice voice : listVoices(engine)) {
+            Locale voiceLocale = voice.getLocale();
+
+            if (voiceLocale == null || voice.getName() == null) {
+                continue;
+            }
+
+            if (wanted != null && !wanted.getLanguage().equals(voiceLocale.getLanguage())) {
+                continue;
+            }
+
+            Set<String> features = voice.getFeatures();
+            WritableMap entry = Arguments.createMap();
+
+            entry.putString("name", voice.getName());
+            entry.putString("locale", voiceLocale.toLanguageTag());
+            entry.putString("country", voiceLocale.getCountry());
+            entry.putInt("quality", voice.getQuality());
+            entry.putBoolean("networkRequired", voice.isNetworkConnectionRequired());
+            entry.putBoolean("notInstalled", features != null
+                && features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED));
+
+            result.pushMap(entry);
+        }
+
+        promise.resolve(result);
+    }
+
+    /**
      * Releases the text-to-speech engine.
      */
     @ReactMethod
@@ -387,6 +497,8 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
             engine = tts;
             tts = null;
             ttsReady = false;
+            voices = null;
+            voicesByName.clear();
         }
 
         if (engine != null) {
@@ -406,6 +518,88 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Returns the voices the engine has, reading them the first time and keeping them afterwards.
+     *
+     * Enumerating them is not free, the answer does not change while an engine lives, and it is wanted for every
+     * sentence which asks for a voice by name. An engine which will not answer gives an empty list, which every caller
+     * treats as the engine choosing the voice itself: the language has been set either way, so there is always a voice.
+     *
+     * @param engine the engine to ask
+     * @return its voices, empty if it would not say
+     */
+    private List<Voice> listVoices(TextToSpeech engine) {
+        List<Voice> known = voices;
+
+        if (known != null) {
+            return known;
+        }
+
+        List<Voice> read = new ArrayList<>();
+
+        try {
+            Set<Voice> engineVoices = engine.getVoices();
+
+            if (engineVoices != null) {
+                read.addAll(engineVoices);
+            }
+        } catch (Exception e) {
+            // Not every engine answers this, and the language is already set, so there is a voice either way.
+            JitsiMeetLogger.w(TAG + " could not enumerate the voices of the engine", e);
+        }
+
+        for (Voice voice : read) {
+            String name = voice.getName();
+
+            if (name != null) {
+                voicesByName.put(name, voice);
+            }
+        }
+
+        voices = read;
+
+        return read;
+    }
+
+    /**
+     * Points the engine at a particular voice, if it has one by that name and it can be used for the language which is
+     * about to be spoken.
+     *
+     * @param engine the engine to point at a voice
+     * @param voiceName the name of the wanted voice, or null to leave the choice to the caller's fallback
+     * @param locale the language which is about to be spoken
+     * @return whether the engine took it, false meaning the caller should choose the voice the ordinary way
+     */
+    private boolean applyNamedVoice(TextToSpeech engine, String voiceName, Locale locale) {
+        if (voiceName == null || voiceName.isEmpty()) {
+            return false;
+        }
+
+        listVoices(engine);
+
+        Voice voice = voicesByName.get(voiceName);
+
+        if (voice == null) {
+            return false;
+        }
+
+        Locale voiceLocale = voice.getLocale();
+
+        // A voice held over from the language the listener was listening in a moment ago would read this sentence in
+        // that language's accent, or would not read it at all.
+        if (voiceLocale == null || !locale.getLanguage().equals(voiceLocale.getLanguage())) {
+            return false;
+        }
+
+        Set<String> features = voice.getFeatures();
+
+        if (features != null && features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) {
+            return false;
+        }
+
+        return engine.setVoice(voice) == TextToSpeech.SUCCESS;
+    }
+
+    /**
      * Points the engine at the best voice it has for a language.
      *
      * {@link TextToSpeech#setLanguage} only settles on a language; which of the several voices an engine has for it
@@ -418,24 +612,9 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
      * @param locale the language which is about to be spoken
      */
     private void applyBestVoice(TextToSpeech engine, Locale locale) {
-        Set<Voice> voices;
-
-        try {
-            voices = engine.getVoices();
-        } catch (Exception e) {
-            // Not every engine answers this, and the language is already set, so there is a voice either way.
-            JitsiMeetLogger.w(TAG + " could not enumerate the voices of the engine", e);
-
-            return;
-        }
-
-        if (voices == null) {
-            return;
-        }
-
         Voice best = null;
 
-        for (Voice voice : voices) {
+        for (Voice voice : listVoices(engine)) {
             Locale voiceLocale = voice.getLocale();
 
             if (voiceLocale == null || !locale.getLanguage().equals(voiceLocale.getLanguage())) {

@@ -4,6 +4,8 @@ import { rememberSpokenText } from '../../caption-tts/spokenText';
 import { TTS_QUEUE_LIMIT } from '../constants';
 import logger from '../logger';
 
+import { noteVoiceFailed, resetVoiceAssignments, resolveVoiceForSpeaker } from './voiceAssignment';
+
 /**
  * One sentence waiting to be read out.
  */
@@ -203,6 +205,10 @@ export default class S2SV2Speaker {
         this._queue = [];
         this._draining = undefined;
 
+        // Who sounded like what belonged to that session. The next one starts over, because the participant IDs it
+        // hands voices out by will not be the same ones.
+        resetVoiceAssignments();
+
         try {
             getCaptionsTtsNativeModule()?.stop();
         } catch (error) {
@@ -280,7 +286,23 @@ export default class S2SV2Speaker {
                     rememberSpokenText(utterance.originalText);
                 }
 
-                await module.speak(utterance.text, toTtsLanguageTag(utterance.language), DEFAULT_SPEECH_RATE);
+                const languageTag = toTtsLanguageTag(utterance.language);
+
+                // Whoever is being read out keeps one voice for the whole session, so that a listener can tell who is
+                // talking from the sound of it rather than only from the name above the line. Which voice it comes to
+                // is worked out in {@link ./voiceAssignment}; an older SDK has no way to be told, and reads everybody
+                // out in the one voice it always did.
+                const voice = await resolveVoiceForSpeaker(utterance.speakerId, languageTag);
+                const spoken = module.speakAs
+                    ? await module.speakAs(
+                        utterance.text, languageTag, DEFAULT_SPEECH_RATE, voice.name ?? null, voice.pitch)
+                    : await module.speak(utterance.text, languageTag, DEFAULT_SPEECH_RATE);
+
+                if (!spoken && voice.name) {
+                    // A voice which has to be fetched can fail to say anything at all, which a listener cannot tell
+                    // from nobody talking. Counted rather than acted on, see VOICE_FAILURE_LIMIT.
+                    noteVoiceFailed(voice.name);
+                }
             } catch (error) {
                 logger.warn(`Could not read ${utterance.messageId} out loud`, error);
                 this._onError();

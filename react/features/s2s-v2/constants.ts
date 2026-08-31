@@ -252,3 +252,31 @@ export const S2S_V2_TTS_ERROR_UID = 's2s-v2-tts';
  * joined and listened to on a bad connection.
  */
 export const S2S_V2_FALLBACK_LANGUAGE_CODES = [ 'en', 'hi', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru' ];
+
+/**
+ * How many different voices the room is spread across.
+ *
+ * A speaker is given one of these slots the first time they say anything and keeps it for the session. Larger than any
+ * room this is used in, so that two people talking are only ever given the same slot when the device has run out of
+ * ways to tell them apart, rather than because the slots ran out.
+ */
+export const VOICE_SLOT_COUNT = 24;
+
+/**
+ * The pitches the voices are read at, in the order they are handed out.
+ *
+ * The engine has a handful of voices for a well supported language and one for a poorly supported one, which on its
+ * own leaves everybody in a Hindi call sounding identical again. A slot past the end of the voice list comes back
+ * round to the first voice at the next pitch here, so speakers stay apart even where the voices run out. The first is
+ * the engine's own, so the first speaker in a room sounds exactly as they did before there were slots at all.
+ */
+export const VOICE_PITCH_VARIANTS = [ 1, 0.85, 1.15, 0.92, 1.08 ];
+
+/**
+ * How many times a voice may fail before a speaker is moved off it.
+ *
+ * A network voice which cannot be fetched says nothing at all, and the listener cannot tell that from nobody talking.
+ * Not the first failure, because the engine reports one sentence not being spoken the same way whatever the reason,
+ * and a language it could not speak would otherwise cost a perfectly good voice.
+ */
+export const VOICE_FAILURE_LIMIT = 2;
