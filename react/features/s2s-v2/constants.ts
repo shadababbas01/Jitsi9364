@@ -254,23 +254,17 @@ export const S2S_V2_TTS_ERROR_UID = 's2s-v2-tts';
 export const S2S_V2_FALLBACK_LANGUAGE_CODES = [ 'en', 'hi', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru' ];
 
 /**
- * How many different voices the room is spread across.
- *
- * A speaker is given one of these slots the first time they say anything and keeps it for the session. Larger than any
- * room this is used in, so that two people talking are only ever given the same slot when the device has run out of
- * ways to tell them apart, rather than because the slots ran out.
- */
-export const VOICE_SLOT_COUNT = 24;
-
-/**
  * The pitches the voices are read at, in the order they are handed out.
  *
- * The engine has a handful of voices for a well supported language and one for a poorly supported one, which on its
- * own leaves everybody in a Hindi call sounding identical again. A slot past the end of the voice list comes back
- * round to the first voice at the next pitch here, so speakers stay apart even where the voices run out. The first is
- * the engine's own, so the first speaker in a room sounds exactly as they did before there were slots at all.
+ * The engine has a handful of voices for a well supported language and, often, exactly one for a poorly supported one,
+ * which on its own leaves everybody in a Hindi call sounding identical again. Every voice is handed out at the first
+ * pitch here before anything is handed out at the second, so a room only hears a shifted voice once it has run out of
+ * real ones. The first pitch is the engine's own, so a room of one sounds exactly as it did before any of this.
+ *
+ * Seven of them, which is what a language with a single installed voice can tell seven speakers apart with. Wider than
+ * this starts to sound like a cartoon rather than a person.
  */
-export const VOICE_PITCH_VARIANTS = [ 1, 0.85, 1.15, 0.92, 1.08 ];
+export const VOICE_PITCH_VARIANTS = [ 1, 0.85, 1.15, 0.92, 1.08, 0.79, 1.21 ];
 
 /**
  * How many times a voice may fail before a speaker is moved off it.
@@ -280,3 +274,14 @@ export const VOICE_PITCH_VARIANTS = [ 1, 0.85, 1.15, 0.92, 1.08 ];
  * and a language it could not speak would otherwise cost a perfectly good voice.
  */
 export const VOICE_FAILURE_LIMIT = 2;
+
+/**
+ * How many of a speaker's sentences are read out with their name in front of them.
+ *
+ * Every speaker has a voice of their own, but a voice has to be heard before it means anything: the first time a
+ * listener hears one they have no way of knowing whose it is. So the name goes in front of the first few sentences and
+ * then stops, by which point the voice itself is the introduction and repeating the name would only be in the way.
+ *
+ * Counted per speaker, per session, and only against sentences which were actually read out.
+ */
+export const SPEAKER_INTRO_UTTERANCES = 4;

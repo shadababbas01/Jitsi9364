@@ -4,6 +4,7 @@ import { rememberSpokenText } from '../../caption-tts/spokenText';
 import { TTS_QUEUE_LIMIT } from '../constants';
 import logger from '../logger';
 
+import { introFor, noteIntroSpoken, resetSpeakerIntros } from './speakerIntro';
 import { noteVoiceFailed, resetVoiceAssignments, resolveVoiceForSpeaker } from './voiceAssignment';
 
 /**
@@ -35,6 +36,12 @@ export interface IS2SV2Utterance {
      * Who said it, so that the right participant is turned down while it is being read.
      */
     speakerId: string;
+
+    /**
+     * What they go by, read out in front of their first few sentences so that a listener learns whose voice is whose.
+     * Empty for a participant who never set a name. See {@link ./speakerIntro}.
+     */
+    speakerName: string;
 
     /**
      * The text to read.
@@ -205,9 +212,10 @@ export default class S2SV2Speaker {
         this._queue = [];
         this._draining = undefined;
 
-        // Who sounded like what belonged to that session. The next one starts over, because the participant IDs it
-        // hands voices out by will not be the same ones.
+        // Who sounded like what, and who has been introduced, both belonged to that session. The next one starts
+        // over, because the participant IDs they were held under will not be the same ones.
         resetVoiceAssignments();
+        resetSpeakerIntros();
 
         try {
             getCaptionsTtsNativeModule()?.stop();
@@ -272,10 +280,22 @@ export default class S2SV2Speaker {
 
             this._setSpeaking(utterance.speakerId, utterance.messageId);
 
+            // A voice means nothing the first time it is heard, so the speaker's name goes in front of their first
+            // few sentences and then stops: "Shadab says, hello". The comma is not spoken - it is what the engine
+            // pauses on, which is what keeps the name from running into the sentence.
+            const intro = introFor(utterance.speakerId, utterance.speakerName);
+            const line = intro ? `${intro}, ${utterance.text}` : utterance.text;
+
             try {
                 // What goes to the engine is what the microphone might hear back, so it is remembered before playback
                 // starts. The capture stays full duplex; this rejects anything the platform echo canceller leaves behind.
-                rememberSpokenText(utterance.text);
+                rememberSpokenText(line);
+
+                // The sentence without the name in front of it too, because what comes back from the microphone can
+                // have caught the one and not the other.
+                if (intro) {
+                    rememberSpokenText(utterance.text);
+                }
 
                 // And the English it was translated from, which is what an echo of it actually comes back as. The
                 // microphone hears this sentence in the listener's language; the transcription service is asked for
@@ -294,11 +314,15 @@ export default class S2SV2Speaker {
                 // out in the one voice it always did.
                 const voice = await resolveVoiceForSpeaker(utterance.speakerId, languageTag);
                 const spoken = module.speakAs
-                    ? await module.speakAs(
-                        utterance.text, languageTag, DEFAULT_SPEECH_RATE, voice.name ?? null, voice.pitch)
-                    : await module.speak(utterance.text, languageTag, DEFAULT_SPEECH_RATE);
+                    ? await module.speakAs(line, languageTag, DEFAULT_SPEECH_RATE, voice.name ?? null, voice.pitch)
+                    : await module.speak(line, languageTag, DEFAULT_SPEECH_RATE);
 
-                if (!spoken && voice.name) {
+                if (spoken) {
+                    if (intro) {
+                        // Spent only now. A sentence the engine did not say introduced nobody.
+                        noteIntroSpoken(utterance.speakerId);
+                    }
+                } else if (voice.name) {
                     // A voice which has to be fetched can fail to say anything at all, which a listener cannot tell
                     // from nobody talking. Counted rather than acted on, see VOICE_FAILURE_LIMIT.
                     noteVoiceFailed(voice.name);

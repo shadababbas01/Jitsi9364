@@ -1,10 +1,6 @@
 import { getCaptionsTtsNativeModule } from '../../caption-tts/functions.native';
 import { ITtsVoice } from '../../caption-tts/types';
-import {
-    VOICE_FAILURE_LIMIT,
-    VOICE_PITCH_VARIANTS,
-    VOICE_SLOT_COUNT
-} from '../constants';
+import { VOICE_FAILURE_LIMIT, VOICE_PITCH_VARIANTS } from '../constants';
 import logger from '../logger';
 
 /**
@@ -26,20 +22,38 @@ export interface IS2SV2Voice {
 }
 
 /**
- * Which slot each speaker was given, for as long as the session lasts.
+ * The ways this device can read one language, and who has been given which of them.
  */
-const slots = new Map<string, number>();
+interface ILanguageVoices {
+
+    /**
+     * Which of {@link combinations} each speaker was given. Held per language rather than per speaker, because a
+     * device has a different set of voices for every language, and it is also the ledger of what is spoken for: the
+     * next speaker takes the entry after the last one handed out, so two speakers sounding alike is impossible rather
+     * than unlikely.
+     */
+    bySpeaker: Map<string, number>;
+
+    /**
+     * Every voice at every pitch, in the order they are handed out: all of the voices at the engine's own pitch first,
+     * then all of them again at the next pitch. So a room hears a shifted voice only once it has run out of real ones,
+     * and a room of two is read in two voices the engine actually ships rather than in one of them twice.
+     */
+    combinations: IS2SV2Voice[];
+}
 
 /**
- * The slots which are spoken for, so that two speakers whose IDs happen to want the same one do not get it.
+ * What this device can do with each language, once the engine has been asked. The voices themselves are kept across
+ * sessions - they belong to the device rather than to the conversation - while who was given what is not.
  */
-const takenSlots = new Set<number>();
+const byLanguage = new Map<string, ILanguageVoices>();
 
 /**
- * The voices the engine has for each language, once it has been asked. Kept across sessions: they belong to the device
- * rather than to the conversation, and asking again costs a bridge call per sentence.
+ * Which pitch each speaker was given on an engine which would not say what voices it has. The last thing left to tell
+ * two speakers apart with, and handed out in order for the same reason the combinations are: the first speaker is read
+ * at the engine's own pitch, and nobody is read at a stranger one than the room has speakers to need.
  */
-const voicesByLanguage = new Map<string, ITtsVoice[]>();
+const pitchOnly = new Map<string, number>();
 
 /**
  * How many times each voice has failed to say anything. See {@link VOICE_FAILURE_LIMIT}.
@@ -47,66 +61,12 @@ const voicesByLanguage = new Map<string, ITtsVoice[]>();
 const failures = new Map<string, number>();
 
 /**
- * Hashes a speaker ID into the slot it would like.
- *
- * FNV-1a, for one property: every device in the room computes it, so a hash is what makes them agree on who sounds
- * like what without a word of it going over the wire. Nothing about it needs to be cryptographic.
- *
- * @param {string} speakerId - Who is being placed.
- * @returns {number}
- */
-function hashSpeakerId(speakerId: string): number {
-    let hash = 0x811c9dc5;
-
-    for (let index = 0; index < speakerId.length; index++) {
-        hash ^= speakerId.charCodeAt(index);
-        hash = Math.imul(hash, 0x01000193);
-    }
-
-    return hash >>> 0;
-}
-
-/**
- * Returns the slot a speaker is read out in, giving them one if this is the first thing they have said.
- *
- * Wanted slot first, then the next free one after it. The hash alone would be enough to keep a speaker sounding the
- * same for the whole session, but two speakers in a room of four can easily hash to the same slot, and hearing two
- * people in one voice is the thing this exists to stop. Probing costs the agreement between devices only in the rooms
- * where it actually fires.
- *
- * A speaker keeps their slot after they leave. Reusing it would hand a departed speaker's voice to the next person to
- * say something, which is worse than running an otherwise empty room out of slots.
- *
- * @param {string} speakerId - Who said something.
- * @returns {number}
- */
-function slotFor(speakerId: string): number {
-    const existing = slots.get(speakerId);
-
-    if (existing !== undefined) {
-        return existing;
-    }
-
-    const wanted = hashSpeakerId(speakerId) % VOICE_SLOT_COUNT;
-    let slot = wanted;
-
-    for (let offset = 0; offset < VOICE_SLOT_COUNT && takenSlots.has(slot); offset++) {
-        slot = (wanted + offset + 1) % VOICE_SLOT_COUNT;
-    }
-
-    slots.set(speakerId, slot);
-    takenSlots.add(slot);
-
-    return slot;
-}
-
-/**
  * Orders the voices the engine has for a language, best first.
  *
- * Deliberately the order {@code applyBestVoice} scores them in on the Android side, so that the first slot is read in
- * the voice the engine would have used for everybody, and turning this on changes what a one-speaker room sounds like
- * not at all. Ties break on the name so that the order is the same for every sentence: a list which reordered itself
- * would move speakers between voices mid-conversation.
+ * Deliberately the order {@code applyBestVoice} scores them in on the Android side. The first speaker in a room is
+ * therefore read in the voice the engine would have used for everybody, and turning this on changes what a room of one
+ * sounds like not at all. Ties break on the name so that the order is the same every time it is built: a list which
+ * reordered itself would move speakers between voices mid-conversation.
  *
  * @param {ITtsVoice[]} voices - What the engine reported.
  * @param {string} languageTag - The language they were asked for, whose region is preferred.
@@ -137,17 +97,18 @@ function orderVoices(voices: ITtsVoice[], languageTag: string): ITtsVoice[] {
 }
 
 /**
- * Returns the voices this device can read a language in, asking the engine the first time.
+ * Returns what this device can do with a language, asking the engine the first time.
  *
  * An empty answer is not remembered. The engine is asked as the first sentence of a session is about to be read out,
  * which is early enough that it can still be warming up, and remembering that it had nothing then would leave the
  * whole session in one voice.
  *
  * @param {string} languageTag - A BCP-47 tag, as the engine takes it.
- * @returns {Promise<ITtsVoice[]>}
+ * @returns {Promise<ILanguageVoices | undefined>} - Undefined when the engine would not say what it has, which leaves
+ * the caller with the pitch as the only way to tell two speakers apart.
  */
-async function voicesFor(languageTag: string): Promise<ITtsVoice[]> {
-    const known = voicesByLanguage.get(languageTag);
+async function languageVoicesFor(languageTag: string): Promise<ILanguageVoices | undefined> {
+    const known = byLanguage.get(languageTag);
 
     if (known) {
         return known;
@@ -156,7 +117,7 @@ async function voicesFor(languageTag: string): Promise<ITtsVoice[]> {
     const getVoices = getCaptionsTtsNativeModule()?.getVoices;
 
     if (!getVoices) {
-        return [];
+        return undefined;
     }
 
     let voices: ITtsVoice[] = [];
@@ -166,52 +127,111 @@ async function voicesFor(languageTag: string): Promise<ITtsVoice[]> {
     } catch (error) {
         logger.warn(`Could not ask the speech engine which voices it has for ${languageTag}`, error);
 
-        return [];
+        return undefined;
     }
 
     if (!voices.length) {
-        return [];
+        return undefined;
     }
 
-    voicesByLanguage.set(languageTag, voices);
-    logger.info(`The speech engine has ${voices.length} voice(s) for ${languageTag}`);
+    const combinations: IS2SV2Voice[] = [];
 
-    return voices;
+    for (const pitch of VOICE_PITCH_VARIANTS) {
+        for (const voice of voices) {
+            combinations.push({
+                name: voice.name,
+                pitch
+            });
+        }
+    }
+
+    const language = {
+        bySpeaker: new Map<string, number>(),
+        combinations
+    };
+
+    byLanguage.set(languageTag, language);
+    logger.info(`The speech engine has ${voices.length} voice(s) for ${languageTag}, so up to ${combinations.length}`
+        + ' speakers can be told apart by the sound of them');
+
+    return language;
+}
+
+/**
+ * Returns which of a language's combinations a speaker is read out in, giving them the next one if they have not been
+ * read out in this language before.
+ *
+ * In the order the room speaks, rather than by anything derived from who they are. Two reasons, and the first is the
+ * one that matters: handing them out in order is what makes two speakers sounding alike impossible rather than
+ * unlikely, and it spends the real voices before it spends the pitch-shifted ones, so a room of two is read in two
+ * voices the device actually ships. Anything computed from the participant ID would agree between devices - which
+ * nobody can hear, since every listener hears only their own - at the price of reaching for a shifted voice while good
+ * ones sat unused.
+ *
+ * A speaker who leaves does not give theirs back. Handing a departed speaker's voice to the next person to talk is
+ * worse than running an otherwise quiet room out of voices.
+ *
+ * @param {ILanguageVoices} language - What this device can do with the language.
+ * @param {string} speakerId - Who is about to be read out.
+ * @returns {number}
+ */
+function combinationFor(language: ILanguageVoices, speakerId: string): number {
+    const existing = language.bySpeaker.get(speakerId);
+
+    if (existing !== undefined) {
+        return existing;
+    }
+
+    const count = language.combinations.length;
+    const index = language.bySpeaker.size % count;
+
+    if (language.bySpeaker.size >= count) {
+        // Every voice at every pitch is already somebody's. There is nothing left on this device to be distinct with,
+        // which is worth seeing in a log rather than guessing at from a call where two people sound the same.
+        logger.warn(`${count} speakers are already being read out in the ${count} ways this device has of reading`
+            + ` ${speakerId}'s language; they will sound like one of them`);
+    }
+
+    language.bySpeaker.set(speakerId, index);
+
+    return index;
 }
 
 /**
  * Returns how a speaker is to be read out, in the language this listener is listening in.
  *
- * The slot is the speaker's for the session; which voice it comes to is worked out per language, because a device has
- * a different set of voices for each one. So a listener who changes language mid-session hears every speaker change
- * voice with them, and hears them stay as far apart from each other as they were.
+ * Worked out per language, because a device has a different set of voices for each one, and remembered per language
+ * too. So a listener who changes language mid-session hears every speaker change voice with them, hears them stay as
+ * far apart from each other as they were, and hears the voices they had before if they change back.
  *
  * @param {string} speakerId - Who is about to be read out.
  * @param {string} languageTag - The language they are about to be read out in.
  * @returns {Promise<IS2SV2Voice>}
  */
 export async function resolveVoiceForSpeaker(speakerId: string, languageTag: string): Promise<IS2SV2Voice> {
-    const slot = slotFor(speakerId);
-    const voices = await voicesFor(languageTag);
+    const language = await languageVoicesFor(languageTag);
 
-    if (!voices.length) {
-        return { pitch: VOICE_PITCH_VARIANTS[slot % VOICE_PITCH_VARIANTS.length] };
-    }
+    if (!language) {
+        let pitch = pitchOnly.get(speakerId);
 
-    const name = voices[slot % voices.length].name;
-    const variant = Math.floor(slot / voices.length) % VOICE_PITCH_VARIANTS.length;
-    const pitch = VOICE_PITCH_VARIANTS[variant];
+        if (pitch === undefined) {
+            pitch = VOICE_PITCH_VARIANTS[pitchOnly.size % VOICE_PITCH_VARIANTS.length];
+            pitchOnly.set(speakerId, pitch);
+        }
 
-    if ((failures.get(name) ?? 0) >= VOICE_FAILURE_LIMIT) {
-        // Only this speaker moves off it. Dropping the voice from the list instead would renumber every slot after it
-        // and change who sounds like what in the middle of the conversation.
         return { pitch };
     }
 
-    return {
-        name,
-        pitch
-    };
+    const combination = language.combinations[combinationFor(language, speakerId)];
+
+    if (combination.name && (failures.get(combination.name) ?? 0) >= VOICE_FAILURE_LIMIT) {
+        // Only this speaker moves off it, and they keep the pitch they had: dropping the voice from the list would
+        // renumber every combination behind it and change who sounds like what mid-conversation. Two speakers can end
+        // up alike here, because a device whose voices will not load has nothing left to promise with.
+        return { pitch: combination.pitch };
+    }
+
+    return combination;
 }
 
 /**
@@ -234,12 +254,15 @@ export function noteVoiceFailed(name: string) {
  * Forgets who sounded like what, at the end of a session.
  *
  * The voices the engine has are kept: they are a property of the device and not of the session, and a new session
- * would only ask for the same list again.
+ * would only ask for the same lists again.
  *
  * @returns {void}
  */
 export function resetVoiceAssignments() {
-    slots.clear();
-    takenSlots.clear();
+    pitchOnly.clear();
     failures.clear();
+
+    for (const language of byLanguage.values()) {
+        language.bySpeaker.clear();
+    }
 }
