@@ -186,9 +186,12 @@ export default {
 
     meetingName: {
         ...BaseTheme.typography.heading6,
+        alignSelf: 'stretch',
         color: BaseTheme.palette.text01,
         flexShrink: 1,
+        includeFontPadding: false,
         maxWidth: '100%',
+        paddingHorizontal: BaseTheme.spacing[1],
         textAlign: 'center'
     },
 

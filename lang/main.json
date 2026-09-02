@@ -201,10 +201,10 @@
         "noMessages": "No live captions yet. Captions will appear here once speech is detected."
     },
     "liveCaptionsPanel": {
-        "disclaimer": "Captions are generated automatically and may not be accurate.",
+        "disclaimer": "Captions are generated automatically and may not be 100% accurate.",
         "empty": "Captions will appear here as people speak.",
         "liveSpeechTranslation": "Live Speech Translation",
-        "stop": "Stop captions",
+        "stop": ".",
         "title": "Live Captions",
         "you": "You"
     },

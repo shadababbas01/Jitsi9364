@@ -154,11 +154,14 @@ export default function LiveCaptionRow({ first, speaking, subtitle, targetLangua
                         size = { SPEAKER_AVATAR_SIZE } />
                 </View>
                 <Text
-                    numberOfLines = { 1 }
+                    allowFontScaling = { false }
                     style = { styles.transcriptSpeaker as TextStyle }>
                     { speakerName }
                 </Text>
                 <Text
+                    adjustsFontSizeToFit = { true }
+                    allowFontScaling = { false }
+                    minimumFontScale = { 0.75 }
                     numberOfLines = { 1 }
                     style = { styles.transcriptTime as TextStyle }>
                     { _time(subtitle.timestamp) }

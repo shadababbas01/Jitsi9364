@@ -299,11 +299,16 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
 
                 <View
                     style = { [
-                        styles.panelFooter,
+                        styles.liveCaptionsPanelFooter,
                         { flexShrink: 0 }
                     ] as ViewStyle[] }>
 
-                    <Text style = { styles.disclaimer as TextStyle }>
+                    <Text
+                        adjustsFontSizeToFit = { true }
+                        allowFontScaling = { false }
+                        minimumFontScale = { 0.65 }
+                        numberOfLines = { 1 }
+                        style = { styles.liveCaptionsDisclaimer as TextStyle }>
                         { t('liveCaptionsPanel.disclaimer') }
                     </Text>
 
@@ -313,7 +318,10 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
                             { ...claim }
                             accessibilityRole = 'button'
                             onPress = { stopCaptions }
-                            style = { styles.closeTranscript as ViewStyle }>
+                            style = { [
+                                styles.closeTranscript,
+                                styles.liveCaptionsStop
+                            ] as ViewStyle[] }>
                             <Text style = { styles.closeTranscriptLabel as TextStyle }>
                                 { t('liveCaptionsPanel.stop') }
                             </Text>

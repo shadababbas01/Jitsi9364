@@ -192,8 +192,11 @@ function _create(palette: IS2SV2Palette) {
             ...BaseTheme.typography.bodyShortBold,
             color: palette.text,
             flex: 1,
+            flexShrink: 1,
+            includeFontPadding: false,
+            marginLeft: BaseTheme.spacing[2],
             minWidth: 0,
-            marginLeft: BaseTheme.spacing[2]
+            paddingRight: BaseTheme.spacing[1]
         },
 
         transcriptTime: {
@@ -297,12 +300,38 @@ function _create(palette: IS2SV2Palette) {
             marginTop: BaseTheme.spacing[3]
         },
 
+        // The captions disclaimer gets its own full-width line. In embedded Android hosts, allowing it to wrap at the
+        // bottom of the panel can put the final line below the visible viewport.
+        liveCaptionsPanelFooter: {
+            alignItems: 'stretch' as const,
+            flexDirection: 'column' as const,
+            marginTop: BaseTheme.spacing[3],
+            paddingBottom: BaseTheme.spacing[1]
+        },
+
+        liveCaptionsDisclaimer: {
+            ...BaseTheme.typography.bodyShortRegularSmall,
+            alignSelf: 'stretch' as const,
+            color: palette.textMuted,
+            flexShrink: 0,
+            includeFontPadding: false,
+            paddingHorizontal: BaseTheme.spacing[1],
+            textAlign: 'center' as const
+        },
+
+        liveCaptionsStop: {
+            alignSelf: 'flex-end' as const,
+            marginTop: BaseTheme.spacing[1]
+        },
+
         disclaimer: {
             ...BaseTheme.typography.bodyShortRegularSmall,
             color: palette.textMuted,
             flex: 1,
+            includeFontPadding: false,
             minWidth: 0,
-            marginRight: BaseTheme.spacing[2]
+            marginRight: BaseTheme.spacing[2],
+            paddingHorizontal: BaseTheme.spacing[1]
         },
 
         // Ends the session for the whole room, so it is drawn as the one thing on the panel which takes something away

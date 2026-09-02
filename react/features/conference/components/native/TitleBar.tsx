@@ -4,14 +4,12 @@ import { connect } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import { getConferenceName } from '../../../base/conference/functions';
+import ConnectionStatusLabel from '../../../conference/components/native/ConnectionStatusLabel';
 import PictureInPictureButton from '../../../mobile/picture-in-picture/components/PictureInPictureButton';
 import { isRoomNameEnabled } from '../../../prejoin/functions.native';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 
-import Labels from './Labels';
 import styles from './styles';
-
-import ConnectionStatusLabel from '../../../conference/components/native/ConnectionStatusLabel';
 
 interface IProps {
     /**
@@ -81,6 +79,9 @@ const TitleBar = (props: IProps) => {
                 {
                     props._roomNameEnabled
                     && <Text
+                        adjustsFontSizeToFit = { true }
+                        allowFontScaling = { false }
+                        minimumFontScale = { 0.7 }
                         numberOfLines = { 1 }
                         style = { styles.meetingName }>
                         { props._meetingName }
