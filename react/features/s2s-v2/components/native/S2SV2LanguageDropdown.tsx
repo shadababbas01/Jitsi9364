@@ -159,6 +159,7 @@ export default function S2SV2LanguageDropdown(
                         </Text>
                     ) }
                     <Text
+                        allowFontScaling = { false }
                         numberOfLines = { 1 }
                         style = { styles.languagePillName as TextStyle }>
                         { name }
@@ -190,7 +191,9 @@ export default function S2SV2LanguageDropdown(
                             style = { styles.grabberZone as ViewStyle }>
                             <View style = { styles.grabber as ViewStyle } />
                         </View>
-                        <Text style = { styles.listTitle as TextStyle }>
+                        <Text
+                            allowFontScaling = { false }
+                            style = { styles.listTitle as TextStyle }>
                             { accessibilityLabel }
                         </Text>
                         <TextInput
@@ -201,7 +204,9 @@ export default function S2SV2LanguageDropdown(
                             style = { styles.listSearch as TextStyle }
                             value = { search } />
                         { filtered.length === 0 && (
-                            <Text style = { styles.fieldHelper as TextStyle }>
+                            <Text
+                                allowFontScaling = { false }
+                                style = { styles.fieldHelper as TextStyle }>
                                 { languages.length === 0
                                     ? t('s2sV2.loadingLanguages')
                                     : t('s2sV2.noLanguagesAvailable') }
@@ -221,6 +226,7 @@ export default function S2SV2LanguageDropdown(
                                         underlayColor = 'rgba(255, 255, 255, 0.06)'>
                                         <View style = { styles.listRow as ViewStyle }>
                                             <Text
+                                                allowFontScaling = { false }
                                                 style = { [
                                                     styles.listRowText,
                                                     selected && styles.listRowTextActive

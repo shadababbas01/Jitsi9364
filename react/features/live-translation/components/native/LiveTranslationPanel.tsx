@@ -125,17 +125,21 @@ function UtteranceCard({ displayName, onMeasure, pendingLabel, speaking, utteran
             ] as ViewStyle[] }>
             <View style = { styles.senderBadge as ViewStyle }>
                 <Text
+                    allowFontScaling = { false }
                     numberOfLines = { 1 }
                     style = { styles.senderBadgeText as TextStyle }>
                     { displayName }
                 </Text>
             </View>
             <View style = { styles.utteranceText as ViewStyle }>
-                <Text style = { styles.utteranceOriginal as TextStyle }>
+                <Text
+                    allowFontScaling = { false }
+                    style = { styles.utteranceOriginal as TextStyle }>
                     { utterance.text }
                 </Text>
                 { (translation || waiting) && (
                     <Text
+                        allowFontScaling = { false }
                         style = { [
                             styles.utteranceTranslation,
                             waiting && styles.utteranceTranslationPending
@@ -277,6 +281,7 @@ export default function LiveTranslationPanel() {
                             src = { IconTranslate } />
                     </View>
                     <Text
+                        allowFontScaling = { false }
                         numberOfLines = { 1 }
                         style = { [ styles.statusText, statusStyle ] as TextStyle[] }>
                         { status }
@@ -286,7 +291,9 @@ export default function LiveTranslationPanel() {
                 { utterances.length === 0
                     ? (
                         <View style = { styles.emptyCard as ViewStyle }>
-                            <Text style = { styles.emptyCardText as TextStyle }>
+                            <Text
+                                allowFontScaling = { false }
+                                style = { styles.emptyCardText as TextStyle }>
                                 { t('liveTranslation.waitingForSpeech') }
                             </Text>
                         </View>
@@ -311,6 +318,7 @@ export default function LiveTranslationPanel() {
 
                 <View style = { styles.controls as ViewStyle }>
                     <Text
+                        allowFontScaling = { false }
                         numberOfLines = { 1 }
                         style = { styles.controlsLabel as TextStyle }>
                         { t('liveTranslation.translateTo') }
@@ -325,10 +333,14 @@ export default function LiveTranslationPanel() {
                         accessibilityRole = 'button'
                         onPress = { close }
                         style = { styles.ccButton as ViewStyle }>
-                        <Text style = { styles.ccMark as TextStyle }>
+                        <Text
+                            allowFontScaling = { false }
+                            style = { styles.ccMark as TextStyle }>
                             { t('liveTranslation.cc') }
                         </Text>
-                        <Text style = { styles.ccState as TextStyle }>
+                        <Text
+                            allowFontScaling = { false }
+                            style = { styles.ccState as TextStyle }>
                             { t('liveTranslation.on') }
                         </Text>
                     </Pressable>

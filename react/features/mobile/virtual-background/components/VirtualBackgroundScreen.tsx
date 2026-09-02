@@ -119,6 +119,9 @@ const VirtualBackgroundScreen = () => {
                         size = { 24 }
                         src = { icon } />
                     <Text
+                        adjustsFontSizeToFit = { true }
+                        allowFontScaling = { false }
+                        minimumFontScale = { 0.75 }
                         numberOfLines = { 2 }
                         style = { styles.tileLabel as TextStyle }>
                         { label }

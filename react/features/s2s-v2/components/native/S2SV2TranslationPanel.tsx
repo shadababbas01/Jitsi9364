@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
-import { IconCloseLarge, IconTheme, IconVolumeOff, IconVolumeUp, IconVolumeUpToolBox } from '../../../base/icons/svg';
+import { IconCloseLarge, IconTheme, IconVolumeOff, IconVolumeUpToolBox } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
 import {
     setS2SV2PanelVisible,
@@ -250,6 +250,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                             styles.speakersChip as ViewStyle
                         }>
                         <Text
+                            allowFontScaling = { false }
                             style = {
                                 styles.speakersChipLabel as TextStyle
                             }>
@@ -286,6 +287,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
 
                     { transcripts.length === 0 ? (
                         <Text
+                            allowFontScaling = { false }
                             style = {
                                 styles.transcriptEmpty as TextStyle
                             }>
@@ -379,7 +381,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                         <Icon
                             color = { speakerIconColor }
                             size = { 18 }
-                            src = { theme === 'dark' ?  IconVolumeOff : IconVolumeUpToolBox } />
+                            src = { theme === 'dark' ? IconVolumeOff : IconVolumeUpToolBox } />
                     </Pressable>
                 </View>
 
@@ -399,6 +401,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                     }>
 
                     <Text
+                        allowFontScaling = { false }
                         style = {
                             styles.disclaimer as TextStyle
                         }>
@@ -428,6 +431,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                                 styles.closeTranscript as ViewStyle
                             }>
                             <Text
+                                allowFontScaling = { false }
                                 style = {
                                     styles.closeTranscriptLabel as TextStyle
                                 }>

@@ -3,6 +3,7 @@ import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+
 import styles from './styles';
 
 const STATUS_TEXT_VALUES = new Set([ 'ringing', 'calling', 'connecting', 'connected', 'reconnecting' ]);
@@ -62,20 +63,25 @@ export default function ConnectionStatusLabel() {
         } else if (elapsedMs < CONNECTED_PHASE_ENCRYPTED_MS) {
             statusText = CONNECTED_ENCRYPTED_TEXT;
         } else {
-        const totalSeconds = Math.max(0, Math.floor((now - effectiveConnectedTimestamp) / 1000));
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
+            const totalSeconds = Math.max(0, Math.floor((now - effectiveConnectedTimestamp) / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
 
-        statusText = hours > 0
-            ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-            : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            statusText = hours > 0
+                ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 
     return (
         <View style = { styles.connectionStatusContainer as ViewStyle }>
-            <Text style = { styles.connectionStatusText as TextStyle }>
+            <Text
+                adjustsFontSizeToFit = { true }
+                allowFontScaling = { false }
+                minimumFontScale = { 0.75 }
+                numberOfLines = { 1 }
+                style = { styles.connectionStatusText as TextStyle }>
                 { statusText }
             </Text>
         </View>

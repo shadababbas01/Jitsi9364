@@ -55,6 +55,7 @@ export default function S2SV2ThemeToggle() {
                             selected && styles.themeSegmentSelected
                         ] as ViewStyle[] }>
                         <Text
+                            allowFontScaling = { false }
                             style = { [
                                 styles.themeSegmentLabel,
                                 selected && styles.themeSegmentLabelSelected

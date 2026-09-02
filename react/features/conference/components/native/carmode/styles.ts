@@ -80,6 +80,8 @@ export default {
     roomTimer: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
+        flexShrink: 0,
+        minWidth: 64,
         textAlign: 'center'
     },
 

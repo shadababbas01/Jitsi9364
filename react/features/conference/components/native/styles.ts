@@ -59,14 +59,19 @@ export default {
     },
 
     connectionStatusContainer: {
-        alignSelf: 'center',
-        marginTop: BaseTheme.spacing[1]
+        alignSelf: 'stretch',
+        marginTop: BaseTheme.spacing[1],
+        minWidth: 0
     },
 
     connectionStatusText: {
         ...BaseTheme.typography.bodyShortBold,
+        alignSelf: 'stretch',
         color: BaseTheme.palette.text01,
+        flexShrink: 0,
+        includeFontPadding: false,
         marginTop: 2,
+        paddingHorizontal: BaseTheme.spacing[2],
         textAlign: 'center'
     },
 
@@ -190,7 +195,8 @@ export default {
     meetingTimer: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
-        flexShrink: 1,
+        flexShrink: 0,
+        minWidth: 64,
         marginTop: 2,
         textAlign: 'center'
     },
@@ -212,7 +218,8 @@ export default {
     roomTimer: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
-        flexShrink: 1,
+        flexShrink: 0,
+        minWidth: 64,
         lineHeight: 14,
         textAlign: 'center'
     },
@@ -224,8 +231,7 @@ export default {
         minWidth: 0,
         justifyContent: 'center',
         paddingHorizontal: BaseTheme.spacing[2],
-        paddingVertical: BaseTheme.spacing[1],
-        minWidth: 50
+        paddingVertical: BaseTheme.spacing[1]
     },
 
     roomName: {

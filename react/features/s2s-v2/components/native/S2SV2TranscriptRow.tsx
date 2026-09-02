@@ -83,27 +83,35 @@ export default function S2SV2TranscriptRow({ entry, first, pending, speaking, th
                         size = { SPEAKER_AVATAR_SIZE } />
                 </View>
                 <Text
+                    allowFontScaling = { false }
                     numberOfLines = { 1 }
                     style = { styles.transcriptSpeaker as TextStyle }>
                     { entry.speakerName }
                 </Text>
                 <Text
+                    allowFontScaling = { false }
                     numberOfLines = { 1 }
                     style = { styles.transcriptTime as TextStyle }>
                     { _time(entry.timestamp) }
                 </Text>
             </View>
 
-            <Text style = { styles.transcriptOriginal as TextStyle }>
+            <Text
+                allowFontScaling = { false }
+                style = { styles.transcriptOriginal as TextStyle }>
                 { entry.originalText }
             </Text>
 
             { entry.translatedText ? (
-                <Text style = { styles.transcriptTranslated as TextStyle }>
+                <Text
+                    allowFontScaling = { false }
+                    style = { styles.transcriptTranslated as TextStyle }>
                     { entry.translatedText }
                 </Text>
             ) : pending && (
-                <Text style = { styles.transcriptTranslating as TextStyle }>
+                <Text
+                    allowFontScaling = { false }
+                    style = { styles.transcriptTranslating as TextStyle }>
                     { t('s2sV2.panel.translating') }
                 </Text>
             ) }

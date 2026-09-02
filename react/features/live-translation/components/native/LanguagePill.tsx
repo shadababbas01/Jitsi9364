@@ -74,6 +74,7 @@ export default function LanguagePill({ accessibilityLabel, label, onSelect, styl
                 onPress = { openSheet }
                 style = { [ styles.languagePill, style ] as ViewStyle[] }>
                 <Text
+                    allowFontScaling = { false }
                     numberOfLines = { 1 }
                     style = { styles.languagePillName as TextStyle }>
                     { name }
@@ -97,7 +98,9 @@ export default function LanguagePill({ accessibilityLabel, label, onSelect, styl
                     {/* Swallows the press so tapping inside the sheet does not close it. */}
                     <Pressable style = { styles.sheet as ViewStyle }>
                         <View style = { styles.grabber as ViewStyle } />
-                        <Text style = { styles.sheetTitle as TextStyle }>
+                        <Text
+                            allowFontScaling = { false }
+                            style = { styles.sheetTitle as TextStyle }>
                             { accessibilityLabel }
                         </Text>
                         <TextInput
@@ -121,6 +124,7 @@ export default function LanguagePill({ accessibilityLabel, label, onSelect, styl
                                         underlayColor = 'rgba(255, 255, 255, 0.06)'>
                                         <View style = { styles.sheetRow as ViewStyle }>
                                             <Text
+                                                allowFontScaling = { false }
                                                 style = { [
                                                     styles.sheetRowText,
                                                     selected && styles.sheetRowTextActive

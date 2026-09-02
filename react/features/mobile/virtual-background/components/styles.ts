@@ -68,8 +68,12 @@ export default {
 
     tileLabel: {
         ...BaseTheme.typography.bodyShortRegularSmall,
+        alignSelf: 'stretch',
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
+        includeFontPadding: false,
         marginTop: BaseTheme.spacing[1],
+        paddingHorizontal: BaseTheme.spacing[1],
         textAlign: 'center'
     },
 
