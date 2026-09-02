@@ -132,7 +132,12 @@ export default function S2SV2LanguagePopup() {
                             accessibilityRole = 'button'
                             onPress = { dismiss }
                             style = { [ styles.button, styles.buttonDismiss ] as ViewStyle[] }>
-                            <Text style = { [ styles.buttonLabel, styles.buttonLabelDismiss ] as TextStyle[] }>
+                            <Text
+                                adjustsFontSizeToFit = { true }
+                                allowFontScaling = { false }
+                                minimumFontScale = { 0.75 }
+                                numberOfLines = { 1 }
+                                style = { [ styles.buttonLabel, styles.buttonLabelDismiss ] as TextStyle[] }>
                                 { t('s2sV2.popup.dismiss') }
                             </Text>
                         </Pressable>
@@ -141,7 +146,12 @@ export default function S2SV2LanguagePopup() {
                             accessibilityRole = 'button'
                             onPress = { proceed }
                             style = { [ styles.button, styles.buttonPrimary ] as ViewStyle[] }>
-                            <Text style = { [ styles.buttonLabel, styles.buttonLabelPrimary ] as TextStyle[] }>
+                            <Text
+                                adjustsFontSizeToFit = { true }
+                                allowFontScaling = { false }
+                                minimumFontScale = { 0.75 }
+                                numberOfLines = { 1 }
+                                style = { [ styles.buttonLabel, styles.buttonLabelPrimary ] as TextStyle[] }>
                                 { t('s2sV2.popup.proceed') }
                             </Text>
                         </Pressable>

@@ -149,6 +149,10 @@ export default function LiveTranslationInviteSheet({ inviterName, onAllow, onDec
                         onPress = { decline }
                         style = { [ styles.inviteButton, styles.inviteButtonDecline ] as ViewStyle[] }>
                         <Text
+                            adjustsFontSizeToFit = { true }
+                            allowFontScaling = { false }
+                            minimumFontScale = { 0.75 }
+                            numberOfLines = { 1 }
                             style = { [
                                 styles.inviteButtonLabel,
                                 styles.inviteButtonLabelDecline
@@ -162,6 +166,10 @@ export default function LiveTranslationInviteSheet({ inviterName, onAllow, onDec
                         onPress = { save }
                         style = { [ styles.inviteButton, styles.inviteButtonAccept ] as ViewStyle[] }>
                         <Text
+                            adjustsFontSizeToFit = { true }
+                            allowFontScaling = { false }
+                            minimumFontScale = { 0.75 }
+                            numberOfLines = { 1 }
                             style = { [
                                 styles.inviteButtonLabel,
                                 styles.inviteButtonLabelAccept

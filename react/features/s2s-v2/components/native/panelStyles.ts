@@ -301,18 +301,22 @@ function _create(palette: IS2SV2Palette) {
             ...BaseTheme.typography.bodyShortRegularSmall,
             color: palette.textMuted,
             flex: 1,
+            minWidth: 0,
             marginRight: BaseTheme.spacing[2]
         },
 
         // Ends the session for the whole room, so it is drawn as the one thing on the panel which takes something away
         // rather than as another control which changes what the local user hears.
         closeTranscript: {
+            flexShrink: 1,
             paddingVertical: BaseTheme.spacing[1]
         },
 
         closeTranscriptLabel: {
             ...BaseTheme.typography.bodyShortBold,
-            color: palette.danger
+            color: palette.danger,
+            flexShrink: 1,
+            textAlign: 'right' as const
         },
 
         // The language control, which is the dropdown drawn in the panel's colours rather than the sheet's.
@@ -329,6 +333,7 @@ function _create(palette: IS2SV2Palette) {
 
         languagePillCopy: {
             flex: 1,
+            minWidth: 0,
             marginRight: BaseTheme.spacing[2]
         },
 

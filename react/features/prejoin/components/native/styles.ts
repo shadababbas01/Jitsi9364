@@ -98,6 +98,8 @@ export const preJoinStyles = {
     preJoinRoomName: {
         ...BaseTheme.typography.heading5,
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
+        maxWidth: '100%',
         textAlign: 'center'
     },
 
@@ -114,6 +116,7 @@ export const preJoinStyles = {
     displayRoomNameBackdrop: {
         backgroundColor: BaseTheme.palette.uiBackground,
         borderRadius: BaseTheme.shape.borderRadius,
+        maxWidth: '100%',
         opacity: 0.7,
         paddingHorizontal: BaseTheme.spacing[3],
         paddingVertical: BaseTheme.spacing[1]

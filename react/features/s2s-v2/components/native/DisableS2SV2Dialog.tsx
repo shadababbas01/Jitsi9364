@@ -49,7 +49,12 @@ export default function DisableS2SV2Dialog() {
                         accessibilityRole = 'button'
                         onPress = { cancel }
                         style = { [ styles.button, styles.buttonDismiss ] as ViewStyle[] }>
-                        <Text style = { [ styles.buttonLabel, styles.buttonLabelDismiss ] as TextStyle[] }>
+                        <Text
+                            adjustsFontSizeToFit = { true }
+                            allowFontScaling = { false }
+                            minimumFontScale = { 0.75 }
+                            numberOfLines = { 1 }
+                            style = { [ styles.buttonLabel, styles.buttonLabelDismiss ] as TextStyle[] }>
                             { t('s2sV2.stopDialog.cancel') }
                         </Text>
                     </Pressable>
@@ -58,7 +63,12 @@ export default function DisableS2SV2Dialog() {
                         accessibilityRole = 'button'
                         onPress = { confirm }
                         style = { [ styles.button, styles.buttonDestructive ] as ViewStyle[] }>
-                        <Text style = { [ styles.buttonLabel, styles.buttonLabelPrimary ] as TextStyle[] }>
+                        <Text
+                            adjustsFontSizeToFit = { true }
+                            allowFontScaling = { false }
+                            minimumFontScale = { 0.75 }
+                            numberOfLines = { 1 }
+                            style = { [ styles.buttonLabel, styles.buttonLabelPrimary ] as TextStyle[] }>
                             { t('s2sV2.stopDialog.confirm') }
                         </Text>
                     </Pressable>

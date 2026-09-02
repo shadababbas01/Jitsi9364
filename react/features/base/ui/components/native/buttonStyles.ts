@@ -10,7 +10,10 @@ const button = {
 };
 
 const buttonLabel = {
-    ...BaseTheme.typography.bodyShortBold
+    ...BaseTheme.typography.bodyShortBold,
+    flexShrink: 1,
+    includeFontPadding: false,
+    textAlign: 'center'
 };
 
 export default {

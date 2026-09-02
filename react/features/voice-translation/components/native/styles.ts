@@ -24,6 +24,7 @@ export default {
     title: {
         ...BaseTheme.typography.heading6,
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
         marginBottom: BaseTheme.spacing[1]
     },
 
@@ -73,6 +74,7 @@ export default {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        minWidth: 0,
         minHeight: 56,
         paddingHorizontal: BaseTheme.spacing[3],
         paddingVertical: BaseTheme.spacing[2]
@@ -87,6 +89,8 @@ export default {
         ...BaseTheme.typography.bodyShortRegular,
         color: BaseTheme.palette.text02,
         flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
         marginLeft: BaseTheme.spacing[2],
         textAlign: 'right'
     },
@@ -172,7 +176,8 @@ export default {
     switchLabel: {
         ...BaseTheme.typography.bodyShortRegular,
         color: BaseTheme.palette.text01,
-        flex: 1
+        flex: 1,
+        minWidth: 0
     },
 
     participantItem: {

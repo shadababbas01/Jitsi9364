@@ -154,12 +154,14 @@ export default {
     senderBadgeText: {
         ...BaseTheme.typography.bodyShortRegularSmall,
         color: COLORS.surface,
+        flexShrink: 1,
         fontWeight: 'bold',
         letterSpacing: 0.4
     },
 
     utteranceText: {
-        flex: 1
+        flex: 1,
+        minWidth: 0
     },
 
     // What was said. Read first and read most, so it carries the weight.
@@ -205,6 +207,7 @@ export default {
     controls: {
         alignItems: 'center',
         flexDirection: 'row',
+        minWidth: 0,
 
         // Off the scale by design: the language and the switch are the last things in the panel, and they want clearing
         // from its bottom edge rather than a whole step of it.
@@ -215,6 +218,7 @@ export default {
     controlsLabel: {
         ...BaseTheme.typography.bodyShortRegular,
         color: COLORS.textMuted,
+        flexShrink: 1,
         marginRight: BaseTheme.spacing[2]
     },
 
@@ -225,6 +229,7 @@ export default {
         borderRadius: 8,
         borderWidth: 1,
         flexDirection: 'row',
+        flexShrink: 1,
         marginLeft: 'auto',
         paddingHorizontal: BaseTheme.spacing[2],
         paddingVertical: 7
@@ -233,13 +238,15 @@ export default {
     ccMark: {
         ...BaseTheme.typography.bodyShortBold,
         color: COLORS.action,
+        flexShrink: 1,
         letterSpacing: 0.5,
         marginRight: BaseTheme.spacing[1]
     },
 
     ccState: {
         ...BaseTheme.typography.bodyShortRegular,
-        color: COLORS.action
+        color: COLORS.action,
+        flexShrink: 1
     },
 
     // The one setting the panel has, on the controls line next to the label saying what it sets.
@@ -381,11 +388,13 @@ export default {
 
     inviteHeaderCopy: {
         flex: 1,
+        minWidth: 0,
         paddingTop: 2
     },
 
     inviteTitle: {
         color: COLORS.text,
+        flexShrink: 1,
         fontSize: 15,
         fontWeight: '500',
         lineHeight: 20
@@ -395,6 +404,7 @@ export default {
     // setting, and none of it says this.
     inviteDescription: {
         color: COLORS.textMuted,
+        flexShrink: 1,
         fontSize: 12,
         lineHeight: 16,
         marginTop: 2
@@ -438,11 +448,13 @@ export default {
 
     inviteToggleCopy: {
         flex: 1,
+        minWidth: 0,
         marginRight: BaseTheme.spacing[2] + 4
     },
 
     inviteToggleLabel: {
         color: COLORS.text,
+        flexShrink: 1,
         fontSize: 14,
         fontWeight: '500',
         lineHeight: 20
@@ -459,6 +471,7 @@ export default {
         alignItems: 'center',
         borderRadius: 8,
         flex: 1,
+        minWidth: 0,
         justifyContent: 'center',
         minHeight: 44
     },
@@ -475,8 +488,13 @@ export default {
     },
 
     inviteButtonLabel: {
+        alignSelf: 'stretch',
+        flexShrink: 1,
         fontSize: 15,
-        fontWeight: '500'
+        fontWeight: '500',
+        includeFontPadding: false,
+        textAlign: 'center',
+        width: '100%'
     },
 
     inviteButtonLabelDecline: {

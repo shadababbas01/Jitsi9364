@@ -78,7 +78,8 @@ export default {
     },
 
     headerCopy: {
-        flex: 1
+        flex: 1,
+        minWidth: 0
     },
 
     title: {
@@ -198,6 +199,7 @@ export default {
 
     toggleCopy: {
         flex: 1,
+        minWidth: 0,
         marginRight: BaseTheme.spacing[2]
     },
 
@@ -215,6 +217,7 @@ export default {
         alignItems: 'center',
         borderRadius: BaseTheme.shape.borderRadius,
         flex: 1,
+        minWidth: 0,
         justifyContent: 'center',
         paddingVertical: BaseTheme.spacing[2]
     },
@@ -235,7 +238,12 @@ export default {
     },
 
     buttonLabel: {
-        ...BaseTheme.typography.bodyShortBold
+        ...BaseTheme.typography.bodyShortBold,
+        alignSelf: 'stretch',
+        flexShrink: 1,
+        includeFontPadding: false,
+        textAlign: 'center',
+        width: '100%'
     },
 
     buttonLabelDismiss: {

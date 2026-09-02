@@ -151,6 +151,7 @@ export default {
     titleBarCenter: {
         alignItems: 'center',
         flex: 1,
+        minWidth: 0,
         paddingHorizontal: BaseTheme.spacing[2]
     },
 
@@ -181,12 +182,15 @@ export default {
     meetingName: {
         ...BaseTheme.typography.heading6,
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
+        maxWidth: '100%',
         textAlign: 'center'
     },
 
     meetingTimer: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
         marginTop: 2,
         textAlign: 'center'
     },
@@ -208,6 +212,7 @@ export default {
     roomTimer: {
         ...BaseTheme.typography.bodyShortBold,
         color: BaseTheme.palette.text01,
+        flexShrink: 1,
         lineHeight: 14,
         textAlign: 'center'
     },
@@ -216,6 +221,7 @@ export default {
         backgroundColor: BaseTheme.palette.ui03,
         borderRadius: BaseTheme.shape.borderRadius,
         height: 32,
+        minWidth: 0,
         justifyContent: 'center',
         paddingHorizontal: BaseTheme.spacing[2],
         paddingVertical: BaseTheme.spacing[1],
@@ -225,6 +231,8 @@ export default {
     roomName: {
         color: BaseTheme.palette.text01,
         ...BaseTheme.typography.bodyShortBold,
+        flexShrink: 1,
+        maxWidth: '100%',
         paddingVertical: 6
     },
 
@@ -233,6 +241,7 @@ export default {
         borderBottomLeftRadius: 3,
         borderTopLeftRadius: 3,
         flexShrink: 1,
+        minWidth: 0,
         justifyContent: 'center',
         paddingHorizontal: 10
     },
