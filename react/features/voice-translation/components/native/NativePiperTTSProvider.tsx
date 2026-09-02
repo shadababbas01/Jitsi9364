@@ -17,7 +17,7 @@ import { IReduxState } from '../../../app/types';
 import { translateLiveCaptionText } from '../../../subtitles/languages';
 import { setTileView } from '../../../video-layout/actions.any';
 import { setParticipantTranslating, setVoiceTranslationTtsConnected } from '../../actions';
-import { DEFAULT_PIPER_TTS_URL } from '../../constants';
+import { DEFAULT_PIPER_TTS_URL, ENGLISH_VOICE_TRANSLATION_VOICE } from '../../constants';
 import logger from '../../logger';
 
 interface ISynthesisRequest {
@@ -27,6 +27,10 @@ interface ISynthesisRequest {
     participantId?: string;
     sourceLanguage?: string;
     text: string;
+}
+
+function isEnglishLanguage(language: string) {
+    return language.replace(/[-_]/g, '-').toLowerCase().split('-')[0] === 'en';
 }
 
 export interface IVoiceOption {
@@ -270,11 +274,22 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
         }
 
         pendingRequests.current.push(request);
-        ws.send(JSON.stringify({
+        const synthesisMessage: {
+            language: string;
+            text: string;
+            type: 'synthesize';
+            voice?: string;
+        } = {
             type: 'synthesize',
             text: request.text,
             language
-        }));
+        };
+
+        if (isEnglishLanguage(language)) {
+            synthesisMessage.voice = ENGLISH_VOICE_TRANSLATION_VOICE;
+        }
+
+        ws.send(JSON.stringify(synthesisMessage));
 
         return true;
     }, [ languages ]);
