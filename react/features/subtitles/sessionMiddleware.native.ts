@@ -8,6 +8,7 @@ import {
     ENDPOINT_MESSAGE_RECEIVED
 } from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
+import { hideSheet, openSheet } from '../base/dialog/actions';
 import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { PARTICIPANT_JOINED, PARTICIPANT_LEFT } from '../base/participants/actionTypes';
 import {
@@ -26,6 +27,7 @@ import { setS2SV2PanelVisible } from '../s2s-v2/actions';
 import { isS2SV2Active } from '../s2s-v2/functions';
 
 import {
+    SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_PANEL_OPEN,
     TOGGLE_REQUESTING_SUBTITLES
@@ -33,11 +35,13 @@ import {
 import {
     removeTranscriptMessage,
     setCaptionsStartedBy,
+    setCaptionsStopConfirmVisible,
     setRequestingSubtitles,
     setSubtitlesPanelOpen,
     storeSubtitle,
     updateTranscriptMessage
 } from './actions.any';
+import DisableLiveCaptionsDialog from './components/native/DisableLiveCaptionsDialog';
 import {
     CAPTIONS_LATE_JOINER_DELAYS_MS,
     CAPTIONS_LISTENER_RESEND_DELAYS_MS,
@@ -767,6 +771,10 @@ function _teardown(store: IStore) {
     _syncConnection(store, false);
     _syncNoiseSuppression(false);
     store.dispatch(setSubtitlesPanelOpen(false));
+
+    if (store.getState()['features/subtitles'].stopConfirmVisible) {
+        store.dispatch(setCaptionsStopConfirmVisible(false));
+    }
 }
 
 /**
@@ -868,6 +876,14 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         if (action.open && isS2SV2Active(store.getState())) {
             store.dispatch(setS2SV2PanelVisible(false));
         }
+
+        return result;
+    }
+
+    case SET_CAPTIONS_STOP_CONFIRM_VISIBLE: {
+        const result = next(action);
+
+        store.dispatch(action.visible ? openSheet(DisableLiveCaptionsDialog) : hideSheet());
 
         return result;
     }

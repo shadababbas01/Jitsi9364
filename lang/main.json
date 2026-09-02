@@ -205,6 +205,12 @@
         "empty": "Captions will appear here as people speak.",
         "liveSpeechTranslation": "Live Speech Translation",
         "stop": ".",
+        "stopDialog": {
+            "cancel": "Cancel",
+            "confirm": "Stop",
+            "description": "Everyone will stop seeing live captions. Anyone with moderator access can turn them back on later.",
+            "title": "Stop live captions?"
+        },
         "title": "Live Captions",
         "you": "You"
     },

@@ -5,6 +5,7 @@ import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_CAPTIONS_STARTED_BY,
+    SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
@@ -26,6 +27,7 @@ const defaultState = {
     _language: null,
     messages: [],
     panelOpen: false,
+    stopConfirmVisible: false,
     startedBy: undefined,
     subtitlesHistory: [],
     _hasError: false
@@ -49,6 +51,7 @@ export interface ISubtitlesState {
      * moderator in the room, and captions running on after they have gone is the failure this exists to prevent.
      */
     startedBy?: string;
+    stopConfirmVisible: boolean;
     subtitlesHistory: Array<ISubtitle>;
 }
 
@@ -134,6 +137,11 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         return {
             ...state,
             panelOpen: action.open
+        };
+    case SET_CAPTIONS_STOP_CONFIRM_VISIBLE:
+        return {
+            ...state,
+            stopConfirmVisible: action.visible
         };
     case SET_CAPTIONS_STARTED_BY:
         return {

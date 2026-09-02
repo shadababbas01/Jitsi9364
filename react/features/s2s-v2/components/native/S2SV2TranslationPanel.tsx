@@ -63,9 +63,9 @@ interface IProps {
  *
  * Header controls:
  * - Light/dark theme.
- * - Close panel.
+ * - Ask to stop translation.
  *
- * Closing this panel only hides it. It does not stop the translation session.
+ * Swiping this panel down only hides it. The close icon asks for confirmation before stopping the translation session.
  *
  * @returns {JSX.Element|null}
  */
@@ -116,12 +116,12 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
     );
 
     /**
-     * Pulling the panel down by its grabber puts it away, exactly as the X in the header does: hidden, still running.
+     * Pulling the panel down by its grabber puts it away: hidden, still running.
      *
      * Nothing contains this panel - it is drawn straight into the conference - so it does its own sliding out, and the
-     * X in the header goes through the same slide rather than switching the panel off where it stands.
+     * The X in the header has a separate path because it opens the stop-confirmation dialog.
      */
-    const { dismiss, handlers, onLayout, translateY } = useS2SV2SwipeDismiss(close, {
+    const { handlers, onLayout, translateY } = useS2SV2SwipeDismiss(close, {
         animateExit: true,
         visible: active && visible
     });
@@ -154,8 +154,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
     );
 
     /**
-     * Moderator-only action to stop translation
-     * for everyone.
+     * Asks for confirmation before stopping translation for everyone.
      */
     const closeTranscript = useCallback(
         () =>
@@ -225,7 +224,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                 <Pressable
                     accessibilityLabel = { t('dialog.close') }
                     accessibilityRole = 'button'
-                    onPress = { dismiss }
+                    onPress = { closeTranscript }
                     style = { styles.headerIconButton as ViewStyle }>
                     <Icon
                         color = { iconColor }
@@ -415,7 +414,7 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                     {/*
                      * Only moderators can stop translation for everyone.
                      *
-                     * The X button in the header merely hides the panel.
+                     * The X button in the header opens the same confirmation.
                      */}
                     { moderator && (
                         <Pressable

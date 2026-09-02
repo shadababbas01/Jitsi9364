@@ -4,6 +4,7 @@ import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_CAPTIONS_STARTED_BY,
+    SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
@@ -186,6 +187,19 @@ export function setSubtitlesPanelOpen(open: boolean) {
     return {
         type: SET_SUBTITLES_PANEL_OPEN,
         open
+    };
+}
+
+/**
+ * Shows or hides the confirmation before live captions are stopped for everyone.
+ *
+ * @param {boolean} visible - Whether the confirmation should be visible.
+ * @returns {Object}
+ */
+export function setCaptionsStopConfirmVisible(visible: boolean) {
+    return {
+        type: SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
+        visible
     };
 }
 

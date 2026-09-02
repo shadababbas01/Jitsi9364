@@ -82,6 +82,11 @@ export const SET_SUBTITLES_LANGUAGE = 'SET_SUBTITLES_LANGUAGE';
 export const SET_SUBTITLES_PANEL_OPEN = 'SET_SUBTITLES_PANEL_OPEN';
 
 /**
+ * Action to show or hide the confirmation before stopping live captions.
+ */
+export const SET_CAPTIONS_STOP_CONFIRM_VISIBLE = 'SET_CAPTIONS_STOP_CONFIRM_VISIBLE';
+
+/**
  * Action which records which participant turned live captions on.
  *
  * {

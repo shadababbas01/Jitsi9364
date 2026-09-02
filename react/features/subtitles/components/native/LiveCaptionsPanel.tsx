@@ -22,7 +22,11 @@ import getS2SV2PanelStyles from '../../../s2s-v2/components/native/panelStyles';
 import useS2SV2SurfaceTap from '../../../s2s-v2/components/native/useS2SV2SurfaceTap';
 import useS2SV2SwipeDismiss from '../../../s2s-v2/components/native/useS2SV2SwipeDismiss';
 import { getS2SV2Theme } from '../../../s2s-v2/functions';
-import { setRequestingSubtitles, setSubtitlesLanguage, setSubtitlesPanelOpen } from '../../actions.any';
+import {
+    setCaptionsStopConfirmVisible,
+    setSubtitlesLanguage,
+    setSubtitlesPanelOpen
+} from '../../actions.any';
 import { CAPTIONS_STT_LANGUAGE } from '../../constants';
 import { getCaptionsPanelHeight, isLiveTranscriptionActive } from '../../functions.any';
 import { normalizeSubtitlesLanguage, toSubtitlesLanguageValue } from '../../languages';
@@ -92,9 +96,9 @@ function _visibleCaptions(history: ISubtitle[]): ISubtitle[] {
  *
  * Header controls:
  * - Light/dark theme.
- * - Close panel.
+ * - Ask to stop captions.
  *
- * Closing this panel only hides it. It does not stop captions, which are the room's rather than this device's.
+ * Swiping this panel down only hides it. The close icon asks for confirmation before stopping captions.
  *
  * @param {IProps} props - Component props.
  * @returns {JSX.Element|null}
@@ -139,9 +143,9 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
     );
 
     /**
-     * Pulling the panel down by its grabber puts it away, exactly as the X in the header does: hidden, still running.
+     * Pulling the panel down by its grabber puts it away: hidden, still running.
      */
-    const { dismiss, handlers, onLayout, translateY } = useS2SV2SwipeDismiss(close, {
+    const { handlers, onLayout, translateY } = useS2SV2SwipeDismiss(close, {
         animateExit: true,
         visible: active && visible
     });
@@ -165,14 +169,11 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
     );
 
     /**
-     * Ends live captions for the whole room.
-     *
-     * A room whose starter has left is not left stuck: every device watches for that independently and turns the
-     * session off by itself, so gating this control costs nobody the ability to escape a session.
+     * Asks for confirmation before live captions are stopped for the whole room.
      */
-    const stopCaptions = useCallback(
-        () => dispatch(setRequestingSubtitles(false, false, language)),
-        [ dispatch, language ]
+    const confirmStopCaptions = useCallback(
+        () => dispatch(setCaptionsStopConfirmVisible(true)),
+        [ dispatch ]
     );
 
     /**
@@ -221,7 +222,7 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
                 <Pressable
                     accessibilityLabel = { t('dialog.close') }
                     accessibilityRole = 'button'
-                    onPress = { dismiss }
+                    onPress = { confirmStopCaptions }
                     style = { styles.headerIconButton as ViewStyle }>
                     <Icon
                         color = { iconColor }
@@ -317,7 +318,7 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
                             accessibilityLabel = { t('liveCaptionsPanel.stop') }
                             { ...claim }
                             accessibilityRole = 'button'
-                            onPress = { stopCaptions }
+                            onPress = { confirmStopCaptions }
                             style = { [
                                 styles.closeTranscript,
                                 styles.liveCaptionsStop
