@@ -48,7 +48,6 @@ import VoiceTranslationTileIndicators from '../../../voice-translation/component
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
 import { isS2SV2ParticipantTranslating } from '../../../s2s-v2/functions';
 
-import AudioMutedIndicator from './AudioMutedIndicator';
 import ModeratorIndicator from './ModeratorIndicator';
 import PinnedIndicator from './PinnedIndicator';
 import RaisedHandIndicator from './RaisedHandIndicator';
@@ -449,8 +448,6 @@ class Thumbnail extends PureComponent<IProps, IState> {
      */
     _renderIndicators() {
         const {
-            _audioMuted: audioMuted,
-            _audioTrack: audioTrack,
             _fakeParticipant,
             _isScreenShare: isScreenShare,
             _isVirtualScreenshare,
@@ -468,7 +465,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
 
         if (_shouldDisplayTileView) {
             bottomIndicatorsContainerStyle = styles.bottomIndicatorsContainer;
-        } else if (audioMuted || renderModeratorIndicator) {
+        } else if (renderModeratorIndicator) {
             bottomIndicatorsContainerStyle = styles.bottomIndicatorsContainer;
         } else {
             bottomIndicatorsContainerStyle = null;
@@ -491,7 +488,6 @@ class Thumbnail extends PureComponent<IProps, IState> {
                 style = { styles.thumbnailIndicatorContainer as StyleType }>
                 <Container
                     style = { bottomIndicatorsContainerStyle as StyleType }>
-                    { audioMuted && !_isVirtualScreenshare && <AudioMutedIndicator /> }
                     {/* { !tileView && _pinned && <PinnedIndicator />} */}
                     { renderModeratorIndicator && !_isVirtualScreenshare && <ModeratorIndicator />}
                     { !tileView && (isScreenShare || _isVirtualScreenshare) && <ScreenShareIndicator /> }

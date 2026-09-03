@@ -17,7 +17,11 @@ import { IReduxState } from '../../../app/types';
 import { translateLiveCaptionText } from '../../../subtitles/languages';
 import { setTileView } from '../../../video-layout/actions.any';
 import { setParticipantTranslating, setVoiceTranslationTtsConnected } from '../../actions';
-import { DEFAULT_PIPER_TTS_URL, ENGLISH_VOICE_TRANSLATION_VOICE } from '../../constants';
+import {
+    DEFAULT_PIPER_TTS_URL,
+    ENGLISH_VOICE_TRANSLATION_GENDER,
+    ENGLISH_VOICE_TRANSLATION_VOICE
+} from '../../constants';
 import logger from '../../logger';
 
 interface ISynthesisRequest {
@@ -31,6 +35,12 @@ interface ISynthesisRequest {
 
 function isEnglishLanguage(language: string) {
     return language.replace(/[-_]/g, '-').toLowerCase().split('-')[0] === 'en';
+}
+
+function toGoogleEnglishLanguageCode(language: string) {
+    const normalized = language.replace(/_/g, '-');
+
+    return normalized.toLowerCase() === 'en' ? 'en-US' : normalized;
 }
 
 export interface IVoiceOption {
@@ -275,10 +285,18 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
 
         pendingRequests.current.push(request);
         const synthesisMessage: {
+            gender?: string;
             language: string;
+            ssmlGender?: string;
             text: string;
             type: 'synthesize';
             voice?: string;
+            voiceConfig?: {
+                languageCode: string;
+                name: string;
+                ssmlGender: string;
+            };
+            voiceName?: string;
         } = {
             type: 'synthesize',
             text: request.text,
@@ -286,7 +304,17 @@ export function NativePiperTTSProvider({ children }: { children: React.ReactNode
         };
 
         if (isEnglishLanguage(language)) {
+            const languageCode = toGoogleEnglishLanguageCode(language);
+
+            synthesisMessage.gender = 'male';
+            synthesisMessage.ssmlGender = ENGLISH_VOICE_TRANSLATION_GENDER;
             synthesisMessage.voice = ENGLISH_VOICE_TRANSLATION_VOICE;
+            synthesisMessage.voiceConfig = {
+                languageCode,
+                name: ENGLISH_VOICE_TRANSLATION_VOICE,
+                ssmlGender: ENGLISH_VOICE_TRANSLATION_GENDER
+            };
+            synthesisMessage.voiceName = ENGLISH_VOICE_TRANSLATION_VOICE;
         }
 
         ws.send(JSON.stringify(synthesisMessage));

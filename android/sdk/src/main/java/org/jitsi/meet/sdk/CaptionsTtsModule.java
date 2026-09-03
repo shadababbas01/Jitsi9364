@@ -76,6 +76,19 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     private static final String PREFERRED_ENGINE = "com.google.android.tts";
 
     /**
+     * Android's TextToSpeech voices do not expose gender directly. These are the
+     * stable hints Google puts in voice names when a male voice is available.
+     */
+    private static final String[] ENGLISH_MALE_VOICE_HINTS = {
+        "male",
+        "en-us-x-iom",
+        "en-us-x-iob",
+        "en-us-x-tpd",
+        "en-gb-x-gbb",
+        "en-gb-x-rjs"
+    };
+
+    /**
      * The device text-to-speech engine. Created lazily by {@link #initialize}
      * and kept around until {@link #shutdown} is called, because initializing
      * the engine takes a noticeable amount of time.
@@ -648,6 +661,7 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
     private static int scoreVoice(Voice voice, Locale wanted) {
         String country = wanted.getCountry();
         int score = voice.getQuality();
+        String language = wanted.getLanguage();
 
         // A voice which has to be fetched is a synthesized one rather than a recorded one, and it is the reason for
         // choosing a voice at all.
@@ -662,7 +676,38 @@ public class CaptionsTtsModule extends ReactContextBaseJavaModule {
             score += 5000;
         }
 
+        if ("en".equalsIgnoreCase(language) && looksLikeEnglishMaleVoice(voice)) {
+            score += 10000;
+        }
+
         return score;
+    }
+
+    /**
+     * Best-effort male voice detection for Google's Android TTS engine.
+     *
+     * Android exposes a voice name but no gender field, so this keeps the normal quality/country scoring and adds a
+     * strong preference only when the engine advertises one of Google's known male English identifiers.
+     *
+     * @param voice the voice being judged
+     * @return whether the voice name looks like a male English voice
+     */
+    private static boolean looksLikeEnglishMaleVoice(Voice voice) {
+        String name = voice.getName();
+
+        if (name == null) {
+            return false;
+        }
+
+        String normalizedName = name.toLowerCase(Locale.US);
+
+        for (String hint : ENGLISH_MALE_VOICE_HINTS) {
+            if (normalizedName.contains(hint)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

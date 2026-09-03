@@ -1,19 +1,17 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import {
-    Animated,
     BackHandler,
     DeviceEventEmitter,
     NativeEventEmitter,
     NativeModules,
     Platform,
-    Text,
     View,
     ViewStyle
 } from 'react-native';
 import Orientation from 'react-native-orientation-locker';
 import { Edge, EdgeInsets, SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 
 import { appNavigate } from '../../../app/actions.native';
 import { IReduxState, IStore } from '../../../app/types';
@@ -22,7 +20,6 @@ import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference
 import { setConnectionStatus } from '../../../base/conference/actions.any';
 import {
     getLocalParticipant,
-    getParticipantById,
     getRemoteParticipants,
     isScreenShareParticipant
 } from '../../../base/participants/functions';
@@ -37,7 +34,6 @@ import { updateSettings } from '../../../base/settings/actions';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import { StyleType } from '../../../base/styles/functions.any';
 import TestConnectionInfo from '../../../base/testing/components/TestConnectionInfo';
-import { isParticipantAudioMuted } from '../../../base/tracks/functions.native';
 import { isCalendarEnabled } from '../../../calendar-sync/functions.native';
 import BrandingImageBackground from '../../../dynamic-branding/components/native/BrandingImageBackground';
 import Filmstrip from '../../../filmstrip/components/native/Filmstrip';
@@ -77,72 +73,6 @@ import styles from './styles';
 
 const { JSCommunicateComponent, OpenMelpModule } = NativeModules;
 const DOUBLE_PRESS_DELAY = 300;
-
-// Full-width absolutely-positioned row that centres the pill
-const remoteMutedBannerRow: ViewStyle = {
-    alignItems: 'center',
-    left: 0,
-    position: 'absolute',
-    right: 0
-};
-
-// The actual pill — sized to its content
-const remoteMutedBannerPill: ViewStyle = {
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    borderColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 18,
-    borderWidth: 0.5,
-    paddingHorizontal: 18,
-    paddingVertical: 7
-};
-
-const remoteMutedTextStyle = {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500' as const
-};
-
-/**
- * WhatsApp-style "Muted" pill that appears at the bottom-center of the large
- * video when the remote participant has their mic off.
- *
- * @returns {ReactElement | null}
- */
-function RemoteMutedBanner({ participantId, topOffset = 120 }: { participantId: string; topOffset?: number; }) {
-    const participant = useSelector((state: IReduxState) => getParticipantById(state, participantId));
-
-    // Asked of the meeting rather than of the audio track, so that somebody in a live translation call is called muted
-    // only when they have actually closed their microphone: their conference track is muted for the whole of that call.
-    const isMuted = useSelector((state: IReduxState) => isParticipantAudioMuted(participant, state));
-    const isRemote = Boolean(participant && !participant.local);
-    const displayName: string = participant?.name ?? 'User';
-
-    const opacity = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        Animated.timing(opacity, {
-            toValue: (isMuted && isRemote) ? 1 : 0,
-            duration: 300,
-            useNativeDriver: true
-        }).start();
-    }, [ isMuted, isRemote, opacity ]);
-
-    if (!isRemote) {
-        return null;
-    }
-
-    return (
-        <Animated.View
-            pointerEvents = 'none'
-            style = { [ remoteMutedBannerRow, { opacity, top: topOffset } ] }>
-            <View style = { remoteMutedBannerPill }>
-                <Text style = { remoteMutedTextStyle }>
-                    { `${displayName} is mute` }
-                </Text>
-            </View>
-        </Animated.View>
-    );
-}
 
 /**
  * The type of the React {@code Component} props of {@link Conference}.
@@ -208,14 +138,14 @@ interface IProps extends AbstractProps {
     _isMelpChatOpen: boolean;
 
     /**
-     * The indicator which determines if the participants pane is open.
-     */
-    _isParticipantsPaneOpen: boolean;
-
-    /**
      * Whether app is currently in native PiP mode.
      */
     _isNativePipMode: boolean;
+
+    /**
+     * The indicator which determines if the participants pane is open.
+     */
+    _isParticipantsPaneOpen: boolean;
 
     /**
      * The ID of the participant currently on stage (if any).
@@ -223,14 +153,14 @@ interface IProps extends AbstractProps {
     _largeVideoParticipantId: string;
 
     /**
-     * Local participant id.
-     */
-    _localParticipantId?: string;
-
-    /**
      * Local participant's display name.
      */
     _localParticipantDisplayName: string;
+
+    /**
+     * Local participant id.
+     */
+    _localParticipantId?: string;
 
     /**
      * Native call status mirrored from iOS.
@@ -506,11 +436,9 @@ class Conference extends AbstractConference<IProps, State> {
         const isDoubleTap = now - this.lastClickTime < DOUBLE_PRESS_DELAY;
 
         if (isDoubleTap && !this.props._shouldDisplayTileView) {
-            // Double-tap in large video → go back to tile view
-           
+            // Double-tap in large video to go back to tile view.
             this.props.dispatch(setTileView(true));
         } else if (!isDoubleTap) {
-            
             this._setToolboxVisible(!this.props._toolboxVisible);
         }
 
@@ -680,11 +608,6 @@ class Conference extends AbstractConference<IProps, State> {
                     <TitleBar _createOnPress = { this._createOnPress } />
                 </SafeAreaView>
 
-                { !_shouldDisplayTileView && (
-                    <RemoteMutedBanner
-                        participantId = { this.props._largeVideoParticipantId }
-                        topOffset = { this.props.insets.top + 112 } />
-                ) }
                 <SafeAreaView
                     edges = { [ 'bottom', 'left', 'right', !_toolboxVisible && 'top' ].filter(Boolean) as Edge[] }
                     pointerEvents = 'box-none'

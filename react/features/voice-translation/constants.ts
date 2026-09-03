@@ -22,6 +22,12 @@ export const DEFAULT_PIPER_TTS_URL = 'wss://ai.live.melp.us/tts/';
 export const ENGLISH_VOICE_TRANSLATION_VOICE = 'en-US-Neural2-D';
 
 /**
+ * Gender requested for English voice translation when the TTS backend is using
+ * Google Cloud Text-to-Speech.
+ */
+export const ENGLISH_VOICE_TRANSLATION_GENDER = 'MALE';
+
+/**
  * The data-channel endpoint name used to sync voice translation state.
  */
 export const VOICE_TRANSLATION_ENDPOINT = 'voice-translation';

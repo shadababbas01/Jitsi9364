@@ -151,7 +151,7 @@ interface IProps {
     showSpeakerWave?: boolean;
 
     /**
-     * Whether to show status labels (muted/on-hold) for this view.
+     * Whether to show status labels (on-hold/translation) for this view.
      */
     showStatusLabel?: boolean;
 

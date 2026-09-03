@@ -7,9 +7,13 @@ import { getParticipantCountForDisplay } from '../../../base/participants/functi
 const useStyles = makeStyles()(theme => {
     return {
         badge: {
+            alignItems: 'center',
             backgroundColor: theme.palette.ui03,
             borderRadius: '100%',
+            boxSizing: 'border-box',
+            display: 'flex',
             height: '16px',
+            justifyContent: 'center',
             minWidth: '16px',
             color: theme.palette.text01,
             ...theme.typography.labelBold,
@@ -17,7 +21,6 @@ const useStyles = makeStyles()(theme => {
             position: 'absolute',
             right: '-4px',
             top: '-3px',
-            textAlign: 'center',
             padding: '1px'
         }
     };
