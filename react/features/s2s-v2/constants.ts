@@ -285,14 +285,3 @@ export const VOICE_PITCH_VARIANTS = [ 1, 0.85, 1.15, 0.92, 1.08, 0.79, 1.21 ];
  * and a language it could not speak would otherwise cost a perfectly good voice.
  */
 export const VOICE_FAILURE_LIMIT = 2;
-
-/**
- * How many of a speaker's sentences are read out with their name in front of them.
- *
- * Every speaker has a voice of their own, but a voice has to be heard before it means anything: the first time a
- * listener hears one they have no way of knowing whose it is. So the name goes in front of the first few sentences and
- * then stops, by which point the voice itself is the introduction and repeating the name would only be in the way.
- *
- * Counted per speaker, per session, and only against sentences which were actually read out.
- */
-export const SPEAKER_INTRO_UTTERANCES = 4;

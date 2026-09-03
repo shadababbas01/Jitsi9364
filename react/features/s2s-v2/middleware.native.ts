@@ -980,10 +980,6 @@ function _speak(store: IStore, message: IS2SV2Transcript, text: string, language
         messageId: message.messageId,
         originalText: message.originalText,
         speakerId: message.speakerId,
-
-        // The name they set, and not the display name the panel shows: that one stands in a name nobody gave with the
-        // meeting's own, which is worth reading on a screen and not worth reading out.
-        speakerName: getParticipantById(state, message.speakerId)?.name ?? '',
         text,
         timestamp: message.timestamp || Date.now()
     });
