@@ -70,6 +70,7 @@ public class ReactInstanceManagerHolder {
                 new LocalMicRecorderModule(reactContext),
                 new MelpSpeechRecognizerModule(reactContext),
                 new PictureInPictureModule(reactContext),
+                new PiperAudioFileModule(reactContext),
                 new ProximityModule(reactContext),
                 new VirtualBackgroundModule(reactContext),
                 new OpenMelpModule(reactContext),

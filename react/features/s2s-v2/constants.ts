@@ -104,6 +104,17 @@ export const SYNTHESIS_TIMEOUT_MS = 20 * 1000;
 export const TTS_RECONNECT_DELAY_MS = 5 * 1000;
 
 /**
+ * How long a freshly opened speech connection holds its first batch of requests before sending them anyway.
+ *
+ * The service pushes its voice list unprompted right after the connection opens, and resolving a voice before that
+ * list has arrived means guessing rather than asking - which is how a session's first sentence, said before
+ * anything else has had time to cross the wire, would otherwise be sent under a bare language code instead of the
+ * full id the service actually advertised for it. Short, because the list is not worth stalling the first sentence
+ * of a session for indefinitely if it never arrives.
+ */
+export const INITIAL_LANGUAGES_GRACE_MS = 1500;
+
+/**
  * How many sentences wait to be spoken.
  *
  * Deliberately short. A busy room produces speech faster than it can be read out, and a backlog only ever falls further

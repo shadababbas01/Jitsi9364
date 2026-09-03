@@ -5,7 +5,7 @@
         "target": "es2020",
         "jsx": "react-native",
         "lib": [ "ES2020", "ES2024.Promise" ],
-        "types": [ "react-native" ],
+        "types": [ "react-native", "jest" ],
         "skipLibCheck": true,
         "moduleResolution": "Node",
         "strict": true,

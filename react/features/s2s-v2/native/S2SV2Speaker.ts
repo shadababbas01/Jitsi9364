@@ -1,11 +1,11 @@
-import { DEFAULT_SPEECH_RATE } from '../../caption-tts/constants';
-import { getCaptionsTtsNativeModule, toTtsLanguageTag } from '../../caption-tts/functions.native';
+import { IReduxState } from '../../app/types';
 import { rememberSpokenText } from '../../caption-tts/spokenText';
 import { TTS_QUEUE_LIMIT } from '../constants';
 import logger from '../logger';
 
+import PiperAudioPlayer from './piper/PiperAudioPlayer';
+import PiperTtsClient from './piper/PiperTtsClient';
 import { introFor, noteIntroSpoken, resetSpeakerIntros } from './speakerIntro';
-import { noteVoiceFailed, resetVoiceAssignments, resolveVoiceForSpeaker } from './voiceAssignment';
 
 /**
  * One sentence waiting to be read out.
@@ -58,10 +58,9 @@ export interface IS2SV2Utterance {
 /**
  * Reads translated sentences out loud, in the order they were said.
  *
- * The device speech engine does the speaking, through the same bridge the captions and the 1:1 translated call already
- * read through. Deliberately not a second connection to the speech service: this path is the one which works on the
- * devices this ships to, and translated speech is local to the listener anyway - nothing about which engine says the
- * words crosses the wire, so nothing about it can disagree with the web client.
+ * Melp's Piper speech service does the speaking, over the one websocket kept open for {@link PiperTtsClient}. Every
+ * listener in a language shares the one voice the service advertises for it - a room is told apart by whose name is
+ * read in front of their first few sentences, not by which of several voices happened to be handed to them.
  *
  * The queue is short on purpose. A busy room says more than can be read out, and a backlog only falls further behind:
  * once it is full the oldest waiting sentence goes, because it is the one furthest behind the conversation.
@@ -74,18 +73,21 @@ export default class S2SV2Speaker {
     private _onSpeakingChange: (speakerId: string | null, messageId: string | null) => void;
 
     /**
-     * Told when the engine cannot speak, so that a listener is not left waiting for audio which is not coming.
+     * Told when the service cannot speak, so that a listener is not left waiting for audio which is not coming.
      */
     private _onError: () => void;
+
+    private _client: PiperTtsClient;
+
+    private _player: PiperAudioPlayer;
 
     private _closed = false;
 
     private _draining?: () => void;
 
-    private _initialized = false;
-
-
     private _queue: IS2SV2Utterance[] = [];
+
+    private _generation = 0;
 
     private _running = false;
 
@@ -96,14 +98,18 @@ export default class S2SV2Speaker {
     /**
      * Initializes a new {@code S2SV2Speaker} instance.
      *
-     * @param {Object} callbacks - What to tell the rest of the feature about.
+     * @param {Object} callbacks - What it needs to reach the speech service, and what to tell the rest of the
+     * feature about.
      */
     constructor(callbacks: {
+        getState: () => IReduxState;
         onError: () => void;
         onSpeakingChange: (speakerId: string | null, messageId: string | null) => void;
     }) {
         this._onError = callbacks.onError;
         this._onSpeakingChange = callbacks.onSpeakingChange;
+        this._client = new PiperTtsClient({ getState: callbacks.getState });
+        this._player = new PiperAudioPlayer();
     }
 
     /**
@@ -116,47 +122,37 @@ export default class S2SV2Speaker {
     }
 
     /**
-     * Whether this device can read anything out at all.
+     * Whether this device can read anything out at all. Piper is a server the app carries its own connection to,
+     * not something which may or may not be installed on the device, so this is always true.
      *
      * @returns {boolean}
      */
     static get supported(): boolean {
-        return Boolean(getCaptionsTtsNativeModule()?.speak);
+        return true;
     }
 
     /**
-     * Wakes the engine up, so that the first sentence of a session does not wait for it.
+     * Opens the speech connection, so that the first sentence of a session does not wait for it.
      *
      * @returns {void}
      */
     open() {
         this._closed = false;
-        this._initialize();
+        this._client.connect();
     }
 
     /**
-     * Returns whether the device has a voice for a language.
+     * Returns whether the speech service has a voice for a language.
      *
-     * Worth asking before the first sentence rather than finding out during it: the engine does not refuse a language
-     * it has no voice for, it simply says nothing, which a listener cannot tell apart from nobody talking.
+     * Worth asking before the first sentence rather than finding out during it: the service is not asked what it
+     * cannot do, and telling a listener up front is worth more than a session which quietly says nothing in their
+     * chosen language.
      *
      * @param {string} language - The language a listener chose.
      * @returns {Promise<boolean>}
      */
     async canSpeak(language: string): Promise<boolean> {
-        const module = getCaptionsTtsNativeModule();
-
-        if (!module || !await this._initialize()) {
-            return false;
-        }
-
-        try {
-            return await module.isLanguageAvailable(toTtsLanguageTag(language));
-        } catch (error) {
-            logger.warn('Could not ask the speech engine which languages it has', error);
-
-            return false;
-        }
+        return this._client.canSpeak(language);
     }
 
     /**
@@ -166,6 +162,9 @@ export default class S2SV2Speaker {
      * @returns {void}
      */
     speak(utterance: IS2SV2Utterance) {
+        console.log(`[s2s-v2] Speaker: asked to speak ${utterance.messageId} (closed: ${this._closed}, `
+            + `queue length before: ${this._queue.length})`);
+
         if (this._closed || !utterance.text.trim()) {
             return;
         }
@@ -212,44 +211,32 @@ export default class S2SV2Speaker {
         this._queue = [];
         this._draining = undefined;
 
-        // Who sounded like what, and who has been introduced, both belonged to that session. The next one starts
-        // over, because the participant IDs they were held under will not be the same ones.
-        resetVoiceAssignments();
+        // Who has been introduced belonged to that session. The next one starts over, because the participant IDs
+        // it was held under will not be the same ones.
         resetSpeakerIntros();
 
-        try {
-            getCaptionsTtsNativeModule()?.stop();
-        } catch (error) {
-            logger.warn('Could not stop the speech engine', error);
-        }
+        this._player.stop();
+        this._client.disconnect();
 
         this._setSpeaking(null, null);
     }
 
     /**
-     * Creates the engine, reusing the answer once it is known.
+     * Cuts off whatever is playing or being synthesized right now, and drops everything still queued, without
+     * closing the connection or resetting the session - the feature is still enabled, it is only listening to a
+     * different language from this moment on.
      *
-     * @returns {Promise<boolean>} Whether it can be used.
+     * Distinct from {@link close}: a session ending drains what is already queued before anything stops, because
+     * cutting somebody off mid-sentence to save a moment is a worse listening experience than the extra second it
+     * takes to finish. A language change is the opposite - the audio already in flight is in a language nobody is
+     * listening in any more, so finishing it plays a sentence to nobody.
+     *
+     * @returns {void}
      */
-    private async _initialize(): Promise<boolean> {
-        if (this._initialized) {
-            return true;
-        }
-
-        const module = getCaptionsTtsNativeModule();
-
-        if (!module) {
-            return false;
-        }
-
-        try {
-            this._initialized = await module.initialize();
-        } catch (error) {
-            logger.warn('Could not start the speech engine', error);
-            this._initialized = false;
-        }
-
-        return this._initialized;
+    interruptForLanguageChange(): void {
+        this._generation++;
+        this._queue = [];
+        this._player.stop();
     }
 
     /**
@@ -264,30 +251,22 @@ export default class S2SV2Speaker {
 
         this._running = true;
 
-        const module = getCaptionsTtsNativeModule();
-
-        if (!module || !await this._initialize()) {
-            logger.warn('This device cannot read translations out loud');
-            this._queue = [];
-            this._running = false;
-            this._onError();
-
-            return;
-        }
-
         while (this._queue.length && !this._closed) {
+            const generation = this._generation;
             const utterance = this._queue.shift() as IS2SV2Utterance;
+
+            console.log(`[s2s-v2] Speaker: draining ${utterance.messageId} (${this._queue.length} left after this)`);
 
             this._setSpeaking(utterance.speakerId, utterance.messageId);
 
             // A voice means nothing the first time it is heard, so the speaker's name goes in front of their first
-            // few sentences and then stops: "Shadab says, hello". The comma is not spoken - it is what the engine
+            // few sentences and then stops: "Shadab says, hello". The comma is not spoken - it is what the service
             // pauses on, which is what keeps the name from running into the sentence.
             const intro = introFor(utterance.speakerId, utterance.speakerName);
             const line = intro ? `${intro}, ${utterance.text}` : utterance.text;
 
             try {
-                // What goes to the engine is what the microphone might hear back, so it is remembered before playback
+                // What goes to the service is what the microphone might hear back, so it is remembered before playback
                 // starts. The capture stays full duplex; this rejects anything the platform echo canceller leaves behind.
                 rememberSpokenText(line);
 
@@ -306,30 +285,32 @@ export default class S2SV2Speaker {
                     rememberSpokenText(utterance.originalText);
                 }
 
-                const languageTag = toTtsLanguageTag(utterance.language);
+                const { bytes, format } = await this._client.synthesize(line, utterance.language);
 
-                // Whoever is being read out keeps one voice for the whole session, so that a listener can tell who is
-                // talking from the sound of it rather than only from the name above the line. Which voice it comes to
-                // is worked out in {@link ./voiceAssignment}; an older SDK has no way to be told, and reads everybody
-                // out in the one voice it always did.
-                const voice = await resolveVoiceForSpeaker(utterance.speakerId, languageTag);
-                const spoken = module.speakAs
-                    ? await module.speakAs(line, languageTag, DEFAULT_SPEECH_RATE, voice.name ?? null, voice.pitch)
-                    : await module.speak(line, languageTag, DEFAULT_SPEECH_RATE);
+                // A language change while that was in flight already cut off whatever was playing and dropped
+                // everything queued behind it - this one arrived too late to matter and is not played either, in a
+                // language the listener switched away from before it was even ready.
+                const interrupted = generation !== this._generation;
 
-                if (spoken) {
-                    if (intro) {
-                        // Spent only now. A sentence the engine did not say introduced nobody.
-                        noteIntroSpoken(utterance.speakerId);
-                    }
-                } else if (voice.name) {
-                    // A voice which has to be fetched can fail to say anything at all, which a listener cannot tell
-                    // from nobody talking. Counted rather than acted on, see VOICE_FAILURE_LIMIT.
-                    noteVoiceFailed(voice.name);
+                if (!interrupted && !this._closed) {
+                    await this._player.play(bytes, format);
+                }
+
+                if (!interrupted && intro) {
+                    // Spent only now. A sentence the service did not say introduced nobody.
+                    noteIntroSpoken(utterance.speakerId);
                 }
             } catch (error) {
                 logger.warn(`Could not read ${utterance.messageId} out loud`, error);
-                this._onError();
+                console.warn(`[s2s-v2] Could not read ${utterance.messageId} out loud: `
+                    + `${error instanceof Error ? error.message : String(error)}`);
+
+                // Not a failure worth reporting when it is this session closing that cut the sentence off - a
+                // listener told the speech connection is unavailable while turning the feature off themselves would
+                // be told something which is not true a moment later.
+                if (!this._closed) {
+                    this._onError();
+                }
             } finally {
                 this._setSpeaking(null, null);
             }

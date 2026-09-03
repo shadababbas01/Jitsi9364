@@ -798,7 +798,9 @@ function _getTts(store: IStore): S2SV2Speaker {
     }
 
     tts = new S2SV2Speaker({
-        // An engine which cannot speak is not a session which cannot run: the transcript still says what was said, in
+        getState: store.getState,
+
+        // A service which cannot speak is not a session which cannot run: the transcript still says what was said, in
         // the listener's own language, which is worth more than nothing at all.
         onError: () => store.dispatch(showNotification({
             appearance: NOTIFICATION_TYPE.WARNING,
@@ -1155,8 +1157,16 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     case SET_S2S_V2_TARGET_LANGUAGE: {
         const result = next(action);
 
-        if (isS2SV2Active(store.getState()) && action.targetLanguage && !isEnglish(action.targetLanguage)) {
-            _warnIfUnspeakable(store, action.targetLanguage);
+        if (isS2SV2Active(store.getState())) {
+            // Whatever was already playing, or waiting to, was synthesized for the language just left behind - it
+            // must not keep going, or arrive late, in a language nobody asked to hear any more. Unlike disabling the
+            // feature, which finishes what is queued first, this is an immediate cut: the two are asked for
+            // differently and are not the same operation with different timing.
+            tts?.interruptForLanguageChange();
+
+            if (action.targetLanguage && !isEnglish(action.targetLanguage)) {
+                _warnIfUnspeakable(store, action.targetLanguage);
+            }
         }
 
         return result;
