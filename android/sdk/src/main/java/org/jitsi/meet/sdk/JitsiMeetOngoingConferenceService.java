@@ -57,6 +57,7 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
     private static final String EXTRA_DATA_KEY = "extraDataKey";
     private static final String EXTRA_DATA_BUNDLE_KEY = "extraDataBundleKey";
     private static final String IS_AUDIO_MUTED_KEY = "isAudioMuted";
+    private static final String TIMESTAMP_KEY = "timestamp";
 
     private static final int PERMISSIONS_REQUEST_CODE = (int) (Math.random() * Short.MAX_VALUE);
 
@@ -71,6 +72,13 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
         Activity activity = (Activity) context;
 
         OngoingNotification.createNotificationChannel(activity);
+
+        // Seed the notification's chronometer with the same epoch the in-call conference timer
+        // is using (sent over by the JS side), so both stay in sync. Must happen before the
+        // service starts, since the first notification is built as soon as it does.
+        if (extraData != null && extraData.get(TIMESTAMP_KEY) instanceof Number) {
+            OngoingNotification.setStartingTime(((Number) extraData.get(TIMESTAMP_KEY)).longValue());
+        }
 
         Intent intent = new Intent(context, JitsiMeetOngoingConferenceService.class);
 
@@ -243,6 +251,12 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
 
                     Intent hangupBroadcastIntent = BroadcastIntentHelper.buildHangUpIntent();
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(hangupBroadcastIntent);
+
+                    // Reset immediately: stopSelf() below tears down the service (and its
+                    // OngoingConferenceTracker listener) right away, so the async
+                    // onCurrentConferenceChanged(null) callback that normally does this reset
+                    // usually arrives too late, leaving a stale startingTime for the next call.
+                    OngoingNotification.resetStartingtime();
 
                     stopSelf();
                     break;

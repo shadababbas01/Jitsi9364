@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { ILiveCaptionsLanguage, fetchLiveCaptionsLanguages } from '../../../subtitles/languages';
-import { S2S_V2_FALLBACK_LANGUAGE_CODES } from '../../constants';
+import { ILiveCaptionsLanguage, fetchLiveCaptionsLanguages, toBaseSubtitlesLanguage } from '../../../subtitles/languages';
+import { S2S_V2_FALLBACK_LANGUAGE_CODES, S2S_V2_SUPPORTED_LANGUAGE_CODES } from '../../constants';
+
+const SUPPORTED_LANGUAGE_CODES = new Set(S2S_V2_SUPPORTED_LANGUAGE_CODES);
 
 /**
  * Asked for once and shared, since which languages the service handles does not change while the app is running.
@@ -18,9 +20,9 @@ let cachedLanguages: ILiveCaptionsLanguage[] = [];
  * Returns the languages a session can be listened to in, sorted by what they are called, and empty until they are
  * known.
  *
- * The list is the translation service's, because that is the service which has to produce the text: a language it
- * cannot translate into leaves the listener with nothing to read and nothing to hear, whereas one the speech engine
- * has no voice for still shows a translated transcript and is warned about when it is chosen.
+ * The translation service's catalogue is narrowed down to {@link S2S_V2_SUPPORTED_LANGUAGE_CODES}, the languages the
+ * melp speech engine actually has a voice for: offering one it cannot read aloud would leave the listener with
+ * nothing to hear despite having chosen it.
  *
  * @returns {ILiveCaptionsLanguage[]}
  */
@@ -33,7 +35,11 @@ export default function useS2SV2Languages(): ILiveCaptionsLanguage[] {
         request = request ?? fetchLiveCaptionsLanguages(S2S_V2_FALLBACK_LANGUAGE_CODES);
 
         request.then(fetched => {
-            cachedLanguages = [ ...fetched ].sort((first, second) => first.label.localeCompare(second.label));
+            const supported = fetched.filter(
+                language => SUPPORTED_LANGUAGE_CODES.has(toBaseSubtitlesLanguage(language.code))
+            );
+
+            cachedLanguages = supported.sort((first, second) => first.label.localeCompare(second.label));
 
             if (!cancelled) {
                 setLanguages(cachedLanguages);

@@ -895,6 +895,7 @@ function _sendConferenceEvent(
         action: {
             conference: IJitsiConference;
             isAudioMuted?: boolean;
+            timestamp?: number;
             type: string;
             url?: string;
         }) {
@@ -910,6 +911,12 @@ function _sendConferenceEvent(
         const isAudioMuted = isLocalTrackMuted(localTracks, MEDIA_TYPE.AUDIO);
 
         data.isAudioMuted = isAudioMuted;
+    }
+
+    // Forward the exact epoch the in-call ConferenceTimer is using, so the native ongoing
+    // notification's chronometer can be seeded from the same value instead of its own clock read.
+    if (type === CONFERENCE_JOINED) {
+        data.timestamp = store.getState()['features/base/conference'].connectedTimestamp;
     }
 
     if (_swallowEvent(store, action, data)) {

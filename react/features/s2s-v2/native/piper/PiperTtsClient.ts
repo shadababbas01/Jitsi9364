@@ -52,6 +52,13 @@ export default class PiperTtsClient {
 
     private _languages: IPiperVoice[] = [];
 
+    /**
+     * Callers of {@link canSpeak} waiting on the first voice list, or on {@link INITIAL_LANGUAGES_GRACE_MS} running
+     * out with none having arrived. Woken from {@link _onMessage} the moment a list arrives, rather than left to
+     * find out about it only once their own grace period separately times out.
+     */
+    private _languagesWaiters: Array<() => void> = [];
+
     private _pendingRequests: IPendingRequest[] = [];
 
     private _queuedRequests: IPendingRequest[] = [];
@@ -89,11 +96,37 @@ export default class PiperTtsClient {
     /**
      * Returns whether the service has a voice for a language, without guessing one when it does not.
      *
+     * Waits for the service's own voice list first, up to {@link INITIAL_LANGUAGES_GRACE_MS}, rather than judging a
+     * language against whatever this device happens to know the instant it is asked: called right after
+     * {@link connect}, as this is, an immediate answer would almost always be "no" - not because the service has no
+     * voice for it, but because its list has not had time to arrive yet.
+     *
      * @param {string} language - The language in question.
-     * @returns {boolean}
+     * @returns {Promise<boolean>}
      */
-    canSpeak(language: string): boolean {
+    async canSpeak(language: string): Promise<boolean> {
+        await this._whenLanguagesKnown();
+
         return hasAdvertisedVoice(language, this._languages);
+    }
+
+    /**
+     * Answers once the service's voice list has arrived, or once it has been waited for long enough to stop counting
+     * on it - whichever comes first.
+     *
+     * @returns {Promise<void>}
+     */
+    private _whenLanguagesKnown(): Promise<void> {
+        if (this._languages.length) {
+            return Promise.resolve();
+        }
+
+        // Resolving the same promise twice is a no-op, so the timeout needs nothing removed from
+        // {@link _languagesWaiters} when the list arrives first - it fires into an already-settled promise instead.
+        return new Promise<void>(resolve => {
+            this._languagesWaiters.push(resolve);
+            setTimeout(resolve, INITIAL_LANGUAGES_GRACE_MS);
+        });
     }
 
     /**
@@ -333,6 +366,10 @@ export default class PiperTtsClient {
                 this._initialFlushTimer = undefined;
                 this._flushQueue();
             }
+
+            // Same for anybody asking whether a language can be spoken at all - a question worth answering the
+            // moment there is a real list to answer it from, not only once its own grace period separately runs out.
+            this._languagesWaiters.splice(0).forEach(wake => wake());
 
             return;
         }

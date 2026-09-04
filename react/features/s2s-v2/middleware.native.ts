@@ -873,11 +873,12 @@ function _getCapture(store: IStore): S2SV2Capture {
 }
 
 /**
- * Warns the local user once when the device has no voice for the language they chose.
+ * Warns the local user once when the speech service has not advertised a voice for the language they chose.
  *
- * Android ships voices for a limited set of languages and the rest have to be downloaded, so this is an ordinary case
- * rather than an edge one. Nothing is changed on their behalf: the transcript is still translated and still on screen,
- * and which language they read in is theirs to pick.
+ * The service, not this device, is what has to have a voice: melp's Piper speaks over its own connection rather than
+ * through whatever the phone happens to have installed, so a missing voice here is the service not (yet) supporting
+ * the language rather than something the local user can fix. Nothing is changed on their behalf: the transcript is
+ * still translated and still on screen, and which language they read in is theirs to pick.
  *
  * @param {IStore} store - The redux store.
  * @param {string} language - The language they chose.
@@ -893,8 +894,8 @@ function _warnIfUnspeakable(store: IStore, language: string) {
 
         store.dispatch(showNotification({
             appearance: NOTIFICATION_TYPE.WARNING,
-            descriptionKey: 'captionTts.languageUnavailableDescription',
-            titleKey: 'captionTts.languageUnavailable',
+            descriptionKey: 's2sV2.error.languageUnavailableDescription',
+            titleKey: 's2sV2.error.languageUnavailable',
             uid: S2S_V2_TTS_ERROR_UID
         }, NOTIFICATION_TIMEOUT_TYPE.MEDIUM));
     });

@@ -1170,6 +1170,8 @@
     },
     "s2sV2": {
         "error": {
+            "languageUnavailable": "Spoken translation unavailable",
+            "languageUnavailableDescription": "The translation service doesn't have a voice for this language yet \u2014 captions will still show in it.",
             "micBlocked": "Voice translation needs microphone access to transcribe your speech.",
             "transcribeFailed": "Some speech couldn't be translated just now.",
             "ttsReconnecting": "Reconnecting translation audio\u2026",

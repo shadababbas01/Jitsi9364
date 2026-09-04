@@ -265,6 +265,19 @@ export const S2S_V2_TTS_ERROR_UID = 's2s-v2-tts';
 export const S2S_V2_FALLBACK_LANGUAGE_CODES = [ 'en', 'hi', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru' ];
 
 /**
+ * The languages the melp TTS/speech service actually has voices for, as advertised by its own "languages" message
+ * (e.g. `en_US`, `ja_JP`, `hi_IN`, ...), reduced to base codes.
+ *
+ * The translation-languages catalogue the dropdown fetches from is far larger than what the speech engine can read
+ * aloud, so it is filtered down to this set: offering a language nobody can hear read back is worse than not
+ * offering it.
+ */
+export const S2S_V2_SUPPORTED_LANGUAGE_CODES = [
+    'en', 'ja', 'es', 'fr', 'hi', 'pt', 'zh', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'fa', 'he', 'hu', 'id', 'it',
+    'ko', 'lv', 'ml', 'mr', 'nl', 'no', 'pl', 'ro', 'ru', 'sl', 'sq', 'sr', 'sv', 'sw', 'te', 'tr', 'uk', 'ur', 'vi'
+];
+
+/**
  * The pitches the voices are read at, in the order they are handed out.
  *
  * The engine has a handful of voices for a well supported language and, often, exactly one for a poorly supported one,

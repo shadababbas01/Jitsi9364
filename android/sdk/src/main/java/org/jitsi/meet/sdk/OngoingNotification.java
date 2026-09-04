@@ -113,6 +113,16 @@ class OngoingNotification {
         startingTime = 0;
     }
 
+    /**
+     * Seeds the notification's chronometer with an externally supplied epoch (e.g. the same
+     * timestamp the in-call conference timer is using), so both clocks read the same elapsed
+     * time. Must be called before the first {@link #buildOngoingConferenceNotification} for the
+     * conference, otherwise the fallback {@code System.currentTimeMillis()} is used instead.
+     */
+    static void setStartingTime(long timestamp) {
+        startingTime = timestamp;
+    }
+
     private static NotificationCompat.Action createAction(Context context, JitsiMeetOngoingConferenceService.Action action, @StringRes int titleId) {
         Intent intent = new Intent(context, JitsiMeetOngoingConferenceService.class);
         intent.setAction(action.getName());
