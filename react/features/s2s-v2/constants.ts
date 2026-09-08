@@ -242,13 +242,28 @@ export const SPEAKING_LEVEL_THRESHOLD = 0.02;
 export const SPEAKING_HANGOVER_MS = 1200;
 
 /**
- * How much of the screen the panel takes: half of it, with the video keeping the other half.
+ * How much of the screen the panel takes in portrait: half of it, with the video keeping the other half.
  *
  * A share of the screen rather than a fixed number of pixels, so that the split reads the same on a small phone as on
- * a large one. Deliberately without a floor: a floor would quietly become more than half the screen on a short one,
- * which is the one case it would be there to handle.
+ * a large one.
  */
 export const S2S_V2_PANEL_HEIGHT_RATIO = 0.5;
+
+/**
+ * How much of the screen the panel takes in landscape: two fifths of the width, docked to the right, with the video
+ * keeping the rest.
+ *
+ * Landscape's height is the phone's short side, so a panel sized the portrait way - a fraction of that height, drawn
+ * along the bottom - leaves too little of it for the transcript once the header, language control and footer have
+ * taken their fixed share: a sliver nobody can read or usefully switch a language in. Docked to the side and sized
+ * from the width instead, which in landscape is the long side, the panel keeps the room the transcript needs.
+ *
+ * Docked to the right rather than the left: the filmstrip already docks to the left in landscape
+ * ({@code filmstripWideLeft} in the filmstrip's own styles), and a panel sharing that edge would sit on top of it
+ * rather than beside it. Two fifths rather than something closer to half: the video is the reason there is a call
+ * to be on, and a panel wide enough to read a transcript in does not need to be wide enough to outweigh it.
+ */
+export const S2S_V2_PANEL_WIDTH_RATIO_LANDSCAPE = 0.4;
 
 /**
  * The notifications the feature can raise, each under one identifier so that a warning is replaced rather than stacked

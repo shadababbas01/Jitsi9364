@@ -44,6 +44,13 @@ export default {
         flex: 1
     },
 
+    // Fills whatever it is given, same as {@code LargeVideo} does on its own with no wrapper - except in landscape
+    // with the translated session panel open, where a margin is added at render time to give the panel the strip it
+    // is docked into, and the video keeps only what that margin leaves.
+    largeVideoContainer: {
+        flex: 1
+    },
+
     pipAvatarContainer: {
         alignItems: 'center',
         flex: 1,

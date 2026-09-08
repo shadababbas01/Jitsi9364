@@ -14,7 +14,7 @@ import { ILocalParticipant } from '../../../base/participants/types';
 import { getHideSelfView } from '../../../base/settings/functions.any';
 import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import { getLiveTranslationPanelHeight } from '../../../live-translation/functions.any';
-import { getS2SV2PanelHeight } from '../../../s2s-v2/functions';
+import { getS2SV2PanelHeight, getS2SV2PanelWidth } from '../../../s2s-v2/functions';
 import { getCaptionsPanelHeight } from '../../../subtitles/functions.any';
 import { setVisibleRemoteParticipants } from '../../actions.web';
 
@@ -531,7 +531,10 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _safeAreaBottom: safeAreaInsets?.bottom ?? 0,
         _safeAreaTop: safeAreaInsets?.top ?? 0,
         _thumbnailHeight: height,
-        _width: responsiveUi.clientWidth
+
+        // The translated session panel docks to the side in landscape instead of taking a share of the height the
+        // way it and the two panels above do in portrait, so it is the width the grid has to give up room for there.
+        _width: responsiveUi.clientWidth - getS2SV2PanelWidth(state)
     };
 }
 

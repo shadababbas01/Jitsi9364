@@ -1,4 +1,5 @@
 import { IReduxState } from '../app/types';
+import { ASPECT_RATIO_NARROW } from '../base/responsive-ui/constants';
 import { isEchoOfSpokenText } from '../caption-tts/spokenText';
 
 import { S2SV2Theme } from './components/native/palettes';
@@ -6,7 +7,8 @@ import {
     DEFAULT_SOURCE_LANGUAGE,
     DEFAULT_TARGET_LANGUAGE,
     ECHO_ROOM_LOOKBACK,
-    S2S_V2_PANEL_HEIGHT_RATIO
+    S2S_V2_PANEL_HEIGHT_RATIO,
+    S2S_V2_PANEL_WIDTH_RATIO_LANDSCAPE
 } from './constants';
 import { IS2SV2State, IS2SV2TranscriptEntry } from './reducer';
 
@@ -199,6 +201,9 @@ export function isS2SV2PanelOpen(state: IReduxState): boolean {
  * from the same number, because it lays itself out from the viewport height and would otherwise be drawn underneath
  * the panel and clipped by it.
  *
+ * In landscape the panel is docked to the side instead - see {@link getS2SV2PanelWidth} - and takes no height away
+ * from anything, the video keeps the full height of the screen there.
+ *
  * @param {IReduxState} state - The redux state.
  * @returns {number}
  */
@@ -207,9 +212,38 @@ export function getS2SV2PanelHeight(state: IReduxState): number {
         return 0;
     }
 
-    const { clientHeight = 0 } = state['features/base/responsive-ui'];
+    const { aspectRatio, clientHeight = 0 } = state['features/base/responsive-ui'];
+
+    if (aspectRatio !== ASPECT_RATIO_NARROW) {
+        return 0;
+    }
 
     return Math.round(clientHeight * S2S_V2_PANEL_HEIGHT_RATIO);
+}
+
+/**
+ * Returns the width the panel takes away from the video in landscape, or 0 when it is not on screen or the device is
+ * in portrait.
+ *
+ * Two fifths of the screen, docked to the right. The tile grid is sized from the same number in landscape, for the
+ * same reason it is sized from {@link getS2SV2PanelHeight} in portrait: it lays itself out from the viewport and
+ * would otherwise be drawn underneath the panel and clipped by it.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {number}
+ */
+export function getS2SV2PanelWidth(state: IReduxState): number {
+    if (!isS2SV2PanelOpen(state)) {
+        return 0;
+    }
+
+    const { aspectRatio, clientWidth = 0 } = state['features/base/responsive-ui'];
+
+    if (aspectRatio === ASPECT_RATIO_NARROW) {
+        return 0;
+    }
+
+    return Math.round(clientWidth * S2S_V2_PANEL_WIDTH_RATIO_LANDSCAPE);
 }
 
 /**

@@ -50,6 +50,7 @@ import { navigate } from '../../../mobile/navigation/components/conference/Confe
 import { screen } from '../../../mobile/navigation/routes';
 import { isPipEnabled, setPictureInPictureEnabled } from '../../../mobile/picture-in-picture/functions';
 import S2SV2TranslationPanel from '../../../s2s-v2/components/native/S2SV2TranslationPanel';
+import { getS2SV2PanelWidth } from '../../../s2s-v2/functions';
 import Captions from '../../../subtitles/components/native/Captions';
 import LiveCaptionsPanel from '../../../subtitles/components/native/LiveCaptionsPanel';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
@@ -177,6 +178,12 @@ interface IProps extends AbstractProps {
      * smaller display areas).
      */
     _reducedUI: boolean;
+
+    /**
+     * The width the translated session panel takes away from the large video in landscape, or 0 when it is not
+     * docked to the side - either it is not open, or the device is in portrait, where it takes no width at all.
+     */
+    _s2sV2PanelWidth: number;
 
     /**
      * Indicates whether the lobby screen should be visible.
@@ -514,6 +521,7 @@ class Conference extends AbstractConference<IProps, State> {
             _isNativePipMode,
             _localParticipantId,
             _reducedUI,
+            _s2sV2PanelWidth,
             _shouldDisplayTileView,
             _toolboxVisible
         } = this.props;
@@ -555,10 +563,23 @@ class Conference extends AbstractConference<IProps, State> {
             <>
                 {/*
                   * The LargeVideo is the lowermost stacking layer.
+                  *
+                  * Wrapped in its own container so that in landscape, with the translated session panel docked to
+                  * the right, a margin on that same side can give the panel its strip while the video keeps only
+                  * what is left - the panel is drawn later and so stacks over the video regardless, but without
+                  * this the video would still be laid out under the full width of it rather than beside it.
                   */
                     _shouldDisplayTileView
                         ? <TileView onClick = { this._onClick } />
-                        : <LargeVideo onClick = { this._onClick } />
+                        : (
+                            <View
+                                style = { [
+                                    styles.largeVideoContainer,
+                                    _s2sV2PanelWidth ? { marginRight: _s2sV2PanelWidth } : null
+                                ] as ViewStyle[] }>
+                                <LargeVideo onClick = { this._onClick } />
+                            </View>
+                        )
                 }
 
                 {/*
@@ -799,6 +820,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _nativeCallStatus: settings?.nativeCallStatus || '',
         _pictureInPictureEnabled: isPipEnabled(state),
         _reducedUI: reducedUI,
+        _s2sV2PanelWidth: getS2SV2PanelWidth(state),
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
         _toolboxVisible: isToolboxVisible(state)

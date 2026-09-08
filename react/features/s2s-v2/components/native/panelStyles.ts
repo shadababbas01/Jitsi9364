@@ -32,6 +32,24 @@ function _create(palette: IS2SV2Palette) {
             right: 0
         },
 
+        // In landscape the phone's short side is its height, which leaves too little of a bottom sheet for the
+        // transcript to be worth opening the panel for. Docked to the right instead and sized from the width - the
+        // long side in landscape - it keeps the room the transcript needs. The right rather than the left: the
+        // filmstrip already docks left in landscape, and this would sit on top of it rather than beside it there.
+        // paddingTop, paddingRight and paddingBottom are finished off with the safe area insets at render time,
+        // because unlike the bottom sheet this surface reaches every edge of the screen but the one facing the
+        // video.
+        panelWide: {
+            backgroundColor: palette.background,
+            borderBottomLeftRadius: 20,
+            borderTopLeftRadius: 20,
+            bottom: 0,
+            paddingLeft: BaseTheme.spacing[3],
+            position: 'absolute' as const,
+            right: 0,
+            top: 0
+        },
+
         // Everything inside the panel, laid out top to bottom. It is what takes the taps which show and hide the
         // toolbar, so it has to fill the panel rather than only the rows which happen to have something in them.
         panelBody: {

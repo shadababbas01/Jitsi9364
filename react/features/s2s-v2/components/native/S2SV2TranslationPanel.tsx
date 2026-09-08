@@ -9,12 +9,15 @@ import {
     View,
     ViewStyle
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
 import { IconCloseLarge, IconTheme, IconVolumeOff, IconVolumeUpToolBox } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import {
     setS2SV2PanelVisible,
     setS2SV2StopConfirmVisible,
@@ -24,6 +27,7 @@ import {
 } from '../../actions';
 import {
     getS2SV2PanelHeight,
+    getS2SV2PanelWidth,
     getS2SV2SpeakingMessageId,
     getS2SV2State,
     getS2SV2TargetLanguage,
@@ -55,7 +59,11 @@ interface IProps {
 /**
  * Speech-to-speech translation panel.
  *
- * The transcript consumes all remaining available vertical space.
+ * A bottom sheet in portrait, taking half the screen's height with the video keeping the other half. In landscape it
+ * docks to the right instead, taking two fifths of the width: the phone's short side is its height there, and a
+ * bottom sheet sized from that leaves too little of it for the transcript to be worth opening the panel for.
+ *
+ * The transcript consumes all remaining available space either way.
  *
  * Controls at the bottom:
  * - Target/listening language.
@@ -91,6 +99,11 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
     const speakingMessageId = useSelector(getS2SV2SpeakingMessageId);
 
     const measuredHeight = useSelector(getS2SV2PanelHeight);
+    const measuredWidth = useSelector(getS2SV2PanelWidth);
+    const landscape = useSelector(
+        (state: IReduxState) => state['features/base/responsive-ui'].aspectRatio !== ASPECT_RATIO_NARROW
+    );
+    const insets = useSafeAreaInsets();
     const language = useSelector(getS2SV2TargetLanguage);
     const suppress = useSelector(shouldSuppressOriginalVoice);
     const theme = useSelector(getS2SV2Theme);
@@ -183,7 +196,24 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
         && !isEnglish(language);
 
     const height = measuredHeight || '50%';
+    const width = measuredWidth || '40%';
     const iconColor = theme === 'dark' ? '#FFFFFF' : '#202124';
+
+    // In landscape the panel is docked to the right rather than the bottom, so it reaches the top, right and bottom
+    // edges of the screen instead of stopping short of them the way a bottom sheet already does with its own
+    // padding - those edges need the safe area added in on top of the panel's own padding, or the header controls and
+    // the footer end up under a notch or a home indicator instead of clear of it.
+    const landscapeStyle = {
+        paddingBottom: BaseTheme.spacing[3] + insets.bottom,
+        paddingRight: BaseTheme.spacing[3] + insets.right,
+        paddingTop: BaseTheme.spacing[3] + insets.top,
+        transform: [ { translateY } ],
+        width
+    };
+    const portraitStyle = {
+        height,
+        transform: [ { translateY } ]
+    };
 
     // The one control which says whether anything is coming out of the loudspeaker is drawn in the plainest colour each
     // theme has - black on the light panel, white on the dark one - rather than in the softer ink the header icons use.
@@ -196,11 +226,8 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
             onLayout = { onLayout }
             style = {
                 [
-                    styles.panel,
-                    {
-                        height,
-                        transform: [ { translateY } ]
-                    }
+                    landscape ? styles.panelWide : styles.panel,
+                    landscape ? landscapeStyle : portraitStyle
                 ] as ViewStyle[]
             }>
             <View style = { styles.topRow as ViewStyle }>
