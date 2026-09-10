@@ -17,24 +17,35 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
-import { IconTranslate } from '../../../base/icons/svg';
+import { IconCloseLarge, IconTheme, IconTranslate, IconVolumeOff, IconVolumeUpToolBox } from '../../../base/icons/svg';
+import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
 import { updateSettings } from '../../../base/settings/actions';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import {
     getChatReadAloudLanguage,
     getChatTtsSpeakerId,
     getChatTtsSpeakingMessageId
 } from '../../../caption-tts/functions.native';
+import { setS2SV2Theme } from '../../../s2s-v2/actions';
+import { getS2SV2Palette } from '../../../s2s-v2/components/native/palettes';
+import getS2SV2PanelStyles from '../../../s2s-v2/components/native/panelStyles';
+import useS2SV2SwipeDismiss from '../../../s2s-v2/components/native/useS2SV2SwipeDismiss';
+import { getS2SV2Theme } from '../../../s2s-v2/functions';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
 import { setLiveTranslationActive } from '../../actions';
 import { LIVE_TRANSLATION_TOOLBAR_RESERVE } from '../../constants';
 import {
     getLiveTranslationPanelHeight,
+    getLiveTranslationPanelWidth,
     getLiveTranslationState,
-    getLiveTranslationUtterances
+    getLiveTranslationUtterances,
+    isPlayTranslationOnly
 } from '../../functions.native';
 import { ILiveTranslationUtterance } from '../../reducer';
 
 import LanguagePill from './LanguagePill';
+import LiveTranslationLanguageDropdown from './LiveTranslationLanguageDropdown';
+import LiveTranslationTranscriptRow from './LiveTranslationTranscriptRow';
 import styles, { LIVE_TRANSLATION_COLORS } from './styles';
 
 /**
@@ -178,6 +189,27 @@ export default function LiveTranslationPanel() {
     const heardLanguage = useSelector(getChatReadAloudLanguage);
     const utterances = useSelector(getLiveTranslationUtterances);
 
+    // Portrait draws this panel as its own white card, the way it always has. Landscape docks it to the side instead,
+    // in the shared dark/light style the speech-to-speech translation panel and the live captions panel are drawn
+    // in - which is also why {@code theme}, {@code translationOnly} and the panel styles below are only read here and
+    // only used further down, in the branch which draws that side panel.
+    const width = useSelector(getLiveTranslationPanelWidth);
+    const landscape = useSelector(
+        (state: IReduxState) => state['features/base/responsive-ui'].aspectRatio !== ASPECT_RATIO_NARROW
+    );
+    const insets = useSelector(
+        (state: IReduxState) => state['features/base/responsive-ui'].safeAreaInsets ?? {
+            bottom: 0,
+            left: 0,
+            right: 0,
+            top: 0
+        }
+    );
+    const theme = useSelector(getS2SV2Theme);
+    const translationOnly = useSelector(isPlayTranslationOnly);
+    const wideStyles = getS2SV2PanelStyles(theme);
+    const palette = getS2SV2Palette(theme);
+
     // Whoever is in the meeting is kept in a map which is written into rather than replaced, so watching the map itself
     // would show the room as it was when the panel was opened and never again. The slice around it is a fresh object on
     // every participant action, which is what keeps the names up to date as people come and go.
@@ -239,18 +271,45 @@ export default function LiveTranslationPanel() {
         dispatch(setLiveTranslationActive(false));
     }, [ dispatch ]);
 
-    if (!active || !height) {
+    const toggleTheme = useCallback(
+        () => dispatch(setS2SV2Theme(theme === 'dark' ? 'light' : 'dark')),
+        [ dispatch, theme ]
+    );
+
+    const toggleTranslationOnly = useCallback(
+        () => dispatch(updateSettings({ liveTranslationPlayTranslationOnly: !translationOnly })),
+        [ dispatch, translationOnly ]
+    );
+
+    /**
+     * Pulling the panel down by its grabber turns the call off, the same as the header's close button. There is
+     * nothing weaker to fall back to here, unlike the speech-to-speech panel, where a swipe only hides a panel that
+     * keeps a session running underneath it: this call has nobody left listening once its panel is put away, so
+     * closing it and stopping it are the same action. Portrait's own card has no grabber and is not driven by this
+     * hook at all - only the landscape side panel drawn further down is.
+     */
+    const { handlers, onLayout, translateY } = useS2SV2SwipeDismiss(close, {
+        animateExit: true,
+        visible: active
+    });
+
+    if (!active || !(landscape ? width : height)) {
         return null;
     }
 
     // What the call is doing with the sound right now. The local participant's own state comes first: it is the one
     // thing they can act on, by waiting or by speaking again.
+    //
+    // statusStyle colours this for portrait's own white card; statusColor is the same states read against the
+    // landscape side panel's palette, which answers to the theme toggle rather than being fixed.
     let status = t('liveTranslation.listening');
     let statusStyle: TextStyle | null = null;
+    let statusColor = palette.textMuted;
 
     if (dictating) {
         status = t('liveTranslation.youAreSpeaking');
         statusStyle = styles.statusTextActive as TextStyle;
+        statusColor = palette.accent;
     } else if (pending > 0) {
         status = t('liveTranslation.sending');
     } else if (!micOn) {
@@ -258,9 +317,159 @@ export default function LiveTranslationPanel() {
     } else if (error) {
         status = t(error);
         statusStyle = styles.statusTextError as TextStyle;
+        statusColor = palette.danger;
     } else if (speakerId) {
         status = t('liveTranslation.someoneSpeakingKeepQuiet', { name: nameOf(speakerId) });
         statusStyle = styles.statusTextActive as TextStyle;
+        statusColor = palette.accent;
+    }
+
+    if (landscape) {
+        const iconColor = theme === 'dark' ? '#FFFFFF' : '#202124';
+        const speakerIconColor = theme === 'dark' ? '#FFFFFF' : '#000000';
+
+        return (
+            <Animated.View
+                onLayout = { onLayout }
+                style = { [
+                    wideStyles.panelWide,
+                    {
+                        paddingBottom: BaseTheme.spacing[3] + insets.bottom,
+                        paddingRight: BaseTheme.spacing[3] + insets.right,
+                        paddingTop: BaseTheme.spacing[3] + insets.top,
+                        transform: [ { translateY } ],
+                        width
+                    }
+                ] as ViewStyle[] }>
+                <View style = { wideStyles.topRow as ViewStyle }>
+                    <Pressable
+                        accessibilityLabel = { t('s2sV2.panel.theme.label') }
+                        accessibilityRole = 'button'
+                        onPress = { toggleTheme }
+                        style = { wideStyles.headerIconButton as ViewStyle }>
+                        <Icon
+                            color = { iconColor }
+                            size = { 12 }
+                            src = { IconTheme } />
+                    </Pressable>
+
+                    <View
+                        { ...handlers }
+                        style = { wideStyles.grabberWrap as ViewStyle }>
+                        <View style = { wideStyles.grabber as ViewStyle } />
+                    </View>
+
+                    <Pressable
+                        accessibilityLabel = { t('liveTranslation.turnOff') }
+                        accessibilityRole = 'button'
+                        onPress = { close }
+                        style = { wideStyles.headerIconButton as ViewStyle }>
+                        <Icon
+                            color = { iconColor }
+                            size = { 12 }
+                            src = { IconCloseLarge } />
+                    </Pressable>
+                </View>
+
+                <View style = { wideStyles.panelBody as ViewStyle }>
+                    <View style = { wideStyles.speakersChip as ViewStyle }>
+                        <Text
+                            allowFontScaling = { false }
+                            numberOfLines = { 1 }
+                            style = { [
+                                wideStyles.speakersChipLabel,
+                                { color: statusColor }
+                            ] as TextStyle[] }>
+                            { status }
+                        </Text>
+                    </View>
+
+                    <View
+                        style = { [
+                            wideStyles.transcriptCard,
+                            {
+                                flex: 1,
+                                minHeight: 0
+                            }
+                        ] as ViewStyle[] }>
+
+                        { utterances.length === 0 ? (
+                            <Text
+                                allowFontScaling = { false }
+                                style = { wideStyles.transcriptEmpty as TextStyle }>
+                                { t('liveTranslation.waitingForSpeech') }
+                            </Text>
+                        ) : (
+                            <ScrollView
+                                accessibilityLiveRegion = 'polite'
+                                contentContainerStyle = { [
+                                    wideStyles.transcriptContent,
+                                    { flexGrow: 1 }
+                                ] as ViewStyle[] }
+                                onContentSizeChange = { follow }
+                                ref = { scroll }
+                                showsVerticalScrollIndicator = { false }
+                                style = { [
+                                    wideStyles.transcriptScroll,
+                                    { flex: 1 }
+                                ] as ViewStyle[] }>
+                                { utterances.map((utterance, index) => (
+                                    <LiveTranslationTranscriptRow
+                                        displayName = { nameOf(utterance.participantId) }
+                                        first = { index === 0 }
+                                        key = { utterance.id }
+                                        onMeasure = { measure }
+                                        pendingLabel = { t('liveTranslation.translating') }
+                                        speaking = { utterance.id === speakingId }
+                                        theme = { theme }
+                                        utterance = { utterance } />
+                                )) }
+                            </ScrollView>
+                        ) }
+                    </View>
+
+                    <View style = { wideStyles.controlRow as ViewStyle }>
+                        <View style = { wideStyles.languageDropdown as ViewStyle }>
+                            <LiveTranslationLanguageDropdown
+                                accessibilityLabel = { t('liveTranslation.listenInHint') }
+                                caption = { t('liveTranslation.listenIn') }
+                                label = { t('liveTranslation.listenInHint') }
+                                onSelect = { selectHeard }
+                                theme = { theme }
+                                value = { heardLanguage } />
+                        </View>
+
+                        <Pressable
+                            accessibilityLabel = { t('liveTranslation.translationOnlyHelper') }
+                            accessibilityRole = 'button'
+                            accessibilityState = {{ checked: translationOnly }}
+                            hitSlop = { 6 }
+                            onPress = { toggleTranslationOnly }
+                            style = { [
+                                wideStyles.squareButton,
+                                translationOnly ? wideStyles.squareButtonActive : wideStyles.squareButtonInactive
+                            ] as ViewStyle[] }>
+                            <Icon
+                                color = { speakerIconColor }
+                                size = { 18 }
+                                src = { theme === 'dark' ? IconVolumeOff : IconVolumeUpToolBox } />
+                        </Pressable>
+                    </View>
+
+                    <View
+                        style = { [
+                            wideStyles.panelFooter,
+                            { flexShrink: 0 }
+                        ] as ViewStyle[] }>
+                        <Text
+                            allowFontScaling = { false }
+                            style = { wideStyles.disclaimer as TextStyle }>
+                            { t('liveTranslation.disclaimer') }
+                        </Text>
+                    </View>
+                </View>
+            </Animated.View>
+        );
     }
 
     return (

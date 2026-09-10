@@ -253,6 +253,7 @@
     },
     "liveTranslation": {
         "cc": "CC",
+        "disclaimer": "Transcripts are machine generated and may not be 100% accurate.",
         "failed": "Could not turn that into a message.",
         "hearOriginal": "Hear their own voice",
         "hearTranslated": "Hear the translation",

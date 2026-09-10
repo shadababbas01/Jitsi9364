@@ -1,6 +1,11 @@
 import { IReduxState } from '../app/types';
+import { ASPECT_RATIO_NARROW } from '../base/responsive-ui/constants';
 
-import { LIVE_TRANSLATION_PANEL_HEIGHT_RATIO, LIVE_TRANSLATION_PANEL_MIN_HEIGHT } from './constants';
+import {
+    LIVE_TRANSLATION_PANEL_HEIGHT_RATIO,
+    LIVE_TRANSLATION_PANEL_MIN_HEIGHT,
+    LIVE_TRANSLATION_PANEL_WIDTH_RATIO_LANDSCAPE
+} from './constants';
 import { ILiveTranslationState, ILiveTranslationUtterance } from './reducer';
 
 const DEFAULT_STATE: ILiveTranslationState = {
@@ -39,6 +44,10 @@ export function isLiveTranslationActive(state: IReduxState): boolean {
  * The video layout has to agree with the panel on this number: the tile grid sizes itself from the viewport height, so
  * it needs the reduced height in order to reflow instead of being clipped.
  *
+ * In landscape the panel is drawn to the side instead - see {@link getLiveTranslationPanelWidth} - and this returns 0,
+ * the same as when the panel is not shown: the video keeps the full height of the screen there, only a strip of its
+ * width is taken away from it.
+ *
  * @param {IReduxState} state - The redux state.
  * @returns {number}
  */
@@ -47,13 +56,44 @@ export function getLiveTranslationPanelHeight(state: IReduxState): number {
         return 0;
     }
 
-    const { clientHeight = 0 } = state['features/base/responsive-ui'];
+    const { aspectRatio, clientHeight = 0 } = state['features/base/responsive-ui'];
+
+    if (aspectRatio !== ASPECT_RATIO_NARROW) {
+        return 0;
+    }
 
     return Math.min(
         clientHeight,
         Math.max(
             LIVE_TRANSLATION_PANEL_MIN_HEIGHT,
             Math.round(clientHeight * LIVE_TRANSLATION_PANEL_HEIGHT_RATIO)));
+}
+
+/**
+ * Returns the width the live translation panel takes away from the video in landscape, or 0 when it is not shown or
+ * the device is in portrait.
+ *
+ * Two fifths of the screen, docked to the right - the same split the speech-to-speech translation panel uses in
+ * landscape, and for the same reason: landscape's height is the phone's short side, which leaves a bottom sheet
+ * sized the portrait way too little of it for the transcript to be worth opening the panel for, so it is docked to
+ * the side and sized from the width instead. The tile grid is sized from this same number in landscape, for the
+ * same reason it is sized from {@link getLiveTranslationPanelHeight} in portrait.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {number}
+ */
+export function getLiveTranslationPanelWidth(state: IReduxState): number {
+    if (!isLiveTranslationActive(state)) {
+        return 0;
+    }
+
+    const { aspectRatio, clientWidth = 0 } = state['features/base/responsive-ui'];
+
+    if (aspectRatio === ASPECT_RATIO_NARROW) {
+        return 0;
+    }
+
+    return Math.round(clientWidth * LIVE_TRANSLATION_PANEL_WIDTH_RATIO_LANDSCAPE);
 }
 
 /**

@@ -13,8 +13,24 @@ export const LIVE_TRANSLATION_PANEL_MIN_HEIGHT = 220;
 /**
  * How much room the panel leaves at its bottom while the meeting toolbar is on screen, so its own controls are not
  * underneath it. The live captions panel reserves the same.
+ *
+ * Portrait only. The panel docked to the side in landscape - see {@link LIVE_TRANSLATION_PANEL_WIDTH_RATIO_LANDSCAPE}
+ * - does not reserve room for the toolbar either, the same as the speech-to-speech translation panel it is drawn
+ * like there: a known gap in both rather than one invented here and not there.
  */
 export const LIVE_TRANSLATION_TOOLBAR_RESERVE = 72;
+
+/**
+ * How much of the screen the panel takes in landscape: two fifths of the width, docked to the right, with the video
+ * keeping the rest - the same split the speech-to-speech translation panel uses, and for the same reason.
+ *
+ * Landscape's height is the phone's short side, so a panel sized the portrait way - a fraction of that height, drawn
+ * along the bottom - leaves too little of it for the transcript once the header and the controls have taken their
+ * fixed share. Docked to the right and sized from the width instead, which in landscape is the long side, the panel
+ * keeps the room the transcript needs - and the right rather than the left because the filmstrip already docks left
+ * in landscape.
+ */
+export const LIVE_TRANSLATION_PANEL_WIDTH_RATIO_LANDSCAPE = 0.4;
 
 /**
  * The presence property the state of the microphone is announced through.

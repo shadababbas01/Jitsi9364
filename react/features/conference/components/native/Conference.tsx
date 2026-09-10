@@ -45,6 +45,7 @@ import { setCalleeInfoVisible } from '../../../invite/actions.any';
 import CalleeInfoContainer from '../../../invite/components/callee-info/CalleeInfoContainer';
 import LargeVideo from '../../../large-video/components/LargeVideo.native';
 import LiveTranslationPanel from '../../../live-translation/components/native/LiveTranslationPanel';
+import { getLiveTranslationPanelWidth } from '../../../live-translation/functions.any';
 import { getIsLobbyVisible } from '../../../lobby/functions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
@@ -152,6 +153,12 @@ interface IProps extends AbstractProps {
      * The ID of the participant currently on stage (if any).
      */
     _largeVideoParticipantId: string;
+
+    /**
+     * The width the live translation panel takes away from the large video in landscape, or 0 when it is not
+     * docked to the side - either it is not open, or the device is in portrait, where it takes no width at all.
+     */
+    _liveTranslationPanelWidth: number;
 
     /**
      * Local participant's display name.
@@ -519,6 +526,7 @@ class Conference extends AbstractConference<IProps, State> {
             _connecting,
             _filmstripVisible,
             _isNativePipMode,
+            _liveTranslationPanelWidth,
             _localParticipantId,
             _reducedUI,
             _s2sV2PanelWidth,
@@ -564,10 +572,11 @@ class Conference extends AbstractConference<IProps, State> {
                 {/*
                   * The LargeVideo is the lowermost stacking layer.
                   *
-                  * Wrapped in its own container so that in landscape, with the translated session panel docked to
-                  * the right, a margin on that same side can give the panel its strip while the video keeps only
-                  * what is left - the panel is drawn later and so stacks over the video regardless, but without
-                  * this the video would still be laid out under the full width of it rather than beside it.
+                  * Wrapped in its own container so that in landscape, with the translated session panel or the live
+                  * translation panel docked to the right, a margin on that same side can give the panel its strip
+                  * while the video keeps only what is left - the panel is drawn later and so stacks over the video
+                  * regardless, but without this the video would still be laid out under the full width of it rather
+                  * than beside it.
                   */
                     _shouldDisplayTileView
                         ? <TileView onClick = { this._onClick } />
@@ -575,7 +584,9 @@ class Conference extends AbstractConference<IProps, State> {
                             <View
                                 style = { [
                                     styles.largeVideoContainer,
-                                    _s2sV2PanelWidth ? { marginRight: _s2sV2PanelWidth } : null
+                                    _s2sV2PanelWidth || _liveTranslationPanelWidth
+                                        ? { marginRight: _s2sV2PanelWidth + _liveTranslationPanelWidth }
+                                        : null
                                 ] as ViewStyle[] }>
                                 <LargeVideo onClick = { this._onClick } />
                             </View>
@@ -816,6 +827,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _isNativePipMode: Boolean(settings?.isNativePipMode),
         _isParticipantsPaneOpen: isOpen,
         _largeVideoParticipantId: state['features/large-video'].participantId,
+        _liveTranslationPanelWidth: getLiveTranslationPanelWidth(state),
         _localParticipantId: localParticipant?.id,
         _nativeCallStatus: settings?.nativeCallStatus || '',
         _pictureInPictureEnabled: isPipEnabled(state),
