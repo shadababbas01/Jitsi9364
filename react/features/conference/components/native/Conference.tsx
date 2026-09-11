@@ -70,6 +70,7 @@ import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import SideToolbar from './SideToolbar';
 import TitleBar from './TitleBar';
+import AudioCallContent from './audiocall/AudioCallContent';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
 
@@ -523,6 +524,7 @@ class Conference extends AbstractConference<IProps, State> {
         const {
             _aspectRatio,
             _audioOnlyEnabled,
+            _carMode,
             _connecting,
             _filmstripVisible,
             _isNativePipMode,
@@ -538,6 +540,10 @@ class Conference extends AbstractConference<IProps, State> {
 
         if (_reducedUI) {
             return this._renderContentForReducedUi();
+        }
+
+        if (_audioOnlyEnabled && !_carMode) {
+            return <AudioCallContent />;
         }
 
         if (_isNativePipMode) {

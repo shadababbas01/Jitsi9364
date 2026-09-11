@@ -57,6 +57,7 @@ import { default as IconRecordLead } from './lead-record.svg';
 import { default as IconMessage } from './message.svg';
 import { default as IconMessageDot } from './messagedot.svg';
 import { default as IconMeter } from './meter.svg';
+import { default as IconMicSlashBlack } from './mic-slash-black.svg';
 import { default as IconMicSlashRed } from './mic-slash-red.svg';
 import { default as IconMicSlash } from './mic-slash.svg';
 import { default as IconMic } from './mic.svg';
@@ -102,6 +103,7 @@ import { default as IconVideo } from './video.svg';
 import { default as IconAudioOnlyOff } from './visibility-off.svg';
 import { default as IconAudioOnly } from './visibility.svg';
 import { default as IconVolumeOff } from './volume-off.svg';
+import { default as IconVolumeUpBlack } from './volume-up-black.svg';
 import { default as IconVolumeUp } from './volume-up.svg';
 import { default as IconVolumeUpToolBox } from './volume-up-toolbox.svg';
 import { default as IconWarningCircle } from './warning-circle.svg';
@@ -174,6 +176,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconMessageDot,
     IconMeter,
     IconMic,
+    IconMicSlashBlack,
     IconMicSlashRed,
     IconMicSlash,
     IconModerator,
@@ -221,6 +224,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconVideo,
     IconVideoOff,
     IconVolumeOff,
+    IconVolumeUpBlack,
     IconVolumeUp,
     IconVolumeUpToolBox,
     IconWarning,
