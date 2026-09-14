@@ -21,7 +21,9 @@ import { default as IconCode } from './code.svg';
 import { default as IconConnection } from './connection.svg';
 import { default as IconRecordContact } from './contact-record.svg';
 import { default as IconCopy } from './copy.svg';
+import { default as IconDialpad } from './dialpad.svg';
 import { default as IconDotsHorizontal } from './dots-horizontal.svg';
+import { default as IconDotsVertical } from './dots-vertical.svg';
 import { default as IconDownload } from './download.svg';
 import { default as IconE2EE } from './e2ee.svg';
 import { default as IconEdit } from './edit.svg';
@@ -44,6 +46,7 @@ import { default as IconFavorite } from './favorite.svg';
 import { default as IconFeedback } from './feedback.svg';
 import { default as IconGear } from './gear.svg';
 import { default as IconGoogle } from './google.svg';
+import { default as IconGroupsFilled } from './groups-filled.svg';
 import { default as IconHangup } from './hangup.svg';
 import { default as IconDeviceHeadphone } from './headset.svg';
 import { default as IconHelp } from './help.svg';
@@ -67,6 +70,7 @@ import { default as IconNoiseSuppressionOff } from './noise-suppression-off.svg'
 import { default as IconNoiseSuppressionOn } from './noise-suppression-on.svg';
 import { default as IconOffice365 } from './office365.svg';
 import { default as IconRecordOpportunity } from './opportunity-record.svg';
+import { default as IconPause } from './pause.svg';
 import { default as IconPerformance } from './performance.svg';
 import { default as IconPhoneRinging } from './phone-ringing.svg';
 import { default as IconPin } from './pin.svg';
@@ -143,7 +147,9 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconConnectionInactive,
     IconCopy,
     IconDeviceHeadphone,
+    IconDialpad,
     IconDotsHorizontal,
+    IconDotsVertical,
     IconDownload,
     IconE2EE,
     IconEdit,
@@ -166,6 +172,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconFeedback,
     IconGear,
     IconGoogle,
+    IconGroupsFilled,
     IconHangup,
     IconHelp,
     IconHighlight,
@@ -184,6 +191,7 @@ export const DEFAULT_ICON: Record<string, any> = {
     IconNoiseSuppressionOn,
     IconArrowRight,
     IconOffice365,
+    IconPause,
     IconPerformance,
     IconPhoneRinging,
     IconPin,

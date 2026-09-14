@@ -474,9 +474,11 @@ function _conferenceJoined(state: IConferenceState, { conference }: { conference
          */
         conference,
 
-        // Seed the connected timestamp at join time so the in-call timer starts reliably,
-        // instead of depending on a later CONNECTION_RESTORED event that may not fire on first join.
+        // Mark the conference connected at join time, so the in-call timer and the "Connected"
+        // presence label only ever start once the conference has actually joined, instead of
+        // depending on a later CONNECTION_RESTORED event that may not fire on first join.
         connectedTimestamp: state.connectedTimestamp ?? Date.now(),
+        connectionStatus: state.connectionStatus ?? 'connected',
 
         e2eeSupported: conference.isE2EESupported(),
 

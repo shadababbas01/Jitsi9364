@@ -217,14 +217,15 @@ public class MainActivity extends JitsiMeetActivity {
         // Set default options
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            .setServerURL(buildURL("https://cdn-meet.melpapp.com/"))
-            // .setServerURL(buildURL("https://meet.jit.si/"))
+            // .setServerURL(buildURL("https://cdn-meet.melpapp.com/"))
+            .setServerURL(buildURL("https://meet.jit.si/"))
             .setFeatureFlag("welcomepage.enabled", true)
             .setFeatureFlag("recording.enabled", true)
             .setConfigOverride("recordingService", recordingService)
             .setConfigOverride("recordings", recordings)
             .setConfigOverride("customToolbarButtons", customToolbarButtons)
-            .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4c2M0bHFtdiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBFaWdodHkiLCJpZCI6IjhzYzRscW12IiwiYXZhdGFyIjoiaHR0cHM6Ly9jZG5tZWRpYS1mbS5tZWxwYXBwLmNvbS84c2M0bHFqY2RhdGMvYmY5eHZtcWxyaHRzLmpwZz9zZXNzaW9uaWQ9QTNCeEMxeXRZR0lRa1F1dFA2T2ZGYXMwOXVVVVRxRDd5alh6dG9KbTZCYyZpc3RodW1iPTEiLCJlbWFpbCI6IjhzYzRscW12QG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzg2MjE1ODQzLCJyb29tIjoiNjBhMzZjNTYxODRiZjU4NzAzOTdmNzVjNzNiYzkzMGYiLCJyb29tTmFtZSI6IlNoYWRhYiBFaWdodHkiLCJleHAiOjE3ODYyNTkwNDN9.TAd24gv0yQqxATIifBPjcvePzKI-ZvyEbMOTW2KoPms")
+            .setAudioOnly(true)
+            // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzg4cDh2bWQyIiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4OHA4dm1kMiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBBYmJhcyIsImlkIjoiODhwOHZtZDIiLCJhdmF0YXIiOiJodHRwczovL2Nkbm1lZGlhLWZtLm1lbHBhcHAuY29tLzg4cDh2bWFtdWs4dy84OTQ2QHVzZXIuanBlZz9zZXNzaW9uaWQ9UWJZSFlaODBWY0E3OFFmM05DUnp1MnBtNkFSVmxYVjlQY2VOVkFBVTlXc2smaXN0aHVtYj0xIiwiZW1haWwiOiI4OHA4dm1kMkBtZWxwLmNvbSJ9LCJncm91cCI6Im9uZXRvb25lIn0sImlhdCI6MTc4ODUxOTY2Niwicm9vbSI6ImM3ZjM5M2FlODg2NDg5NzEwNmJmNDI5N2JkNzQyZjFiIiwicm9vbU5hbWUiOiJTaGFkYWIgQWJiYXMiLCJleHAiOjE3ODg1NjI4NjZ9.CXnO9C_0aGHzsB9f7Ns0wahVPG8LozOrIZei_dQdIZ4")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
             
             .build();
@@ -234,7 +235,7 @@ public class MainActivity extends JitsiMeetActivity {
             public void run() {
                 JitsiMeetConferenceOptions defaultOptions1
                         = new JitsiMeetConferenceOptions.Builder()
-                       .setRoom("60a36c56184bf5870397f75c73bc930f")
+                       .setRoom("shadab")
                         .build();
                 join(defaultOptions1);
             }

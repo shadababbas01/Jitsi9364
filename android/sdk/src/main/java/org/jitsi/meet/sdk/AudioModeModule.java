@@ -406,6 +406,8 @@ class AudioModeModule extends ReactContextBaseJavaModule {
             audioDevice = DEVICE_BLUETOOTH;
         } else if (headsetAvailable) {
             audioDevice = DEVICE_HEADPHONES;
+        } else if (mode == VIDEO_CALL) {
+            audioDevice = DEVICE_SPEAKER;
         } else {
             audioDevice = DEVICE_EARPIECE;
         }

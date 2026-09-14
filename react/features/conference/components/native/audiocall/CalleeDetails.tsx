@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -41,6 +41,19 @@ const CalleeDetails = (): JSX.Element => {
     const remoteParticipantList = Array.from(remoteParticipants.values());
     const soleRemoteParticipant = remoteParticipantList.length === 1 ? remoteParticipantList[0] : undefined;
 
+    // The moment the remote party actually joined, i.e. when this 1:1 call became genuinely connected -
+    // as opposed to the conference's own connectedTimestamp, which is seeded as soon as the local user
+    // joins and can predate the other party answering, making the timer appear to start mid-count.
+    const [ callConnectedAt, setCallConnectedAt ] = useState<number>();
+
+    useEffect(() => {
+        if (remoteParticipantList.length > 0 && !callConnectedAt) {
+            setCallConnectedAt(Date.now());
+        } else if (remoteParticipantList.length === 0 && callConnectedAt) {
+            setCallConnectedAt(undefined);
+        }
+    }, [ remoteParticipantList.length, callConnectedAt ]);
+
     let title = conferenceName;
 
     if (soleRemoteParticipant) {
@@ -59,14 +72,18 @@ const CalleeDetails = (): JSX.Element => {
     return (
         <View style = { styles.calleeDetailsContainer as ViewStyle }>
             <View style = { styles.identityContainer as ViewStyle }>
-                <Text style = { styles.calleeName }>
+                <Text
+                    allowFontScaling = { false }
+                    style = { styles.calleeName }>
                     { title }
                 </Text>
                 <View style = { styles.encryptedRow as ViewStyle }>
                     <Icon
                         src = { IconE2EE }
                         style = { styles.encryptedIcon } />
-                    <Text style = { styles.encryptedText }>
+                    <Text
+                        allowFontScaling = { false }
+                        style = { styles.encryptedText }>
                         { t('audioCall.labels.encrypted') }
                     </Text>
                 </View>
@@ -80,12 +97,18 @@ const CalleeDetails = (): JSX.Element => {
                 </View>
                 {
                     statusLabelKey && (
-                        <Text style = { styles.connectionStatus }>
-                            { t(statusLabelKey) }
+                        <Text
+                            allowFontScaling = { false }
+                            style = { styles.connectionStatus }>
+                            { `${t(statusLabelKey)}\u00A0` }
                         </Text>
                     )
                 }
-                <ConferenceTimer textStyle = { styles.roomTimer } />
+                { callConnectedAt && (
+                    <ConferenceTimer
+                        startTimestamp = { callConnectedAt }
+                        textStyle = { styles.roomTimer } />
+                ) }
             </View>
         </View>
     );

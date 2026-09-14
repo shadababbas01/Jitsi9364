@@ -6,9 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IReduxState } from '../../../../app/types';
 import { openSheet } from '../../../../base/dialog/actions';
 import {
-    IconAddUser,
     IconBluetooth,
-    IconScreenshare,
+    IconDialpad,
+    IconGroupsFilled,
+    IconRingGroup,
     IconUsers,
     IconVolumeOff,
     IconVolumeUpBlack
@@ -80,9 +81,8 @@ const AudioCallToolbox = (): JSX.Element => {
     );
 
     const onPressAddCall = useCallback(() => {
-        NativeCallsNew?.showAttendees?.(attendeeEmails);
         dispatch(openParticipantsPane());
-    }, [ attendeeEmails, dispatch ]);
+    }, [ dispatch ]);
 
     const hasBluetoothDevice = audioDevices.some(
         device => device.type === AUDIO_DEVICE_BLUETOOTH || device.type === AUDIO_DEVICE_CAR);
@@ -131,12 +131,12 @@ const AudioCallToolbox = (): JSX.Element => {
                     <IconCircleButton
                         accessibilityLabel = 'audioCall.actions.dialpad'
                         disabled = { true }
-                        icon = { IconScreenshare } />
+                        icon = { IconDialpad } />
                 </ToolboxColumn>
                 <ToolboxColumn caption = { t('audioCall.actions.attendees') }>
                     <IconCircleButton
                         accessibilityLabel = 'audioCall.actions.attendees'
-                        icon = { IconAddUser }
+                        icon = { IconGroupsFilled }
                         onPress = { onPressAttendees } />
                 </ToolboxColumn>
                 <ToolboxColumn caption = { t('audioCall.actions.addCall') }>

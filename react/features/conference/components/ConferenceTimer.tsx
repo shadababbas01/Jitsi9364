@@ -12,6 +12,15 @@ import { ConferenceTimerDisplay } from './index';
 interface IProps {
 
     /**
+     * Overrides the conference's own {@code connectedTimestamp} as the timer's reference point.
+     *
+     * Used by callers, such as the audio-call screen, that need the timer to start counting from the
+     * moment a condition specific to them was met (e.g. the remote party actually joining) rather than
+     * from whenever this conference first connected.
+     */
+    startTimestamp?: number;
+
+    /**
      * Style to be applied to the rendered text.
      */
     textStyle?: Object;
@@ -30,9 +39,10 @@ export interface IDisplayProps {
     timerValue: string;
 }
 
-const ConferenceTimer = ({ textStyle }: IProps) => {
-    const connectedTimestamp = useSelector(
+const ConferenceTimer = ({ startTimestamp, textStyle }: IProps) => {
+    const conferenceConnectedTimestamp = useSelector(
         (state: IReduxState) => state['features/base/conference'].connectedTimestamp);
+    const connectedTimestamp = startTimestamp ?? conferenceConnectedTimestamp;
     const [ timerValue, setTimerValue ] = useState(getLocalizedDurationFormatter(0));
     const interval = useRef<number>();
 

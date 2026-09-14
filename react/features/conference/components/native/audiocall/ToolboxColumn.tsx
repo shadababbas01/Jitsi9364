@@ -26,8 +26,10 @@ interface IProps {
 const ToolboxColumn = ({ caption, children }: IProps): JSX.Element => (
     <View style = { styles.toolboxColumn as ViewStyle }>
         { children }
-        <Text style = { styles.toolboxCaption }>
-            { caption }
+        <Text
+            allowFontScaling = { false }
+            style = { styles.toolboxCaption }>
+            { `${caption}\u00A0` }
         </Text>
     </View>
 );

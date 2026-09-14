@@ -430,40 +430,6 @@ class ParticipantView extends Component<IProps> {
     }
 
     /**
-     * Renders the inactive connection status label.
-     *
-     * @private
-     * @returns {ReactElement}
-     */
-    _renderInactiveConnectionInfo() {
-        const {
-            avatarSize,
-            _participantName: displayName,
-            _isConnectionInterrupted,
-            t
-        } = this.props;
-
-        // XXX Consider splitting this component into 2: one for the large view
-        // and one for the thumbnail. Some of these don't apply to both.
-        const containerStyle = {
-            ...styles.connectionInfoContainer,
-            width: avatarSize * 1.5
-        };
-
-        return (
-            <View
-                pointerEvents = 'box-none'
-                style = { containerStyle as ViewStyle }>
-                <Text style = { styles.connectionInfoText as TextStyle }>
-                    { _isConnectionInterrupted
-                        ? t('presenceStatus.connecting')
-                        : t('connection.LOW_BANDWIDTH', { displayName }) }
-                </Text>
-            </View>
-        );
-    }
-
-    /**
      * Implements React's {@link Component#render()}.
      *
      * @inheritdoc
@@ -471,8 +437,6 @@ class ParticipantView extends Component<IProps> {
      */
     override render() {
         const {
-            _isConnectionInactive,
-            _isConnectionInterrupted,
             _isOnHold,
             _isSharedVideoParticipant,
             _isS2SV2Translating,
@@ -590,8 +554,7 @@ class ParticipantView extends Component<IProps> {
 
 
 
-                {(_isConnectionInactive || _isConnectionInterrupted) && this.props.useConnectivityInfoLabel
-                    && this._renderInactiveConnectionInfo()}
+                { /* The inactive-connection pill ("Connecting...") is intentionally never rendered. */ }
             </Container>
         );
     }

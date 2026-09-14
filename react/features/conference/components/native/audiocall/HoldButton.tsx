@@ -4,7 +4,7 @@ import { NativeModules } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../../app/types';
-import { IconPlay, IconStop } from '../../../../base/icons/svg';
+import { IconPause, IconPlay } from '../../../../base/icons/svg';
 import { setAudioMuted } from '../../../../base/media/actions';
 import { MEDIA_TYPE } from '../../../../base/media/constants';
 import { isLocalTrackMuted } from '../../../../base/tracks/functions.native';
@@ -48,7 +48,7 @@ const HoldButton = (): JSX.Element => {
             <IconCircleButton
                 accessibilityLabel = 'audioCall.actions.hold'
                 circleStyle = { isHoldOn ? styles.iconCircleActive : undefined }
-                icon = { isHoldOn ? IconPlay : IconStop }
+                icon = { isHoldOn ? IconPlay : IconPause }
                 iconStyle = { isHoldOn ? styles.iconActive : undefined }
                 onPress = { onPress } />
         </ToolboxColumn>

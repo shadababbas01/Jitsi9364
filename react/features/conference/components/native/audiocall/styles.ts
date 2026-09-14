@@ -55,6 +55,10 @@ export default {
         justifyContent: 'space-between'
     },
 
+    calleeArea: {
+        flex: 1
+    },
+
     calleeDetailsContainer: {
         alignItems: 'center',
         flex: 1
@@ -79,6 +83,11 @@ export default {
     calleeName: {
         ...BaseTheme.typography.heading5,
         color: BaseTheme.palette.text01,
+
+        // Keep the text at its intrinsic width because embedded Android hosts can clip a glyph
+        // when the label is allowed to shrink to its flex column's measured width.
+        includeFontPadding: false,
+        flexShrink: 0,
         textAlign: 'center'
     },
 
@@ -96,12 +105,16 @@ export default {
 
     encryptedText: {
         ...BaseTheme.typography.labelRegular,
-        color: BaseTheme.palette.text02
+        color: BaseTheme.palette.text02,
+        includeFontPadding: false,
+        flexShrink: 0
     },
 
     connectionStatus: {
         ...BaseTheme.typography.bodyShortRegular,
         color: BaseTheme.palette.text02,
+        includeFontPadding: false,
+        flexShrink: 0,
         marginTop: BaseTheme.spacing[1],
         textAlign: 'center'
     },
@@ -109,6 +122,8 @@ export default {
     roomTimer: {
         ...BaseTheme.typography.bodyShortRegular,
         color: BaseTheme.palette.text02,
+        includeFontPadding: false,
+        flexShrink: 0,
         marginTop: BaseTheme.spacing[1],
         textAlign: 'center'
     },
@@ -135,12 +150,15 @@ export default {
 
     toolboxColumn: {
         alignItems: 'center',
-        width: 80
+        flex: 1,
+        paddingHorizontal: BaseTheme.spacing[1]
     },
 
     toolboxCaption: {
         ...BaseTheme.typography.labelRegular,
         color: BaseTheme.palette.text01,
+        includeFontPadding: false,
+        flexShrink: 0,
         marginTop: BaseTheme.spacing[1],
         textAlign: 'center'
     },
@@ -161,6 +179,14 @@ export default {
     iconDisabled: {
         ...icon,
         opacity: 0.4
+    },
+
+    overflowButton: {
+        ...iconCircle,
+        position: 'absolute',
+        right: BaseTheme.spacing[3],
+        top: BaseTheme.spacing[3],
+        zIndex: 10
     },
 
     hangupCircle: {
