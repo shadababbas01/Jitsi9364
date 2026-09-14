@@ -98,7 +98,10 @@ const CalleeDetails = (): JSX.Element => {
                 {
                     statusLabelKey && (
                         <Text
+                            adjustsFontSizeToFit = { true }
                             allowFontScaling = { false }
+                            minimumFontScale = { 0.75 }
+                            numberOfLines = { 1 }
                             style = { styles.connectionStatus }>
                             { `${t(statusLabelKey)}\u00A0` }
                         </Text>

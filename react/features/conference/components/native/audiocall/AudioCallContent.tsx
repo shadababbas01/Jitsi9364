@@ -1,11 +1,14 @@
 import React, { useCallback } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { IReduxState } from '../../../../app/types';
 import { openSheet } from '../../../../base/dialog/actions';
 import { IconDotsVertical } from '../../../../base/icons/svg';
+import S2SV2PanelButton from '../../../../s2s-v2/components/native/S2SV2PanelButton';
 import S2SV2TranslationPanel from '../../../../s2s-v2/components/native/S2SV2TranslationPanel';
+import { getS2SV2State } from '../../../../s2s-v2/functions';
 import LiveCaptionsPanel from '../../../../subtitles/components/native/LiveCaptionsPanel';
 import OverflowMenu from '../../../../toolbox/components/native/OverflowMenu';
 
@@ -25,6 +28,8 @@ import styles from './styles';
  */
 const AudioCallContent = (): JSX.Element => {
     const dispatch = useDispatch();
+    const translationPanelOpen = useSelector(
+        (state: IReduxState) => getS2SV2State(state).showPanel);
 
     const onPressOverflow = useCallback(() => {
         // @ts-ignore
@@ -38,6 +43,11 @@ const AudioCallContent = (): JSX.Element => {
                 circleStyle = { styles.overflowButton }
                 icon = { IconDotsVertical }
                 onPress = { onPressOverflow } />
+            <View
+                pointerEvents = { translationPanelOpen ? 'none' : 'auto' }
+                style = { styles.translationButton as ViewStyle }>
+                <S2SV2PanelButton styles = { styles.translationButtonStyles } />
+            </View>
             <View style = { styles.calleeArea as ViewStyle }>
                 <CalleeDetails />
                 <LiveCaptionsPanel />

@@ -13,7 +13,7 @@ const HANGUP_BUTTON_SIZE = 64;
 /**
  * The size of the callee avatar.
  */
-const AVATAR_SIZE = 128;
+const AVATAR_SIZE = 180;
 
 /**
  * The corner radius of the (rounded-square) callee avatar.
@@ -114,7 +114,7 @@ export default {
         ...BaseTheme.typography.bodyShortRegular,
         color: BaseTheme.palette.text02,
         includeFontPadding: false,
-        flexShrink: 0,
+        width: '100%',
         marginTop: BaseTheme.spacing[1],
         textAlign: 'center'
     },
@@ -156,11 +156,12 @@ export default {
 
     toolboxCaption: {
         ...BaseTheme.typography.labelRegular,
+        alignSelf: 'stretch',
         color: BaseTheme.palette.text01,
         includeFontPadding: false,
-        flexShrink: 0,
         marginTop: BaseTheme.spacing[1],
-        textAlign: 'center'
+        textAlign: 'center',
+        width: '100%'
     },
 
     iconCircle,
@@ -187,6 +188,19 @@ export default {
         right: BaseTheme.spacing[3],
         top: BaseTheme.spacing[3],
         zIndex: 10
+    },
+
+    translationButton: {
+        position: 'absolute',
+        right: BaseTheme.spacing[3],
+        top: BaseTheme.spacing[3] + BUTTON_SIZE + BaseTheme.spacing[2],
+        zIndex: 10
+    },
+
+    translationButtonStyles: {
+        iconStyle: icon,
+        style: iconCircle,
+        underlayColor: 'transparent'
     },
 
     hangupCircle: {

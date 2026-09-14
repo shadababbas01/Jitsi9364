@@ -27,7 +27,10 @@ const ToolboxColumn = ({ caption, children }: IProps): JSX.Element => (
     <View style = { styles.toolboxColumn as ViewStyle }>
         { children }
         <Text
+            adjustsFontSizeToFit = { true }
             allowFontScaling = { false }
+            minimumFontScale = { 0.75 }
+            numberOfLines = { 1 }
             style = { styles.toolboxCaption }>
             { `${caption}\u00A0` }
         </Text>
