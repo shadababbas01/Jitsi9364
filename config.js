@@ -376,18 +376,18 @@ var config = {
     // },
 
     // Optional screenshare settings that give more control over screen capture in the browser.
-    // screenShareSettings: {
-    //      // Show users the current tab is the preferred capture source, default: false.
-    //      desktopPreferCurrentTab: false,
-    //      // Allow users to select system audio, default: include.
-    //      desktopSystemAudio: 'include',
-    //      // Allow users to seamlessly switch which tab they are sharing without having to select the tab again.
-    //      desktopSurfaceSwitching: 'include',
-    //      // Allow a user to be shown a preference for what screen is to be captured, default: unset.
-    //      desktopDisplaySurface: undefined,
-    //      // Allow users to select the current tab as a capture source, default: exclude.
-    //      desktopSelfBrowserSurface: 'exclude'
-    // },
+    screenShareSettings: {
+        // Show users the current tab is the preferred capture source, default: false.
+        desktopPreferCurrentTab: false,
+        // Allow users to select system audio, default: include.
+        desktopSystemAudio: 'include',
+        // Allow users to seamlessly switch which tab they are sharing without having to select the tab again.
+        desktopSurfaceSwitching: 'include',
+        // Allow a user to be shown a preference for what screen is to be captured, default: unset.
+        desktopDisplaySurface: 'monitor',
+        // Allow users to select the current tab as a capture source, default: exclude.
+        desktopSelfBrowserSurface: 'exclude'
+    },
 
     // Recording
 
@@ -1625,7 +1625,7 @@ var config = {
     //     // showJoinMeetingDialog: true,
     // },
     // The default type of desktop sharing sources that will be used in the electron app.
-    // desktopSharingSources: ['screen', 'window'],
+    desktopSharingSources: ['screen'],
 
     // Disables the echo cancelation for local audio tracks.
     // disableAEC: true,
