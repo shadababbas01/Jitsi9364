@@ -20,6 +20,18 @@ const AVATAR_SIZE = 180;
  */
 const AVATAR_BORDER_RADIUS = 24;
 
+/**
+ * The gap between the callee name and the top-corner action buttons (e.g. overflow button).
+ */
+const HEADER_BUTTON_GAP = 10;
+
+/**
+ * Horizontal padding for the identity container ensuring callee details do not overlap
+ * with the top-corner action button (overflowButton: right offset 16dp + size 56dp = 72dp)
+ * leaving an exact 10dp gap in between, while keeping text centered.
+ */
+const CALLEE_HEADER_INSET = BUTTON_SIZE + BaseTheme.spacing[3] + HEADER_BUTTON_GAP;
+
 const iconCircle = {
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -66,7 +78,8 @@ export default {
 
     identityContainer: {
         alignItems: 'center',
-        paddingHorizontal: BaseTheme.spacing[4],
+        alignSelf: 'stretch',
+        paddingHorizontal: CALLEE_HEADER_INSET,
         paddingTop: BaseTheme.spacing[5]
     },
 
@@ -83,11 +96,8 @@ export default {
     calleeName: {
         ...BaseTheme.typography.heading5,
         color: BaseTheme.palette.text01,
-
-        // Keep the text at its intrinsic width because embedded Android hosts can clip a glyph
-        // when the label is allowed to shrink to its flex column's measured width.
         includeFontPadding: false,
-        flexShrink: 0,
+        maxWidth: '100%',
         textAlign: 'center'
     },
 
