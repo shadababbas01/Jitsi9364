@@ -182,7 +182,7 @@ export default {
         },
         style: {
             alignItems: 'center',
-            backgroundColor: '#4949498f', 
+            backgroundColor: '#4949498f',
             borderRadius: ROUND_BUTTON_SIZE / 2,
             height: ROUND_BUTTON_SIZE,
             justifyContent: 'center',
@@ -288,8 +288,8 @@ export default {
 
     sideToolbar: {
         position: 'absolute',
-        right: BaseTheme.spacing[2],
-        top: BaseTheme.spacing[2],
+        right: BaseTheme.spacing[3],
+        top: BaseTheme.spacing[4],
         zIndex: 2
     },
 
@@ -338,7 +338,7 @@ export default {
         },
         underlayColor: 'transparent'
     },
-    
+
     sideToolbarButtonRaiseHand: {
         iconStyle: {
             color: '#8bc1ff',
@@ -393,21 +393,21 @@ export default {
         ...BaseTheme.typography.bodyShortBold,
         textAlign: 'center'
     },
-sideToolbarBadgeTextRaiseHand: {
-    backgroundColor: BaseTheme.palette.ui03,
-    borderRadius: BaseTheme.spacing[2],
-    borderColor: 'white',
-    overflow: 'hidden',
-    height: 18,
-    minWidth: 18,
-    color: BaseTheme.palette.text01,
-    ...BaseTheme.typography.labelBold,
-    position: 'absolute',
-    right: 4,   // inside
-    top: 4,     // inside
-    textAlign: 'center',
-    paddingHorizontal: 2
-},
+    sideToolbarBadgeTextRaiseHand: {
+        backgroundColor: BaseTheme.palette.ui03,
+        borderRadius: BaseTheme.spacing[2],
+        borderColor: 'white',
+        overflow: 'hidden',
+        height: 18,
+        minWidth: 18,
+        color: BaseTheme.palette.text01,
+        ...BaseTheme.typography.labelBold,
+        position: 'absolute',
+        right: 4,   // inside
+        top: 4,     // inside
+        textAlign: 'center',
+        paddingHorizontal: 2
+    },
 
     insecureRoomNameLabel: {
         backgroundColor: INSECURE_ROOM_NAME_LABEL_COLOR,

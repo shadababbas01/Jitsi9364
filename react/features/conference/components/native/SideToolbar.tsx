@@ -9,6 +9,7 @@ import {
 } from '../../../base/flags/constants';
 import { getFeatureFlag } from '../../../base/flags/functions';
 import { getParticipantCountForDisplay } from '../../../base/participants/functions';
+import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import ParticipantsPaneButton from '../../../participants-pane/components/native/ParticipantsPaneButton';
 import { isParticipantsPaneEnabled } from '../../../participants-pane/functions';
 import S2SV2PanelButton from '../../../s2s-v2/components/native/S2SV2PanelButton';
@@ -52,58 +53,99 @@ const SideToolbar = (props: IProps) => {
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true
         }).start();
-    }, [ _visible, visibility ]);
+    }, [_visible, visibility]);
 
     const animatedStyle = useMemo(() => ({
         opacity: visibility,
         transform: [
             {
                 translateX: visibility.interpolate({
-                    inputRange: [ 0, 1 ],
-                    outputRange: [ 36, 0 ]
+                    inputRange: [0, 1],
+                    outputRange: [36, 0]
                 })
             }
         ]
-    }), [ visibility ]);
+    }), [visibility]);
+
+    const { aspectRatio } = useSelector((state: IReduxState) => state['features/base/responsive-ui']);
+    const isLandscape = aspectRatio === ASPECT_RATIO_WIDE;
+
+    const sideToolbarButton = isLandscape ? {
+        iconStyle: {
+            ...styles.sideToolbarButton.iconStyle,
+            fontSize: 18
+        },
+        style: {
+            ...styles.sideToolbarButton.style,
+            height: 42,
+            width: 42,
+            borderRadius: 26
+        },
+        underlayColor: 'transparent'
+    } : styles.sideToolbarButton;
+
+    const sideToolbarButtonRaiseHand = isLandscape ? {
+        iconStyle: {
+            ...styles.sideToolbarButtonRaiseHand.iconStyle,
+            fontSize: 15
+        },
+        style: {
+            ...styles.sideToolbarButtonRaiseHand.style,
+            borderRadius: 18
+        },
+        underlayColor: 'transparent'
+    } : styles.sideToolbarButtonRaiseHand;
+
+    const sideToolbarButtonWrapper = isLandscape ? {
+        ...styles.sideToolbarButtonWrapper,
+        marginBottom: 6
+    } : styles.sideToolbarButtonWrapper;
+
+    const sideToolbarButtonBadgeWrapper = isLandscape ? {
+        ...styles.sideToolbarButtonBadgeWrapper,
+        height: 36,
+        width: 44,
+        borderRadius: 18
+    } : styles.sideToolbarButtonBadgeWrapper;
 
     return (
         <Animated.View
-            pointerEvents = { _visible ? 'box-none' : 'none' }
-            style = { [ styles.sideToolbar, animatedStyle ] as ViewStyle[] }>
-            <View style = { styles.sideToolbarStack as ViewStyle }>
+            pointerEvents={_visible ? 'box-none' : 'none'}
+            style={[styles.sideToolbar, isLandscape && { top: 12, right: 8 }, animatedStyle] as ViewStyle[]}>
+            <View style={styles.sideToolbarStack as ViewStyle}>
                 {
                     _isParticipantsPaneEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ParticipantsPaneButton styles = { styles.sideToolbarButton } />
+                    && <View style={sideToolbarButtonWrapper as ViewStyle}>
+                        <ParticipantsPaneButton styles={sideToolbarButton} />
                     </View>
                 }
                 {
                     _toggleCameraButtonEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ToggleCameraButton styles = { styles.sideToolbarButton } />
+                    && <View style={sideToolbarButtonWrapper as ViewStyle}>
+                        <ToggleCameraButton styles={sideToolbarButton} />
                     </View>
                 }
                 {
                     _audioDeviceButtonEnabled
-                    && <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <ChatButton styles = { styles.sideToolbarButton } />
+                    && <View style={sideToolbarButtonWrapper as ViewStyle}>
+                        <ChatButton styles={sideToolbarButton} />
                     </View>
                 }
                 {_showS2SV2Button && (
-                    <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <S2SV2PanelButton styles = { styles.sideToolbarButton } />
+                    <View style={sideToolbarButtonWrapper as ViewStyle}>
+                        <S2SV2PanelButton styles={sideToolbarButton} />
                     </View>
                 )}
                 {raisedHandsCount > 0 && (
-                    <View style = { styles.sideToolbarButtonWrapper as ViewStyle }>
-                        <View style = { styles.sideToolbarButtonBadgeWrapper as ViewStyle }>
-                            <RaiseHandButton styles = { styles.sideToolbarButtonRaiseHand } />
+                    <View style={sideToolbarButtonWrapper as ViewStyle}>
+                        <View style={sideToolbarButtonBadgeWrapper as ViewStyle}>
+                            <RaiseHandButton styles={sideToolbarButtonRaiseHand} />
 
                             {showRaisedHandsCount && (
                                 <View
-                                    pointerEvents = 'none'
-                                    style = { styles.sideToolbarBadge as ViewStyle }>
-                                    <Text style = { styles.sideToolbarBadgeText as ViewStyle }>
+                                    pointerEvents='none'
+                                    style={styles.sideToolbarBadge as ViewStyle}>
+                                    <Text style={styles.sideToolbarBadgeText as ViewStyle}>
                                         {raisedHandsCount}
                                     </Text>
                                 </View>

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Text, View, ViewStyle } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import { getConferenceName } from '../../../base/conference/functions';
 import ConnectionStatusLabel from '../../../conference/components/native/ConnectionStatusLabel';
 import PictureInPictureButton from '../../../mobile/picture-in-picture/components/PictureInPictureButton';
@@ -66,12 +67,29 @@ const TitleBar = (props: IProps) => {
         ]
     }), [ visibility ]);
 
+    const { aspectRatio } = useSelector((state: IReduxState) => state['features/base/responsive-ui']);
+    const isLandscape = aspectRatio === ASPECT_RATIO_WIDE;
+
+    const titleBarRoundButton = isLandscape ? {
+        iconStyle: {
+            ...styles.titleBarRoundButton.iconStyle,
+            fontSize: 14
+        },
+        style: {
+            ...styles.titleBarRoundButton.style,
+            height: 34,
+            width: 34,
+            borderRadius: 17
+        },
+        underlayColor: 'transparent'
+    } : styles.titleBarRoundButton;
+
     return (
         <Animated.View
             pointerEvents = { _visible ? 'box-none' : 'none' }
             style = { [ styles.titleBarWrapper, animatedStyle ] as ViewStyle[] }>
             <View style = { styles.titleBarLeft as ViewStyle }>
-                <PictureInPictureButton styles = { styles.titleBarRoundButton } />
+                <PictureInPictureButton styles = { titleBarRoundButton } />
             </View>
             <View
                 pointerEvents = 'box-none'
