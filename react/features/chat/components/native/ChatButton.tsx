@@ -101,6 +101,10 @@ class ChatButton extends AbstractButton<IProps, IState> {
     }
 
     override render() {
+        if (this.props.children && typeof this.props.children === 'function') {
+            return this.props.children(this._onClick);
+        }
+
         const hasUnread = Boolean(this.props._unreadMessageCount)
             || this.state._hasNativeNewMessage
             || this.props._hasInCallMessage;

@@ -171,7 +171,7 @@ const DEFAULT_STATE: IS2SV2State = {
 PersistenceRegistry.register(STORE_NAME, {
     suppressOriginalVoice: true,
     targetLanguage: true,
-    theme: true
+    theme: false
 }, DEFAULT_STATE);
 
 ReducerRegistry.register<IS2SV2State>(STORE_NAME, (state = DEFAULT_STATE, action): IS2SV2State => {

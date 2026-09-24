@@ -9,6 +9,7 @@ import {
 } from '../base/conference/actionTypes';
 import { getCurrentConference } from '../base/conference/functions';
 import { hideSheet, openSheet } from '../base/dialog/actions';
+import { SET_AUDIO_ONLY } from '../base/audio-only/actionTypes';
 import { SET_AUDIO_MUTED } from '../base/media/actionTypes';
 import { PARTICIPANT_JOINED } from '../base/participants/actionTypes';
 import {
@@ -53,6 +54,7 @@ import {
     clearS2SV2Session,
     setS2SV2LanguagePopupVisible,
     setS2SV2Session,
+    setS2SV2Theme,
     setS2SV2TranscriptSpeaking,
     setS2SV2TranscriptTranslating,
     setS2SV2TranscriptTranslation,
@@ -417,21 +419,16 @@ function _start(store: IStore) {
 function _stop(store: IStore) {
     const { getState } = store;
     const state = getState();
-
-    if (!isLocalParticipantModerator(state)) {
-        logger.warn('Refused to end a session: the local participant is not a moderator');
-
-        return;
-    }
-
     const sessionId = getS2SV2SessionId(state);
 
-    if (!sessionId) {
-        return;
+    if (sessionId) {
+        if (!isLocalParticipantModerator(state)) {
+            logger.warn('Sending session end without moderator flag (e.g. 1:1 call)');
+        }
+        _send(state, buildSessionEnd(sessionId));
+        logger.info(`Ended session ${sessionId}`);
     }
 
-    _send(state, buildSessionEnd(sessionId));
-    logger.info(`Ended session ${sessionId}`);
     _teardown(store);
 }
 
@@ -731,11 +728,11 @@ function _onTranscript(store: IStore, message: IS2SV2Transcript) {
  */
 StateListenerRegistry.register(
     /* selector */ getParticipantCount,
-    /* listener */ (participantCount: number, store: IStore, previousParticipantCount: number) => {
+    /* listener */(participantCount: number, store: IStore, previousParticipantCount: number) => {
         if (participantCount <= MAX_S2S_V2_PARTICIPANTS
-                || previousParticipantCount > MAX_S2S_V2_PARTICIPANTS
-                || !isS2SV2Active(store.getState())
-                || !isLocalParticipantModerator(store.getState())) {
+            || previousParticipantCount > MAX_S2S_V2_PARTICIPANTS
+            || !isS2SV2Active(store.getState())
+            || !isLocalParticipantModerator(store.getState())) {
             return;
         }
 
@@ -783,7 +780,7 @@ function _translate(state: IReduxState, text: string, targetLanguage: string): P
             return text;
         });
 
-    return Promise.race([ translating, giveUp ]);
+    return Promise.race([translating, giveUp]);
 }
 
 /**
@@ -1097,246 +1094,262 @@ function _announceTo({ getState }: IStore, participantId: string) {
  */
 MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
     switch (action.type) {
-    // Nothing but a line in the log. The transcription connection is not opened here on purpose - with no session
-    // running there is nothing to transcribe - but somebody reading a log from the moment they joined should be told
-    // that, rather than being left to wonder why there is no connection in it yet.
-    case CONFERENCE_JOINED: {
-        const result = next(action);
+        // Nothing but a line in the log. The transcription connection is not opened here on purpose - with no session
+        // running there is nothing to transcribe - but somebody reading a log from the moment they joined should be told
+        // that, rather than being left to wonder why there is no connection in it yet.
+        case CONFERENCE_JOINED: {
+            const result = next(action);
 
-        logger.info(`${STT_LOG_TAG} joined the call; the transcription connection opens when a session starts`);
+            logger.info(`${STT_LOG_TAG} joined the call; the transcription connection opens when a session starts`);
 
-        return result;
-    }
+            const isAudioOnly = Boolean(store.getState()['features/base/audio-only']?.enabled);
 
-    case START_S2S_V2_SESSION: {
-        _start(store);
+            store.dispatch(setS2SV2Theme(isAudioOnly ? 'light' : 'dark'));
 
-        return next(action);
-    }
-
-    case STOP_S2S_V2_SESSION: {
-        _stop(store);
-
-        return next(action);
-    }
-
-    case BROADCAST_S2S_V2_TRANSCRIPT: {
-        const result = next(action);
-
-        _broadcastTranscript(store, action.originalText);
-
-        return result;
-    }
-
-    // The sheet follows the state rather than being opened from wherever happens to decide it should be: a session
-    // announced by a moderator, a moderator reaching for it themselves and a user turning it down all set the same flag,
-    // and this is the one place which puts it on screen or takes it away.
-    case SET_S2S_V2_LANGUAGE_POPUP: {
-        const result = next(action);
-
-        if (action.visible) {
-            // Started here rather than when the first sentence arrives, so that the engine is awake by the time there
-            // is something to say: the first utterance of a session would otherwise wait for it.
-            _getTts(store).open();
-        } else if (!isS2SV2Active(store.getState())) {
-            // Turned down without starting anything, so nothing is going to be read out.
-            tts?.close();
+            return result;
         }
 
-        store.dispatch(action.visible ? openSheet(S2SV2LanguagePopup) : hideSheet());
+        case SET_AUDIO_ONLY: {
+            const result = next(action);
 
-        return result;
-    }
+            store.dispatch(setS2SV2Theme(action.audioOnly ? 'light' : 'dark'));
 
-    // Changed where it stands, taking effect on the next sentence, with no save step and no word to anybody. The
-    // engine is asked whether it can actually say this language, because one it has no voice for is not refused - it
-    // is simply not spoken, which a listener cannot tell apart from nobody talking.
-    case SET_S2S_V2_TARGET_LANGUAGE: {
-        const result = next(action);
-
-        if (isS2SV2Active(store.getState())) {
-            // Whatever was already playing, or waiting to, was synthesized for the language just left behind - it
-            // must not keep going, or arrive late, in a language nobody asked to hear any more. Unlike disabling the
-            // feature, which finishes what is queued first, this is an immediate cut: the two are asked for
-            // differently and are not the same operation with different timing.
-            tts?.interruptForLanguageChange();
-
-            if (action.targetLanguage && !isEnglish(action.targetLanguage)) {
-                _warnIfUnspeakable(store, action.targetLanguage);
-            }
+            return result;
         }
 
-        return result;
-    }
+        case START_S2S_V2_SESSION: {
+            _start(store);
 
-    // The panel is drawn in the room the tile grid gives up for it, and only in that layout: opening it in any other
-    // would open a panel nobody can see. Handled here rather than at each of the four places which open one - a late
-    // arrival being shown the session, a moderator starting it, somebody answering the sheet, and the button on the
-    // video screen - so that none of them can be the one which forgets.
-    //
-    // The layout is remembered once per session, not once per opening, because a running session is announced again to
-    // every new arrival and the second telling would otherwise record the layout the first one changed. It is kept for
-    // as long as the session runs: putting the panel away and taking the meeting back to a different layout underneath
-    // it would be answering a question nobody asked.
-    case SET_S2S_V2_PANEL: {
-        const result = next(action);
-        const state = store.getState();
+            return next(action);
+        }
 
-        if (action.visible && isS2SV2Active(state)) {
-            // The two panels are mutually exclusive. Both are drawn in the room the tile grid gives up for them, so
-            // opening one over the other would leave the meeting with two half-screen panels and no video between
-            // them. The live captions side does the same in return when it opens.
-            store.dispatch(setSubtitlesPanelOpen(false));
+        case STOP_S2S_V2_SESSION: {
+            _stop(store);
 
-            if (!tileViewForced) {
-                tileViewForced = true;
-                wasTileViewEnabled = state['features/video-layout'].tileViewEnabled;
+            return next(action);
+        }
+
+        case BROADCAST_S2S_V2_TRANSCRIPT: {
+            const result = next(action);
+
+            _broadcastTranscript(store, action.originalText);
+
+            return result;
+        }
+
+        // The sheet follows the state rather than being opened from wherever happens to decide it should be: a session
+        // announced by a moderator, a moderator reaching for it themselves and a user turning it down all set the same flag,
+        // and this is the one place which puts it on screen or takes it away.
+        case SET_S2S_V2_LANGUAGE_POPUP: {
+            const result = next(action);
+
+            if (action.visible) {
+                // Started here rather than when the first sentence arrives, so that the engine is awake by the time there
+                // is something to say: the first utterance of a session would otherwise wait for it.
+                _getTts(store).open();
+            } else if (!isS2SV2Active(store.getState())) {
+                // Turned down without starting anything, so nothing is going to be read out.
+                tts?.close();
             }
 
-            store.dispatch(setTileView(true));
+            store.dispatch(action.visible ? openSheet(S2SV2LanguagePopup) : hideSheet());
 
-            // Translated speech is read out of this device while the room carries on talking, and a listener with the
-            // panel open is holding the phone in front of them to read it rather than against their ear: on the
-            // earpiece, the translation is the one thing they cannot hear. The route is left where it is once it has
-            // been moved - putting the panel away does not stop the reading, so it must not take the loudspeaker away
-            // either - and the toolbar's audio route button follows the change of its own accord, because it draws
-            // itself from whichever route native reports as selected.
-            //
-            // A headset is left alone. Somebody wearing one is already hearing the translation privately, and moving
-            // them to the loudspeaker would play the meeting to whoever happens to be standing around them.
-            if (!isPrivateAudioDeviceSelected(state)) {
-                selectAudioDevice(AUDIO_DEVICE_SPEAKER);
+            return result;
+        }
+
+        // Changed where it stands, taking effect on the next sentence, with no save step and no word to anybody. The
+        // engine is asked whether it can actually say this language, because one it has no voice for is not refused - it
+        // is simply not spoken, which a listener cannot tell apart from nobody talking.
+        case SET_S2S_V2_TARGET_LANGUAGE: {
+            const result = next(action);
+
+            if (isS2SV2Active(store.getState())) {
+                // Whatever was already playing, or waiting to, was synthesized for the language just left behind - it
+                // must not keep going, or arrive late, in a language nobody asked to hear any more. Unlike disabling the
+                // feature, which finishes what is queued first, this is an immediate cut: the two are asked for
+                // differently and are not the same operation with different timing.
+                tts?.interruptForLanguageChange();
+
+                if (action.targetLanguage && !isEnglish(action.targetLanguage)) {
+                    _warnIfUnspeakable(store, action.targetLanguage);
+                }
             }
+
+            return result;
         }
 
-        return result;
-    }
+        // The panel is drawn in the room the tile grid gives up for it, and only in that layout: opening it in any other
+        // would open a panel nobody can see. Handled here rather than at each of the four places which open one - a late
+        // arrival being shown the session, a moderator starting it, somebody answering the sheet, and the button on the
+        // video screen - so that none of them can be the one which forgets.
+        //
+        // The layout is remembered once per session, not once per opening, because a running session is announced again to
+        // every new arrival and the second telling would otherwise record the layout the first one changed. It is kept for
+        // as long as the session runs: putting the panel away and taking the meeting back to a different layout underneath
+        // it would be answering a question nobody asked.
+        case SET_S2S_V2_PANEL: {
+            const result = next(action);
+            const state = store.getState();
 
-    // The two local preferences take effect where they are, on the next sentence, without a save step and without a
-    // word to anybody: what one listener hears is nobody else's business.
-    case SET_S2S_V2_SUPPRESS_ORIGINAL_VOICE: {
-        const result = next(action);
+            if (action.visible && isS2SV2Active(state)) {
+                // The two panels are mutually exclusive. Both are drawn in the room the tile grid gives up for them, so
+                // opening one over the other would leave the meeting with two half-screen panels and no video between
+                // them. The live captions side does the same in return when it opens.
+                store.dispatch(setSubtitlesPanelOpen(false));
 
-        if (isS2SV2Active(store.getState())) {
-            duckAll(store, true);
-        }
+                const isAudioOnly = Boolean(state['features/base/audio-only']?.enabled);
 
-        return result;
-    }
+                if (!isAudioOnly) {
+                    if (!tileViewForced) {
+                        tileViewForced = true;
+                        wasTileViewEnabled = state['features/video-layout'].tileViewEnabled;
+                    }
 
-    // The confirmation follows the state for the same reason the sheet does: the button which asks for it and the
-    // dialog which answers it should not each have to know how the other is put on screen.
-    case SET_S2S_V2_STOP_CONFIRM: {
-        const result = next(action);
+                    store.dispatch(setTileView(true));
+                }
 
-        store.dispatch(action.visible ? openSheet(DisableS2SV2Dialog) : hideSheet());
-
-        return result;
-    }
-
-    // One microphone, not two: the local voice reaches the meeting and is transcribed for translation off the same
-    // track, so muting has to stop both. Watching the conference mute rather than a button catches every other way of
-    // being muted as well, a moderator muting the room among them.
-    case SET_AUDIO_MUTED: {
-        const result = next(action);
-
-        if (isS2SV2Active(store.getState())) {
-            capture?.sync();
-        }
-
-        return result;
-    }
-
-    // A participant who joins, or whose track is swapped when the call moves between peer to peer and the bridge, is
-    // heard through audio this device has not turned down yet, so each track is caught as it appears. Unmuting can hand
-    // a track a new audio sink, which starts at the volume the bridge gave it rather than the one asked for here.
-    case TRACK_ADDED:
-    case TRACK_UPDATED: {
-        const result = next(action);
-        const state = store.getState();
-
-        if (isS2SV2Active(state)) {
-            duckTrack(state, action.track?.jitsiTrack, true);
-            watchTrack(store, action.track?.jitsiTrack);
-            capture?.sync();
-        }
-
-        return result;
-    }
-
-    case TRACK_REMOVED: {
-        const result = next(action);
-
-        if (isS2SV2Active(store.getState())) {
-            unwatchTrack(store, action.track?.jitsiTrack);
-            capture?.sync();
-        }
-
-        return result;
-    }
-
-    case ENDPOINT_MESSAGE_RECEIVED: {
-        const result = next(action);
-        const { data, participant } = action;
-
-        // The channel is shared. Anything which is not ours is somebody else's message rather than a fault, so it goes
-        // by without comment.
-        if (isS2SV2Message(data)) {
-            const from = participant?.getId?.();
-
-            // Logged before anything is decided about it, and logged whole. Every question worth asking about this
-            // feature starts with whether the message arrived at all, and the answer has to be visible without a
-            // debugger attached.
-            //
-            // Said twice on purpose. The logger reaches the native log, which is where it belongs and where it is kept;
-            // the console reaches whoever is watching the packager, which is where somebody debugging this is actually
-            // looking. On React Native the two are not the same place - the console transport is deliberately taken off
-            // the logger at startup - so a message sent only to one of them is invisible from the other.
-            logger.info(`Received "${data.action}" from ${from ?? 'an unknown participant'}: ${JSON.stringify(data)}`);
-            console.log(`[s2s-v2] ${data.action} received from ${from ?? 'unknown'}`, data);
-
-            if (isSessionStart(data)) {
-                _onSessionStart(store, data, from);
-            } else if (isSessionEnd(data)) {
-                _onSessionEnd(store, data);
-            } else if (isTranscript(data)) {
-                _onTranscript(store, data);
-            } else if (isPlayback(data)) {
-                _onPlayback(store, data);
-            } else {
-                logger.debug(`Ignored a malformed "${data.action}" message`);
+                // Translated speech is read out of this device while the room carries on talking, and a listener with the
+                // panel open is holding the phone in front of them to read it rather than against their ear: on the
+                // earpiece, the translation is the one thing they cannot hear. The route is left where it is once it has
+                // been moved - putting the panel away does not stop the reading, so it must not take the loudspeaker away
+                // either - and the toolbar's audio route button follows the change of its own accord, because it draws
+                // itself from whichever route native reports as selected.
+                //
+                // A headset is left alone. Somebody wearing one is already hearing the translation privately, and moving
+                // them to the loudspeaker would play the meeting to whoever happens to be standing around them.
+                if (!isPrivateAudioDeviceSelected(state)) {
+                    selectAudioDevice(AUDIO_DEVICE_SPEAKER);
+                }
             }
+
+            return result;
         }
 
-        return result;
-    }
+        // The two local preferences take effect where they are, on the next sentence, without a save step and without a
+        // word to anybody: what one listener hears is nobody else's business.
+        case SET_S2S_V2_SUPPRESS_ORIGINAL_VOICE: {
+            const result = next(action);
 
-    // Only the moderator's device tells new arrivals about a running session. Everybody else does nothing here: three
-    // announcements from one device is a resend, and three from every device is a broadcast storm.
-    case PARTICIPANT_JOINED: {
-        const result = next(action);
-        const state = store.getState();
-        const participantId = action.participant?.id;
+            if (isS2SV2Active(store.getState())) {
+                duckAll(store, true);
+            }
 
-        if (participantId
+            return result;
+        }
+
+        // The confirmation follows the state for the same reason the sheet does: the button which asks for it and the
+        // dialog which answers it should not each have to know how the other is put on screen.
+        case SET_S2S_V2_STOP_CONFIRM: {
+            const result = next(action);
+
+            store.dispatch(action.visible ? openSheet(DisableS2SV2Dialog) : hideSheet());
+
+            return result;
+        }
+
+        // One microphone, not two: the local voice reaches the meeting and is transcribed for translation off the same
+        // track, so muting has to stop both. Watching the conference mute rather than a button catches every other way of
+        // being muted as well, a moderator muting the room among them.
+        case SET_AUDIO_MUTED: {
+            const result = next(action);
+
+            if (isS2SV2Active(store.getState())) {
+                capture?.sync();
+            }
+
+            return result;
+        }
+
+        // A participant who joins, or whose track is swapped when the call moves between peer to peer and the bridge, is
+        // heard through audio this device has not turned down yet, so each track is caught as it appears. Unmuting can hand
+        // a track a new audio sink, which starts at the volume the bridge gave it rather than the one asked for here.
+        case TRACK_ADDED:
+        case TRACK_UPDATED: {
+            const result = next(action);
+            const state = store.getState();
+
+            if (isS2SV2Active(state)) {
+                duckTrack(state, action.track?.jitsiTrack, true);
+                watchTrack(store, action.track?.jitsiTrack);
+                capture?.sync();
+            }
+
+            return result;
+        }
+
+        case TRACK_REMOVED: {
+            const result = next(action);
+
+            if (isS2SV2Active(store.getState())) {
+                unwatchTrack(store, action.track?.jitsiTrack);
+                capture?.sync();
+            }
+
+            return result;
+        }
+
+        case ENDPOINT_MESSAGE_RECEIVED: {
+            const result = next(action);
+            const { data, participant } = action;
+
+            // The channel is shared. Anything which is not ours is somebody else's message rather than a fault, so it goes
+            // by without comment.
+            if (isS2SV2Message(data)) {
+                const from = participant?.getId?.();
+
+                // Logged before anything is decided about it, and logged whole. Every question worth asking about this
+                // feature starts with whether the message arrived at all, and the answer has to be visible without a
+                // debugger attached.
+                //
+                // Said twice on purpose. The logger reaches the native log, which is where it belongs and where it is kept;
+                // the console reaches whoever is watching the packager, which is where somebody debugging this is actually
+                // looking. On React Native the two are not the same place - the console transport is deliberately taken off
+                // the logger at startup - so a message sent only to one of them is invisible from the other.
+                logger.info(`Received "${data.action}" from ${from ?? 'an unknown participant'}: ${JSON.stringify(data)}`);
+                console.log(`[s2s-v2] ${data.action} received from ${from ?? 'unknown'}`, data);
+
+                if (isSessionStart(data)) {
+                    _onSessionStart(store, data, from);
+                } else if (isSessionEnd(data)) {
+                    _onSessionEnd(store, data);
+                } else if (isTranscript(data)) {
+                    _onTranscript(store, data);
+                } else if (isPlayback(data)) {
+                    _onPlayback(store, data);
+                } else {
+                    logger.debug(`Ignored a malformed "${data.action}" message`);
+                }
+            }
+
+            return result;
+        }
+
+        // Only the moderator's device tells new arrivals about a running session. Everybody else does nothing here: three
+        // announcements from one device is a resend, and three from every device is a broadcast storm.
+        case PARTICIPANT_JOINED: {
+            const result = next(action);
+            const state = store.getState();
+            const participantId = action.participant?.id;
+
+            if (participantId
                 && !action.participant?.local
                 && isS2SV2Active(state)
                 && isLocalParticipantModerator(state)) {
-            _announceTo(store, participantId);
+                _announceTo(store, participantId);
+            }
+
+            return result;
         }
 
-        return result;
-    }
+        case CONFERENCE_FAILED:
+        case CONFERENCE_LEFT: {
+            const result = next(action);
 
-    case CONFERENCE_FAILED:
-    case CONFERENCE_LEFT: {
-        const result = next(action);
+            announcedSessions.clear();
+            _teardown(store);
 
-        announcedSessions.clear();
-        _teardown(store);
-
-        return result;
-    }
+            return result;
+        }
     }
 
     return next(action);

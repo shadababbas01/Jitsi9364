@@ -47,6 +47,14 @@ class HangupButton extends AbstractHangupButton<AbstractButtonProps> {
         NativeModules?.NativeCallsNew?.hangup?.();
         this._hangup();
     }
+
+    override _getView(props: any) {
+        if (props.children && typeof props.children === 'function') {
+            return props.children(this._onClick);
+        }
+
+        return super._getView(props);
+    }
 }
 
 export default translate(connect()(HangupButton));

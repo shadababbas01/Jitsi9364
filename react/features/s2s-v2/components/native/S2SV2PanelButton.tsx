@@ -124,11 +124,6 @@ export default translate(connect((state: IReduxState) => {
         _moderator: isLocalParticipantModerator(state),
         _open: getS2SV2State(state).showPanel,
         visible: getParticipantCount(state) <= MAX_S2S_V2_PARTICIPANTS
-            && (active || isLocalParticipantModerator(state)),
-
-        // With a session running everybody needs the way back to the panel, whether or not their device can speak into
-        // it: a participant who can only listen is still in the session. With no session running there is nothing to
-        // show, so the button is only there for somebody who can start one.
-        visible: active || isLocalParticipantModerator(state)
+            && (active || isLocalParticipantModerator(state))
     };
 })(S2SV2PanelButton));

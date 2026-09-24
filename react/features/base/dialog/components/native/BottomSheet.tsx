@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
 import { IStore } from '../../../../app/types';
+import { StyleType } from '../../../styles/functions.any';
 import SlidingView from '../../../react/components/native/SlidingView';
 import { hideSheet } from '../../actions';
 
@@ -49,6 +50,11 @@ type Props = {
      * Whether to show sliding view or not.
      */
     showSlidingView?: boolean;
+
+    /**
+     * Style of the backdrop shadow.
+     */
+    shadowStyle?: StyleType;
 
     /**
      * The component's external style.
@@ -106,42 +112,44 @@ class BottomSheet extends PureComponent<Props> {
             addScrollViewPadding,
             renderHeader,
             renderFooter,
+            shadowStyle,
             showSlidingView,
             style
         } = this.props;
 
         return (
             <SlidingView
-                onHide = { this._onCancel }
-                position = 'bottom'
-                show = { Boolean(showSlidingView) }>
+                onHide={this._onCancel}
+                position='bottom'
+                shadowStyle={shadowStyle}
+                show={Boolean(showSlidingView)}>
                 <View
-                    pointerEvents = 'box-none'
-                    style = { styles.sheetContainer as ViewStyle }>
+                    pointerEvents='box-none'
+                    style={styles.sheetContainer as ViewStyle}>
                     <View
-                        pointerEvents = 'box-none'
-                        style = { styles.sheetAreaCover } />
-                    { renderHeader?.() }
+                        pointerEvents='box-none'
+                        style={styles.sheetAreaCover} />
+                    {renderHeader?.()}
                     <SafeAreaView
-                        edges = { [ 'left', 'right' ] }
-                        style = { [
+                        edges={['left', 'right']}
+                        style={[
                             styles.sheetItemContainer,
                             renderHeader
                                 ? styles.sheetHeader
                                 : styles.sheet,
                             renderFooter && styles.sheetFooter,
                             style
-                        ] }>
+                        ]}>
                         <ScrollView
-                            bounces = { false }
-                            showsVerticalScrollIndicator = { false }
-                            style = { [
+                            bounces={false}
+                            showsVerticalScrollIndicator={false}
+                            style={[
                                 renderFooter && styles.sheet,
                                 addScrollViewPadding && styles.scrollView
-                            ] } >
-                            { this.props.children }
+                            ]} >
+                            {this.props.children}
                         </ScrollView>
-                        { renderFooter?.() }
+                        {renderFooter?.()}
                     </SafeAreaView>
                 </View>
             </SlidingView>

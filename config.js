@@ -376,18 +376,18 @@ var config = {
     // },
 
     // Optional screenshare settings that give more control over screen capture in the browser.
-    screenShareSettings: {
-        // Show users the current tab is the preferred capture source, default: false.
-        desktopPreferCurrentTab: false,
-        // Allow users to select system audio, default: include.
-        desktopSystemAudio: 'include',
-        // Allow users to seamlessly switch which tab they are sharing without having to select the tab again.
-        desktopSurfaceSwitching: 'include',
-        // Allow a user to be shown a preference for what screen is to be captured, default: unset.
-        desktopDisplaySurface: 'monitor',
-        // Allow users to select the current tab as a capture source, default: exclude.
-        desktopSelfBrowserSurface: 'exclude'
-    },
+    // screenShareSettings: {
+    //      // Show users the current tab is the preferred capture source, default: false.
+    //      desktopPreferCurrentTab: false,
+    //      // Allow users to select system audio, default: include.
+    //      desktopSystemAudio: 'include',
+    //      // Allow users to seamlessly switch which tab they are sharing without having to select the tab again.
+    //      desktopSurfaceSwitching: 'include',
+    //      // Allow a user to be shown a preference for what screen is to be captured, default: unset.
+    //      desktopDisplaySurface: undefined,
+    //      // Allow users to select the current tab as a capture source, default: exclude.
+    //      desktopSelfBrowserSurface: 'exclude'
+    // },
 
     // Recording
 
@@ -490,37 +490,37 @@ var config = {
         // Whether the feature should be enabled or not.
         enabled: true,
 
-    //     // Translation languages.
-    //     // Available languages can be found in
-    //     // ./lang/translation-languages.json.
-    //     translationLanguages: ['en', 'es', 'fr', 'ro'],
+        //     // Translation languages.
+        //     // Available languages can be found in
+        //     // ./lang/translation-languages.json.
+        //     translationLanguages: ['en', 'es', 'fr', 'ro'],
 
-    //     // Important languages to show on the top of the language list.
-    //     translationLanguagesHead: ['en'],
+        //     // Important languages to show on the top of the language list.
+        //     translationLanguagesHead: ['en'],
 
-    //     // If true transcriber will use the application language.
-    //     // The application language is either explicitly set by participants in their settings or automatically
-    //     // detected based on the environment, e.g. if the app is opened in a chrome instance which
-    //     // is using french as its default language then transcriptions for that participant will be in french.
-    //     // Defaults to true.
-    //     useAppLanguage: true,
+        //     // If true transcriber will use the application language.
+        //     // The application language is either explicitly set by participants in their settings or automatically
+        //     // detected based on the environment, e.g. if the app is opened in a chrome instance which
+        //     // is using french as its default language then transcriptions for that participant will be in french.
+        //     // Defaults to true.
+        //     useAppLanguage: true,
 
-    //     // Transcriber language. This settings will only work if "useAppLanguage"
-    //     // is explicitly set to false.
-    //     // Available languages can be found in
-    //     // ./src/react/features/transcribing/transcriber-langs.json.
-    //     preferredLanguage: 'en-US',
+        //     // Transcriber language. This settings will only work if "useAppLanguage"
+        //     // is explicitly set to false.
+        //     // Available languages can be found in
+        //     // ./src/react/features/transcribing/transcriber-langs.json.
+        //     preferredLanguage: 'en-US',
 
-    //     // Enables automatic turning on transcribing when recording is started
-    //     autoTranscribeOnRecord: false,
+        //     // Enables automatic turning on transcribing when recording is started
+        //     autoTranscribeOnRecord: false,
 
-    //     // Enables automatic request of subtitles when transcriber is present in the meeting, uses the default
-    //     // language that is set
-    //     autoCaptionOnTranscribe: false,
-    //
-    //     // Disables everything related to closed captions - the tab in the chat area, the button in the menu,
-    //     // subtitles on stage and the "Show subtitles on stage" checkbox in the settings.
-    //     // Note: Starting transcriptions from the recording dialog will still work.
+        //     // Enables automatic request of subtitles when transcriber is present in the meeting, uses the default
+        //     // language that is set
+        //     autoCaptionOnTranscribe: false,
+        //
+        //     // Disables everything related to closed captions - the tab in the chat area, the button in the menu,
+        //     // subtitles on stage and the "Show subtitles on stage" checkbox in the settings.
+        //     // Note: Starting transcriptions from the recording dialog will still work.
         disableClosedCaptions: false
     },
 
@@ -1625,7 +1625,7 @@ var config = {
     //     // showJoinMeetingDialog: true,
     // },
     // The default type of desktop sharing sources that will be used in the electron app.
-    desktopSharingSources: ['screen'],
+    // desktopSharingSources: ['screen', 'window'],
 
     // Disables the echo cancelation for local audio tracks.
     // disableAEC: true,

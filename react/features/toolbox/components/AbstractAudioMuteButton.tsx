@@ -69,6 +69,16 @@ export default class AbstractAudioMuteButton<P extends IProps> extends BaseAudio
     override _isDisabled() {
         return this.props._disabled;
     }
+
+    override _getView(props: any) {
+        if (props.children && typeof props.children === 'function') {
+            const isMuted = this._isAudioMuted();
+
+            return props.children(isMuted, this._onClick);
+        }
+
+        return super._getView(props);
+    }
 }
 
 /**

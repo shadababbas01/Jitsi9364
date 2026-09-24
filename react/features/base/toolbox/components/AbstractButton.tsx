@@ -379,6 +379,26 @@ export default class AbstractButton<P extends IProps, S = any> extends Component
     }
 
     /**
+     * Renders the button view, allowing child render-functions for custom UIs.
+     *
+     * @param {Object} props - The button props.
+     * @returns {React$Node}
+     */
+    _getView(props: any) {
+        if (props.children && typeof props.children === 'function') {
+            return props.children(this._onClick);
+        }
+
+        return (
+            <ToolboxItem
+                disabled = { this._isDisabled() }
+                onClick = { this._onClick }
+                onKeyDown = { this._onKeyDown }
+                { ...props } />
+        );
+    }
+
+    /**
      * Implements React's {@link Component#render()}.
      *
      * @inheritdoc
@@ -397,12 +417,6 @@ export default class AbstractButton<P extends IProps, S = any> extends Component
             tooltip: this._getTooltip()
         };
 
-        return (
-            <ToolboxItem
-                disabled = { this._isDisabled() }
-                onClick = { this._onClick }
-                onKeyDown = { this._onKeyDown }
-                { ...props } />
-        );
+        return this._getView(props);
     }
 }

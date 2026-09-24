@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import {
     BackHandler,
     DeviceEventEmitter,
+    LayoutChangeEvent,
     NativeEventEmitter,
     NativeModules,
     Platform,
@@ -10,6 +11,7 @@ import {
     ViewStyle
 } from 'react-native';
 import Orientation from 'react-native-orientation-locker';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { Edge, EdgeInsets, SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect, useDispatch } from 'react-redux';
 
@@ -20,6 +22,8 @@ import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference
 import { setConnectionStatus } from '../../../base/conference/actions.any';
 import {
     getLocalParticipant,
+    getParticipantCountRemoteOnly,
+    getParticipants,
     getRemoteParticipants,
     isScreenShareParticipant
 } from '../../../base/participants/functions';
@@ -50,8 +54,10 @@ import { getIsLobbyVisible } from '../../../lobby/functions';
 import { navigate } from '../../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../../mobile/navigation/routes';
 import { isPipEnabled, setPictureInPictureEnabled } from '../../../mobile/picture-in-picture/functions';
+import { setS2SV2Theme } from '../../../s2s-v2/actions';
+import S2SV2PanelButton from '../../../s2s-v2/components/native/S2SV2PanelButton';
 import S2SV2TranslationPanel from '../../../s2s-v2/components/native/S2SV2TranslationPanel';
-import { getS2SV2PanelWidth } from '../../../s2s-v2/functions';
+import { getS2SV2PanelWidth, isS2SV2Active } from '../../../s2s-v2/functions';
 import Captions from '../../../subtitles/components/native/Captions';
 import LiveCaptionsPanel from '../../../subtitles/components/native/LiveCaptionsPanel';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
@@ -66,14 +72,25 @@ import {
 import { isConnecting } from '../functions.native';
 
 import AlwaysOnLabels from './AlwaysOnLabels';
+// @ts-ignore
+import Attendees from './Attendees';
+// @ts-ignore
+import AudioScreen from './AudioScreen';
+// @ts-ignore
+import CalleeDetails from './CalleeDetails';
+// @ts-ignore
+import CustomisedToolBox from './CustomisedToolBox';
 import ExpandedLabelPopup from './ExpandedLabelPopup';
 import LonelyMeetingExperience from './LonelyMeetingExperience';
 import SideToolbar from './SideToolbar';
 import TitleBar from './TitleBar';
+// @ts-ignore
+import UpperTextContainer from './UpperTextContainer';
+import TranscriptionConsentDialog from '../../../chat/components/native/TranscriptionConsentDialog';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
 
-const { JSCommunicateComponent, OpenMelpModule } = NativeModules;
+const { AudioMode, JSCommunicateComponent, OpenMelpChat, OpenMelpModule } = NativeModules;
 const DOUBLE_PRESS_DELAY = 300;
 
 /**
@@ -143,6 +160,11 @@ interface IProps extends AbstractProps {
      * Whether app is currently in native PiP mode.
      */
     _isNativePipMode: boolean;
+
+    /**
+     * Whether a translated session is running.
+     */
+    _isS2SV2Active: boolean;
 
     /**
      * The indicator which determines if the participants pane is open.
@@ -221,6 +243,31 @@ interface IProps extends AbstractProps {
      * Default prop for navigating between screen components(React Navigation).
      */
     navigation: any;
+
+    /**
+     * Whether this call is a Teams/group call.
+     */
+    isTeamsCall?: boolean;
+
+    /**
+     * Number of remote participants.
+     */
+    participant?: number;
+
+    /**
+     * Map of participants.
+     */
+    participants?: Map<string, any>;
+
+    /**
+     * Room / team name.
+     */
+    roomName?: string;
+
+    /**
+     * Full participants state.
+     */
+    _participants?: any;
 }
 
 type State = {
@@ -229,6 +276,13 @@ type State = {
      * The label that is currently expanded.
      */
     visibleExpandedLabel?: string;
+    connectionStatus: string;
+    customToolboxHeight?: number;
+    inCallMessage: boolean;
+    interval: number;
+    newMessageAvailable: boolean;
+    showAttendees: boolean;
+    speakerOn: boolean;
 };
 
 /**
@@ -247,6 +301,11 @@ class Conference extends AbstractConference<IProps, State> {
     _inCallMessageSubscription: any;
     _connectionStatusSubscription: any;
     _pipModeSubscription: any;
+    _startTimerSubscription: any;
+    _stopTimerSubscription: any;
+    _viewCallDataSubscription: any;
+    _newMessageSubscription: any;
+    intervalObj: any;
 
     /**
      * Last tap timestamp used for double tap detection.
@@ -263,6 +322,13 @@ class Conference extends AbstractConference<IProps, State> {
         super(props);
 
         this.state = {
+            connectionStatus: '',
+            customToolboxHeight: hp('32%'),
+            inCallMessage: false,
+            interval: 0,
+            newMessageAvailable: false,
+            showAttendees: false,
+            speakerOn: false,
             visibleExpandedLabel: undefined
         };
 
@@ -273,7 +339,109 @@ class Conference extends AbstractConference<IProps, State> {
         this._onHardwareBackPress = this._onHardwareBackPress.bind(this);
         this._setToolboxVisible = this._setToolboxVisible.bind(this);
         this._createOnPress = this._createOnPress.bind(this);
+        this.secondsToHMS = this.secondsToHMS.bind(this);
+        this._setSpeakerState = this._setSpeakerState.bind(this);
+        this._startTimer = this._startTimer.bind(this);
+        this._stopTimer = this._stopTimer.bind(this);
+        this._setMessagestate = this._setMessagestate.bind(this);
+        this._connectionStatus = this._connectionStatus.bind(this);
+        this._onCustomToolboxLayout = this._onCustomToolboxLayout.bind(this);
+        this.showAttendees = this.showAttendees.bind(this);
         this.lastClickTime = 0;
+    }
+
+    secondsToHMS(interval: number) {
+        const h = Math.floor(interval / 3600);
+
+        if (h > 0) {
+            return `${h}:${('0' + Math.floor(interval % 3600 / 60)).slice(-2)}:${('0' + Math.floor(interval % 60)).slice(-2)}`;
+        }
+
+        return `${Math.floor(interval / 60)}:${('0' + Math.floor(interval % 60)).slice(-2)}`;
+    }
+
+    _onCustomToolboxLayout(event: LayoutChangeEvent) {
+        const { height } = event.nativeEvent.layout;
+
+        if (height && Math.abs((this.state.customToolboxHeight || 0) - height) > 1) {
+            this.setState({ customToolboxHeight: height });
+        }
+    }
+
+    _setSpeakerState(speakerOn: boolean) {
+        this.setState({ speakerOn });
+    }
+
+    _startTimer() {
+        if (!this.intervalObj) {
+            this.intervalObj = setInterval(() => {
+                this.setState({ interval: this.state.interval + 1 });
+            }, 1000);
+        }
+    }
+
+    _stopTimer() {
+        if (this.intervalObj) {
+            clearInterval(this.intervalObj);
+            this.intervalObj = undefined;
+        }
+    }
+
+    _setInCallMessage = (data: any) => {
+        const hasNewMessage = typeof data === 'object' ? Boolean(data?.newMessage) : Boolean(data);
+
+        this.setState({ inCallMessage: hasNewMessage, newMessageAvailable: hasNewMessage });
+    };
+
+    _newMessage = (data: any) => {
+        const hasNewMessage = typeof data === 'object' ? Boolean(data?.newMessage) : Boolean(data);
+
+        this.setState({ inCallMessage: hasNewMessage, newMessageAvailable: hasNewMessage });
+    };
+
+    showAttendees() {
+        const { _participants, participants } = this.props;
+        const attendees: string[] = [];
+
+        if (_participants?.local?.email) {
+            attendees.push(_participants.local.email);
+        }
+
+        if (_participants?.remote) {
+            _participants.remote.forEach((participant: any) => {
+                if (participant?.email) {
+                    attendees.push(participant.email);
+                }
+            });
+        } else if (participants) {
+            for (const [, attendee] of participants) {
+                if (attendee?.email) {
+                    attendees.push(attendee.email);
+                }
+            }
+        }
+
+        if (OpenMelpChat?.showAttendees) {
+            OpenMelpChat.showAttendees(attendees);
+            return;
+        }
+
+        if (NativeModules?.NativeCallsNew?.showAttendees) {
+            NativeModules.NativeCallsNew.showAttendees(attendees);
+            return;
+        }
+
+        NativeModules?.NativeCallsNew?.showAttendeeeees?.();
+    }
+
+    _connectionStatus(event: any) {
+        const status = typeof event === 'object' ? event?.status : event;
+
+        this.setState({ connectionStatus: status || event || '' });
+    }
+
+    _setMessagestate(inCall: boolean) {
+        this.setState({ inCallMessage: inCall });
     }
 
     _syncOrientationMode() {
@@ -315,15 +483,17 @@ class Conference extends AbstractConference<IProps, State> {
             isMelpChatOpen: false,
             isNativePipMode: false,
             nativeCallStatus: ''
-        }));
+        } as any));
         this._hardwareBackPressSubscription = BackHandler.addEventListener('hardwareBackPress', this._onHardwareBackPress);
         this._connectionStatusSubscription = connectionStatusEmitter.addListener(
             'connectionStatus', (event: { status?: string; } | string) => {
                 const status = typeof event === 'object' ? event.status : event;
                 const normalizedStatus = String(status || '').trim().replace(/\.+$/, '').toLowerCase();
-                const acceptedStatuses = new Set([ 'calling', 'ringing', 'connected', 'connecting', 'reconnecting' ]);
+                const acceptedStatuses = new Set(['calling', 'ringing', 'connected', 'connecting', 'reconnecting']);
 
-                this.props.dispatch(updateSettings({ nativeCallStatus: status || '' }));
+                this.props.dispatch(updateSettings({ nativeCallStatus: status || '' } as any));
+
+                this.setState({ connectionStatus: String(status || event || '') });
 
                 if (acceptedStatuses.has(normalizedStatus)) {
                     this.props.dispatch(setConnectionStatus(normalizedStatus));
@@ -334,7 +504,7 @@ class Conference extends AbstractConference<IProps, State> {
         this._inCallMessageSubscription = connectionStatusEmitter.addListener(
             'setInCallMessage', () => {
                 if (!this.props._isMelpChatOpen) {
-                    this.props.dispatch(updateSettings({ hasInCallMessage: true }));
+                    this.props.dispatch(updateSettings({ hasInCallMessage: true } as any));
                 }
             });
         this._pipModeSubscription = connectionStatusEmitter.addListener(
@@ -344,10 +514,23 @@ class Conference extends AbstractConference<IProps, State> {
                         ? event
                         : Boolean(event?.isInPictureInPictureMode);
 
-                this.props.dispatch(updateSettings({ isNativePipMode: isInPictureInPictureMode }));
+                this.props.dispatch(updateSettings({ isNativePipMode: isInPictureInPictureMode } as any));
             });
+        this._startTimerSubscription = connectionStatusEmitter.addListener('startTimer', this._startTimer);
+        this._stopTimerSubscription = connectionStatusEmitter.addListener('stopTimer', this._stopTimer);
+        this._viewCallDataSubscription = connectionStatusEmitter.addListener('viewcalldata', this.showAttendees);
+        this._newMessageSubscription = connectionStatusEmitter.addListener('newMessage', this._newMessage);
+
+        if (AudioMode?.getSpeakerState) {
+            AudioMode.getSpeakerState().then((speakerOn: boolean) => {
+                this.setState({ speakerOn });
+            }).catch(() => { });
+        }
+
         this._syncOrientationMode();
         this._dismissConnectedCalleeInfoIfNeeded();
+
+        this.props.dispatch(setS2SV2Theme(_audioOnlyEnabled ? 'light' : 'dark'));
 
         if (_audioOnlyEnabled && _startCarMode) {
             navigation.navigate(screen.conference.carmode);
@@ -380,6 +563,7 @@ class Conference extends AbstractConference<IProps, State> {
 
         if (prevProps._audioOnlyEnabled !== _audioOnlyEnabled) {
             this._syncOrientationMode();
+            this.props.dispatch(setS2SV2Theme(_audioOnlyEnabled ? 'light' : 'dark'));
         }
 
         this._dismissConnectedCalleeInfoIfNeeded();
@@ -399,6 +583,11 @@ class Conference extends AbstractConference<IProps, State> {
         this._inCallMessageSubscription?.remove();
         this._connectionStatusSubscription?.remove();
         this._pipModeSubscription?.remove();
+        this._stopTimer();
+        this._startTimerSubscription?.remove?.();
+        this._stopTimerSubscription?.remove?.();
+        this._viewCallDataSubscription?.remove?.();
+        this._newMessageSubscription?.remove?.();
         this.props.dispatch(updateSettings({
             callingType: undefined,
             hasInCallMessage: false,
@@ -408,7 +597,7 @@ class Conference extends AbstractConference<IProps, State> {
             nativeCallStatus: '',
             nativeHoldEnabled: false,
             nativeHoldPreviousAudioMuted: undefined
-        }));
+        } as any));
         Orientation.unlockAllOrientations();
         OpenMelpModule?.IsRotateMode?.(false);
 
@@ -428,12 +617,12 @@ class Conference extends AbstractConference<IProps, State> {
 
         return (
             <Container
-                style = { [
+                style={[
                     styles.conference,
                     _brandingStyles
-                ] }>
+                ]}>
                 <BrandingImageBackground />
-                { this._renderContent() }
+                {this._renderContent()}
             </Container>
         );
     }
@@ -541,19 +730,102 @@ class Conference extends AbstractConference<IProps, State> {
         }
 
         if (_isNativePipMode) {
+            const AvatarComponent = Avatar as any;
+
             return (
-                <View style = { styles.pipAvatarContainer as ViewStyle }>
-                    <Avatar
-                        participantId = { _localParticipantId }
-                        size = { 120 }
-                        style = { styles.pipAvatar as ViewStyle } />
+                <View style={styles.pipAvatarContainer as ViewStyle}>
+                    <AvatarComponent
+                        participantId={_localParticipantId}
+                        size={120}
+                        style={styles.pipAvatar as ViewStyle} />
                     {
                         _connecting
-                            && <TintedView>
-                                <LoadingIndicator />
-                            </TintedView>
+                        && <TintedView>
+                            <LoadingIndicator />
+                        </TintedView>
                     }
                 </View>
+            );
+        }
+
+        if (_audioOnlyEnabled) {
+            const {
+                _connecting,
+                _isS2SV2Active,
+                _toolboxVisible,
+                insets,
+                isTeamsCall,
+                roomName
+            } = this.props;
+            const {
+                connectionStatus,
+                customToolboxHeight,
+                inCallMessage,
+                interval,
+                showAttendees,
+                speakerOn
+            } = this.state;
+            const secsToMinString = this.secondsToHMS(interval);
+            const toolboxMargin = customToolboxHeight || hp('30%');
+            const isLandscape = _aspectRatio === ASPECT_RATIO_WIDE;
+
+
+            return (
+                <AudioScreen>
+                    <SafeAreaView style={(isTeamsCall ? { backgroundColor: 'black', flex: 1 } : { backgroundColor: 'rgb(252,252,252)', flex: 1 }) as ViewStyle}>
+                        <UpperTextContainer isTeamsCall={isTeamsCall} />
+                        <View style={(isTeamsCall ? styles.mainContainerTeamsStyle : styles.mainContainerOneToOneStyle) as ViewStyle}>
+                            <CalleeDetails
+                                connected={_connecting}
+                                connectionState={connectionStatus}
+                                isTeamsCall={isTeamsCall}
+                                roomName={roomName}
+                                secsToMinString={secsToMinString} />
+                            <View
+                                pointerEvents='box-none'
+                                style={[styles.audioTranslationWrapper, { bottom: toolboxMargin }] as ViewStyle[]}>
+                                <Captions onPress={this._onClick} />
+                                <LiveCaptionsPanel onPress={this._onClick} />
+                                <LiveTranslationPanel />
+                                <S2SV2TranslationPanel onPress={this._onClick} />
+                            </View>
+                            <View
+                                onLayout={this._onCustomToolboxLayout}
+                                style={{ width: '100%', flexShrink: 0, zIndex: 10 }}>
+                                <CustomisedToolBox
+                                    isShowingAttendees={showAttendees}
+                                    isTeamsCall={isTeamsCall}
+                                    ismessage={inCallMessage}
+                                    setMessagestate={this._setMessagestate}
+                                    setSpeakerState={this._setSpeakerState}
+                                    showAttendees={this.showAttendees}
+                                    speakerOn={speakerOn} />
+                            </View>
+                            {showAttendees && <Attendees isTeamsCall={isTeamsCall} showAttendees={this.showAttendees} />}
+                            <SafeAreaView
+                                pointerEvents='box-none'
+                                style={
+                                    (_toolboxVisible
+                                        ? [styles.titleBarSafeViewTransparent, { top: (insets?.top ?? 0) + 50 }]
+                                        : styles.titleBarSafeViewTransparent) as ViewStyle
+                                }>
+                                <View
+                                    pointerEvents='box-none'
+                                    style={styles.expandedLabelWrapper}>
+                                    <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
+                                </View>
+                                <View
+                                    pointerEvents='box-none'
+                                    style={styles.alwaysOnTitleBar as ViewStyle}>
+                                    {/* eslint-disable-next-line react/jsx-no-bind */}
+                                    <AlwaysOnLabels createOnPress={this._createOnPress} />
+                                </View>
+                                {this._renderNotificationsContainer()}
+                            </SafeAreaView>
+                        </View>
+                    </SafeAreaView>
+                    <TranscriptionConsentDialog />
+                </AudioScreen>
             );
         }
 
@@ -579,16 +851,16 @@ class Conference extends AbstractConference<IProps, State> {
                   * than beside it.
                   */
                     _shouldDisplayTileView
-                        ? <TileView onClick = { this._onClick } />
+                        ? <TileView onClick={this._onClick} />
                         : (
                             <View
-                                style = { [
+                                style={[
                                     styles.largeVideoContainer,
                                     _s2sV2PanelWidth || _liveTranslationPanelWidth
                                         ? { marginRight: _s2sV2PanelWidth + _liveTranslationPanelWidth }
                                         : null
-                                ] as ViewStyle[] }>
-                                <LargeVideo onClick = { this._onClick } />
+                                ] as ViewStyle[]}>
+                                <LargeVideo onClick={this._onClick} />
                             </View>
                         )
                 }
@@ -604,25 +876,25 @@ class Conference extends AbstractConference<IProps, State> {
                   * the toolbox/toolbars and the dialogs.
                   */
                     _connecting
-                        && <TintedView>
-                            <LoadingIndicator />
-                        </TintedView>
+                    && <TintedView>
+                        <LoadingIndicator />
+                    </TintedView>
                 }
 
                 <View
-                    pointerEvents = 'box-none'
-                    style = { styles.toolboxAndFilmstripContainer as ViewStyle }>
+                    pointerEvents='box-none'
+                    style={styles.toolboxAndFilmstripContainer as ViewStyle}>
 
-                    <Captions onPress = { this._onClick } />
+                    <Captions onPress={this._onClick} />
                     <SideToolbar />
 
-                    { !_shouldDisplayTileView && <LonelyMeetingExperience /> }
+                    {!_shouldDisplayTileView && <LonelyMeetingExperience />}
 
                     {
                         _shouldDisplayTileView
                         || <>
                             <Filmstrip />
-                            { this._renderNotificationsContainer() }
+                            {this._renderNotificationsContainer()}
                             <Toolbox />
                         </>
                     }
@@ -631,29 +903,29 @@ class Conference extends AbstractConference<IProps, State> {
                 <FloatingLocalThumbnail />
 
                 <SafeAreaView
-                    edges = { [ 'left', 'right', 'top' ] }
-                    pointerEvents = 'box-none'
-                    style = {
+                    edges={['left', 'right', 'top']}
+                    pointerEvents='box-none'
+                    style={
                         (_toolboxVisible
                             ? styles.titleBarSafeViewColor
-                            : styles.titleBarSafeViewTransparent) as ViewStyle }>
-                    <TitleBar _createOnPress = { this._createOnPress } />
+                            : styles.titleBarSafeViewTransparent) as ViewStyle}>
+                    <TitleBar _createOnPress={this._createOnPress} />
                 </SafeAreaView>
 
                 <SafeAreaView
-                    edges = { [ 'bottom', 'left', 'right', !_toolboxVisible && 'top' ].filter(Boolean) as Edge[] }
-                    pointerEvents = 'box-none'
-                    style = { styles.titleBarSafeViewTransparent as ViewStyle }>
+                    edges={['bottom', 'left', 'right', !_toolboxVisible && 'top'].filter(Boolean) as Edge[]}
+                    pointerEvents='box-none'
+                    style={styles.titleBarSafeViewTransparent as ViewStyle}>
                     <View
-                        pointerEvents = 'box-none'
-                        style = { styles.expandedLabelWrapper }>
-                        <ExpandedLabelPopup visibleExpandedLabel = { this.state.visibleExpandedLabel } />
+                        pointerEvents='box-none'
+                        style={styles.expandedLabelWrapper}>
+                        <ExpandedLabelPopup visibleExpandedLabel={this.state.visibleExpandedLabel} />
                     </View>
                     <View
-                        pointerEvents = 'box-none'
-                        style = { alwaysOnTitleBarStyles as ViewStyle }>
+                        pointerEvents='box-none'
+                        style={alwaysOnTitleBarStyles as ViewStyle}>
                         {/* eslint-disable-next-line react/jsx-no-bind */}
-                        <AlwaysOnLabels createOnPress = { this._createOnPress } />
+                        <AlwaysOnLabels createOnPress={this._createOnPress} />
                     </View>
                 </SafeAreaView>
 
@@ -667,7 +939,7 @@ class Conference extends AbstractConference<IProps, State> {
                   * it. Tile view is refused outright on a deployment which disables it, and refused silently, which
                   * would leave a participant reading nothing while the room was being captioned around them.
                   */}
-                <LiveCaptionsPanel onPress = { this._onClick } />
+                <LiveCaptionsPanel onPress={this._onClick} />
 
                 {/*
                   * The live translation call sits in the same place, for the same reason: the tile grid has already
@@ -684,12 +956,12 @@ class Conference extends AbstractConference<IProps, State> {
                   * would leave a participant in a session they can hear and cannot see. Drawn wherever the meeting
                   * happens to be, over the large video if that is what is on screen.
                   */}
-                <S2SV2TranslationPanel onPress = { this._onClick } />
+                <S2SV2TranslationPanel onPress={this._onClick} />
 
                 {
                     _shouldDisplayTileView
                     && <>
-                        { this._renderNotificationsContainer() }
+                        {this._renderNotificationsContainer()}
                         <Toolbox />
                     </>
                 }
@@ -708,13 +980,13 @@ class Conference extends AbstractConference<IProps, State> {
 
         return (
             <>
-                <LargeVideo onClick = { this._onClick } />
+                <LargeVideo onClick={this._onClick} />
 
                 {
                     _connecting
-                        && <TintedView>
-                            <LoadingIndicator />
-                        </TintedView>
+                    && <TintedView>
+                        <LoadingIndicator />
+                    </TintedView>
                 }
             </>
         );
@@ -826,6 +1098,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _isMelpChatOpen: Boolean(settings?.isMelpChatOpen),
         _isNativePipMode: Boolean(settings?.isNativePipMode),
         _isParticipantsPaneOpen: isOpen,
+        _isS2SV2Active: isS2SV2Active(state),
         _largeVideoParticipantId: state['features/large-video'].participantId,
         _liveTranslationPanelWidth: getLiveTranslationPanelWidth(state),
         _localParticipantId: localParticipant?.id,
@@ -835,7 +1108,12 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _s2sV2PanelWidth: getS2SV2PanelWidth(state),
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
-        _toolboxVisible: isToolboxVisible(state)
+        _toolboxVisible: isToolboxVisible(state),
+        isTeamsCall: Boolean(settings?.isGroupCall),
+        participant: getParticipantCountRemoteOnly(state),
+        participants: getParticipants(state),
+        _participants: state['features/base/participants'],
+        roomName: settings?.teamName || ''
     };
 }
 
@@ -853,6 +1131,6 @@ export default withSafeAreaInsets(connect(_mapStateToProps)(props => {
     }, []));
 
     return ( // @ts-ignore
-        <Conference { ...props } />
+        <Conference {...props} />
     );
 }));

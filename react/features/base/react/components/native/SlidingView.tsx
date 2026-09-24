@@ -43,6 +43,11 @@ interface IProps {
      * Style of the animated view.
      */
     style?: StyleType;
+
+    /**
+     * Style of the backdrop shadow.
+     */
+    shadowStyle?: StyleType;
 }
 
 /**
@@ -169,16 +174,16 @@ export default class SlidingView extends PureComponent<IProps, IState> {
 
         return (
             <View
-                pointerEvents = 'box-none'
-                style = { styles.sliderViewContainer } >
+                pointerEvents='box-none'
+                style={styles.sliderViewContainer} >
                 <TouchableWithoutFeedback
-                    onPress = { this._onHide } >
-                    <View style = { styles.sliderViewShadow } />
+                    onPress={this._onHide} >
+                    <View style={[ styles.sliderViewShadow, this.props.shadowStyle ]} />
                 </TouchableWithoutFeedback>
                 <Animated.View
-                    pointerEvents = 'box-none'
-                    style = { this._getContentStyle() as ViewStyle }>
-                    { this.props.children }
+                    pointerEvents='box-none'
+                    style={this._getContentStyle() as ViewStyle}>
+                    {this.props.children}
                 </Animated.View>
             </View>
         );
@@ -198,26 +203,26 @@ export default class SlidingView extends PureComponent<IProps, IState> {
         const { positionOffset } = this.state;
 
         switch (this.props.position) {
-        case 'bottom':
-            Object.assign(style, {
-                bottom: -positionOffset,
-                left: 0,
-                right: 0,
-                top: positionOffset
-            }, {
-                transform: [ { translateY: this.state.sliderAnimation } ]
-            });
-            break;
-        case 'left':
-            Object.assign(style, {
-                bottom: 0,
-                left: -positionOffset,
-                right: positionOffset,
-                top: 0
-            }, {
-                transform: [ { translateX: this.state.sliderAnimation } ]
-            });
-            break;
+            case 'bottom':
+                Object.assign(style, {
+                    bottom: -positionOffset,
+                    left: 0,
+                    right: 0,
+                    top: positionOffset
+                }, {
+                    transform: [{ translateY: this.state.sliderAnimation }]
+                });
+                break;
+            case 'left':
+                Object.assign(style, {
+                    bottom: 0,
+                    left: -positionOffset,
+                    right: positionOffset,
+                    top: 0
+                }, {
+                    transform: [{ translateX: this.state.sliderAnimation }]
+                });
+                break;
         }
 
         return style;

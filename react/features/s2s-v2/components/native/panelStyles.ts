@@ -26,7 +26,7 @@ function _create(palette: IS2SV2Palette) {
             borderTopRightRadius: 20,
             bottom: 0,
             left: 0,
-            paddingBottom: BaseTheme.spacing[3],
+            paddingBottom: BaseTheme.spacing[1],
             paddingHorizontal: BaseTheme.spacing[3],
             position: 'absolute' as const,
             right: 0
@@ -315,7 +315,7 @@ function _create(palette: IS2SV2Palette) {
         panelFooter: {
             alignItems: 'center' as const,
             flexDirection: 'row' as const,
-            marginTop: BaseTheme.spacing[3]
+            marginTop: BaseTheme.spacing[1]
         },
 
         // The captions disclaimer gets its own full-width line. In embedded Android hosts, allowing it to wrap at the
@@ -323,7 +323,7 @@ function _create(palette: IS2SV2Palette) {
         liveCaptionsPanelFooter: {
             alignItems: 'stretch' as const,
             flexDirection: 'column' as const,
-            marginTop: BaseTheme.spacing[3],
+            marginTop: BaseTheme.spacing[1],
             paddingBottom: BaseTheme.spacing[1]
         },
 

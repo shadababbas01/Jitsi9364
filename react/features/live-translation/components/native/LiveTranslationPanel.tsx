@@ -207,6 +207,7 @@ export default function LiveTranslationPanel() {
     );
     const theme = useSelector(getS2SV2Theme);
     const translationOnly = useSelector(isPlayTranslationOnly);
+    const isAudioOnly = useSelector((state: IReduxState) => Boolean(state['features/base/audio-only']?.enabled));
     const wideStyles = getS2SV2PanelStyles(theme);
     const palette = getS2SV2Palette(theme);
 
@@ -363,7 +364,10 @@ export default function LiveTranslationPanel() {
                         accessibilityLabel = { t('liveTranslation.turnOff') }
                         accessibilityRole = 'button'
                         onPress = { close }
-                        style = { wideStyles.headerIconButton as ViewStyle }>
+                        style = { [
+                            wideStyles.headerIconButton,
+                            isAudioOnly && { marginRight: 52 }
+                        ] as ViewStyle[] }>
                         <Icon
                             color = { iconColor }
                             size = { 12 }
@@ -454,18 +458,6 @@ export default function LiveTranslationPanel() {
                                 size = { 18 }
                                 src = { theme === 'dark' ? IconVolumeOff : IconVolumeUpToolBox } />
                         </Pressable>
-                    </View>
-
-                    <View
-                        style = { [
-                            wideStyles.panelFooter,
-                            { flexShrink: 0 }
-                        ] as ViewStyle[] }>
-                        <Text
-                            allowFontScaling = { false }
-                            style = { wideStyles.disclaimer as TextStyle }>
-                            { t('liveTranslation.disclaimer') }
-                        </Text>
                     </View>
                 </View>
             </Animated.View>

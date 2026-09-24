@@ -297,38 +297,6 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
                     </View>
 
                 </View>
-
-                <View
-                    style = { [
-                        styles.liveCaptionsPanelFooter,
-                        { flexShrink: 0 }
-                    ] as ViewStyle[] }>
-
-                    <Text
-                        adjustsFontSizeToFit = { true }
-                        allowFontScaling = { false }
-                        minimumFontScale = { 0.65 }
-                        numberOfLines = { 1 }
-                        style = { styles.liveCaptionsDisclaimer as TextStyle }>
-                        { t('liveCaptionsPanel.disclaimer') }
-                    </Text>
-
-                    { canStop && (
-                        <Pressable
-                            accessibilityLabel = { t('liveCaptionsPanel.stop') }
-                            { ...claim }
-                            accessibilityRole = 'button'
-                            onPress = { confirmStopCaptions }
-                            style = { [
-                                styles.closeTranscript,
-                                styles.liveCaptionsStop
-                            ] as ViewStyle[] }>
-                            <Text style = { styles.closeTranscriptLabel as TextStyle }>
-                                { t('liveCaptionsPanel.stop') }
-                            </Text>
-                        </Pressable>
-                    ) }
-                </View>
             </View>
         </Animated.View>
     );

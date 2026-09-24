@@ -20,44 +20,44 @@ export default function DisableLiveCaptionsDialog() {
 
     const cancel = useCallback(() => {
         dispatch(setCaptionsStopConfirmVisible(false));
-    }, [ dispatch ]);
+    }, [dispatch]);
 
     const confirm = useCallback(() => {
         dispatch(setCaptionsStopConfirmVisible(false));
         dispatch(setRequestingSubtitles(false, false, language));
-    }, [ dispatch, language ]);
+    }, [dispatch, language]);
 
     return (
         <BottomSheet
-            addScrollViewPadding = { false }
-            onCancel = { cancel }
-            style = { styles.sheet }>
-            <View style = { styles.grabber as ViewStyle } />
-            <View style = { styles.body as ViewStyle }>
-                <Text style = { styles.title as TextStyle }>
-                    { t('liveCaptionsPanel.stopDialog.title') }
+            addScrollViewPadding={false}
+            onCancel={cancel}
+            style={styles.sheet as ViewStyle}>
+            <View style={styles.grabber as ViewStyle} />
+            <View style={styles.body as ViewStyle}>
+                <Text style={styles.title as TextStyle}>
+                    {t('liveCaptionsPanel.stopDialog.title')}
                 </Text>
-                <Text style = { styles.description as TextStyle }>
-                    { t('liveCaptionsPanel.stopDialog.description') }
+                <Text style={styles.description as TextStyle}>
+                    {t('liveCaptionsPanel.stopDialog.description')}
                 </Text>
 
-                <View style = { styles.actions as ViewStyle }>
+                <View style={styles.actions as ViewStyle}>
                     <Pressable
-                        accessibilityLabel = { t('liveCaptionsPanel.stopDialog.cancel') }
-                        accessibilityRole = 'button'
-                        onPress = { cancel }
-                        style = { [ styles.button, styles.buttonDismiss ] as ViewStyle[] }>
-                        <Text style = { [ styles.buttonLabel, styles.buttonLabelDismiss ] as TextStyle[] }>
-                            { t('liveCaptionsPanel.stopDialog.cancel') }
+                        accessibilityLabel={t('liveCaptionsPanel.stopDialog.cancel')}
+                        accessibilityRole='button'
+                        onPress={cancel}
+                        style={[styles.button, styles.buttonDismiss] as ViewStyle[]}>
+                        <Text style={[styles.buttonLabel, styles.buttonLabelDismiss] as TextStyle[]}>
+                            {t('liveCaptionsPanel.stopDialog.cancel')}
                         </Text>
                     </Pressable>
                     <Pressable
-                        accessibilityLabel = { t('liveCaptionsPanel.stopDialog.confirm') }
-                        accessibilityRole = 'button'
-                        onPress = { confirm }
-                        style = { [ styles.button, styles.buttonDestructive ] as ViewStyle[] }>
-                        <Text style = { [ styles.buttonLabel, styles.buttonLabelPrimary ] as TextStyle[] }>
-                            { t('liveCaptionsPanel.stopDialog.confirm') }
+                        accessibilityLabel={t('liveCaptionsPanel.stopDialog.confirm')}
+                        accessibilityRole='button'
+                        onPress={confirm}
+                        style={[styles.button, styles.buttonDestructive] as ViewStyle[]}>
+                        <Text style={[styles.buttonLabel, styles.buttonLabelPrimary] as TextStyle[]}>
+                            {t('liveCaptionsPanel.stopDialog.confirm')}
                         </Text>
                     </Pressable>
                 </View>

@@ -634,6 +634,11 @@ export function getRemoteParticipants(stateful: IStateful): Map<string, IPartici
     return toState(stateful)['features/base/participants'].remote;
 }
 
+export function getParticipants(stateful: IStateful) {
+    return getRemoteParticipants(stateful);
+}
+
+
 /**
  * Selectors for the getting the remote participants in the order that they are displayed in the filmstrip.
  *

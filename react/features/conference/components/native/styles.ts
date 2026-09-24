@@ -1,9 +1,135 @@
+import { Dimensions, PixelRatio } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
+export const SECURITY_CALL_LOGO = require('../../../../../images/security_call.png');
+export const CALL_ICON = require('../../../../../images/path.png');
+export const CALL_ONETOONE_ICON = require('../../../../../images/pathOneToOne.png');
+export const DESKTOP_ENABLED_ICON = require('../../../../../images/desktop-enable.png');
+export const DESKTOP_DISABLED_ICON = require('../../../../../images/desktop-disable.png');
+export const VIEW_ATTENDEES_ENABLED_ICON = require('../../../../../images/Icon-viewattendees.png');
+export const VIEW_ATTENDEES_DISABLED_ICON = require('../../../../../images/Icon-viewattendees-disable.png');
+export const ADD_CALL_ICON = require('../../../../../images/ic_invite_24px.png');
+export const AUDIO_MUTE_DISABLED_ICON = require('../../../../../images/Icon-unmute.png');
+export const AUDIO_MUTE_ENABLED_ICON = require('../../../../../images/Icon-mute.png');
+export const VIDEO_CALL_DISABLED_ICON = require('../../../../../images/videoCall-disable.png');
+export const VIDEO_CALL_ENABLED_ICON = require('../../../../../images/videoCall-enable.png');
+export const SPEAKER_DISABLED_ICON = require('../../../../../images/Icon-speakeroff.png');
+export const SPEAKER_ENABLED_ICON = require('../../../../../images/Icon-speakeron.png');
+export const SPEAKER_TEAMS_INACTIVE_ICON = require('../../../../../images/speaker-disabled.png');
+export const AUDIO_MUTE_TEAMS_INACTIVE_ICON = require('../../../../../images/mute_disabled.png');
+export const VIDEO_TEAMS_INACTIVE_ICON = require('../../../../../images/video-inactive-teams.png');
+export const VIDEO_ONE_TO_ONE_INACTIVE_ICON = require('../../../../../images/video-inactive-one-one.png');
+export const SPEAKER_ONE_TO_ONE_INACTIVE_ICON = require('../../../../../images/speaker-inactive-one-one.png');
+export const AUDIO_MUTE_ONE_TO_ONE_INACTIVE_ICON = require('../../../../../images/mute-inactive-one-one.png');
+export const MESSAGE_ICON = require('../../../../../images/Icon-callingmessage.png');
+export const END_CALL_ICON = require('../../../../../images/group.png');
+export const HOLD_ENABLED_ICON = require('../../../../../images/Icon-unhold.png');
+export const HOLD_DISABLED_ICON = require('../../../../../images/Icon-hold.png');
+export const BACK_ICON = require('../../../../../images/page1.png');
+export const ADD_ICON = require('../../../../../images/shape.png');
+export const CROSS_ICON = require('../../../../../images/cross.png');
+export const BLUETOOTH = require('../../../../../images/bluetooth.png');
+export const ENCRYPTED_IMG = require('../../../../../images/test.png');
+export const S_END_CALL_ICON = require('../../../../../images/endcalles.png');
+export const P_END_CALL_ICON = require('../../../../../images/endcallpt.png');
+export const DE_END_CALL_ICON = require('../../../../../images/endcallde.png');
+export const VI_END_CALL_ICON = require('../../../../../images/VI_END_CALL_ICON.png');
+export const NODOT = require('../../../../../images/nodot.png');
+export const DOT = require('../../../../../images/dot.png');
 export const INSECURE_ROOM_NAME_LABEL_COLOR = BaseTheme.palette.actionDanger;
 
 const TITLE_BAR_BUTTON_SIZE = 20;
 const ROUND_BUTTON_SIZE = 48;
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCALE = 414;
+const WIDTH = 414;
+const HEIGHT = 736;
+
+function getRatio() {
+    const val = PixelRatio.get();
+
+    if (val <= 1) {
+        return 1;
+    } else if (val > 1 && val <= 2) {
+        return 2;
+    } else if (val > 2 && val <= 3) {
+        return 3;
+    }
+
+    return 4;
+}
+
+const scaleFontSize = (fontSize: number) => {
+    const ratio = fontSize / SCALE;
+    const newSize = Math.round(ratio * SCREEN_WIDTH);
+
+    return newSize;
+};
+
+function calculatePercentageHeight(size: number, scale = HEIGHT) {
+    return `${(size / scale * 100)}%`;
+}
+
+function calculatePercentageWidth(size: number, scale = WIDTH) {
+    return `${(size / scale * 100)}%`;
+}
+
+const commonStyles = {
+    attendeesContainer: {
+        width: '100%',
+        height: '100%',
+        zOrder: 2,
+        backgroundColor: 'white',
+        position: 'absolute' as const,
+        flexDirection: 'column' as const,
+        justifyContent: 'flex-start' as const
+    },
+    attendeesTopContainer: {
+        width: '100%',
+        flexDirection: 'row' as const,
+        justifyContent: 'space-between' as const,
+        paddingTop: 22,
+        paddingLeft: 20,
+        paddingRight: 20,
+        backgroundColor: 'white'
+    },
+    participantItemContainerStyle: {
+        height: 89,
+        width: '100%',
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'flex-start' as const,
+        backgroundColor: 'rgb(248, 248, 248)',
+        paddingLeft: 20,
+        paddingRight: 26,
+        borderRadius: 9.5
+    },
+
+    participantNameSectionStyle: {
+        flex: 1,
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'space-between' as const,
+        backgroundColor: 'rgb(248, 248, 248)',
+        paddingLeft: 20
+    },
+    pariticipantNameTextStyle: {
+        fontSize: 15,
+        fontFamily: 'AkzidenzGroteskPro-Bold',
+        color: 'rgb(34,32,32)'
+    },
+
+    pariticipantPositionTextStyle: {
+        marginTop: 1,
+        fontSize: 13,
+        fontFamily: 'AkzidenzGroteskPro-Regular',
+        color: 'rgb(115,112,112)'
+    }
+};
+
 
 
 /**
@@ -132,7 +258,7 @@ export default {
 
     pipButton: {
         iconStyle: {
-            color: BaseTheme.palette.icon01,
+            color: 'rgb(238,65,54)',
             padding: 10,
             fontSize: TITLE_BAR_BUTTON_SIZE
         },
@@ -293,6 +419,13 @@ export default {
         zIndex: 2
     },
 
+    audioSideToolbar: {
+        position: 'absolute' as const,
+        right: BaseTheme.spacing[3],
+        top: BaseTheme.spacing[1],
+        zIndex: 2
+    },
+
     sideToolbarStack: {
         alignItems: 'center'
     },
@@ -427,5 +560,457 @@ export default {
     raisedHandsCountLabelText: {
         color: BaseTheme.palette.uiBackground,
         paddingLeft: BaseTheme.spacing[2]
+    },
+
+    headerRightActions: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'flex-end' as const,
+        marginRight: 15
+    },
+    headerTranslationButtonWrapper: {
+        marginRight: 6,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
+    },
+    moreButtonContainer: {
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const
+    },
+    moreIcon: {
+        // more icon style
+    },
+    selectSoundDeviceVideoStyle: {
+        position: 'absolute' as const,
+        top: hp('2.7%'),
+        right: wp('4.83%')
+    },
+    mainContainerTeamsStyle: {
+        backgroundColor: 'black',
+        flex: 1,
+        flexDirection: 'column' as const,
+        justifyContent: 'space-between' as const
+    },
+
+    mainContainerOneToOneStyle: {
+        backgroundColor: 'rgb(252,252,252)',
+        flex: 1,
+        flexDirection: 'column' as const,
+        justifyContent: 'space-between' as const
+    },
+
+    audioTranslationWrapper: {
+        position: 'absolute' as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        justifyContent: 'flex-end' as const
+    },
+
+    upperTextTeamContainerStyle: {
+        color: 'white',
+        width: '100%',
+        textAlign: 'center' as const,
+        fontSize: scaleFontSize(11),
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+    customFilmstripViewBoxStyle: {
+        height: hp('0.01%'),
+        width: hp('0.01%'),
+        borderRadius: 18,
+        borderWidth: 1,
+        padding: 4,
+        borderColor: 'rgba(0,0,0,0)',
+        paddingBottom: 1000
+    },
+    upperTextOneToOneContainerStyle: {
+        color: '#222220',
+        width: '100%',
+        textAlign: 'center' as const,
+        fontSize: scaleFontSize(11),
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+    parentViewStyle: {
+        flexDirection: 'row' as const,
+        marginTop: 20,
+        justifyContent: 'space-between' as const,
+        alignItems: 'center' as const
+    },
+    encryptedContainerStyle: {
+        flexDirection: 'row' as const,
+        justifyContent: 'flex-start' as const,
+        position: 'absolute' as const,
+        right: wp('4.83%')
+    },
+    securityLogoImageStyle: {
+        height: hp('2.7%'),
+        width: wp('4.83%')
+    },
+    encryptedTextTeamStyle: {
+        color: 'white',
+        fontSize: scaleFontSize(8),
+        marginRight: wp('2.415%'),
+        marginTop: hp('0.679%'),
+        marginLeft: hp('3.0%'),
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+    encryptedTextOneToOneStyle: {
+        color: 'rgb(201,207,215)',
+        fontSize: scaleFontSize(8),
+        marginRight: wp('2.415%'),
+        marginTop: hp('0.679%'),
+        marginLeft: hp('3.0%'),
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+    calleeContainerStyle: {
+        marginTop: hp('4.07%'),
+        flexDirection: 'column' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'flex-start' as const
+    },
+
+    callerTimeTeamContainerStyle: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        backgroundColor: 'rgb(255,255,255)',
+        borderRadius: 99,
+        position: 'absolute' as const,
+        paddingLeft: wp('2.41%'),
+        paddingRight: wp('2.41%'),
+        height: hp('4.08%'),
+        minWidth: wp('22.22%'),
+        top: hp('19.8%')
+    },
+
+    callerTimeOneToOneContainerStyle: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        backgroundColor: 'rgb(34, 32, 32)',
+        borderRadius: 99,
+        position: 'absolute' as const,
+        paddingLeft: wp('2.41%'),
+        paddingRight: wp('2.41%'),
+        height: hp('4.08%'),
+        minWidth: wp('22.22%'),
+        top: hp('19.8%')
+    },
+
+    callIcon: {
+        height: hp(calculatePercentageHeight(13)),
+        width: hp(calculatePercentageHeight(13))
+    },
+
+    callOneToOneIcon: {
+        height: hp('2.85%'),
+        width: wp('5.07%'),
+        marginTop: hp('0.679%')
+    },
+
+    timerTextTeamStyle: {
+        ...BaseTheme.typography.bodyShortBold,
+        lineHeight: 14,
+        fontSize: scaleFontSize(13),
+        marginLeft: wp('1.93%'),
+        color: 'rgb(34,32,32)'
+    },
+
+    timerTextOneToOneStyle: {
+        ...BaseTheme.typography.bodyShortBold,
+        lineHeight: 14,
+        fontSize: scaleFontSize(13),
+        marginLeft: wp('1.93%'),
+        color: 'rgb(255, 255, 255)'
+    },
+
+    teamTextStyle: {
+        marginTop: hp('4.07%'),
+        fontSize: scaleFontSize(24),
+        fontFamily: 'AkzidenzGroteskPro-Bold',
+        color: 'white'
+    },
+
+    oneToOneTextStyle: {
+        marginTop: hp('4.07%'),
+        fontSize: scaleFontSize(24),
+        fontFamily: 'AkzidenzGroteskPro-Bold',
+        color: 'rgb(34,32,32)'
+    },
+
+    participantTextStyle: {
+        fontSize: scaleFontSize(17),
+        color: 'rgb(238,65,54)',
+        fontFamily: 'AkzidenzGroteskPro-Light'
+    },
+
+    calleeViewBoxStyle: {
+        height: hp('22.01%'),
+        width: hp('22.01%'),
+        borderRadius: 18,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
+        backgroundColor: 'rgba(214,219,225,0.2)'
+    },
+
+    imageViewBoxStyle: {
+        height: hp('22.01%'),
+        width: hp('22.01%'),
+        borderRadius: 18,
+        padding: 4
+    },
+
+    calleeInitialStyle: {
+        fontSize: scaleFontSize(64),
+        color: 'rgb(255,255,255)'
+    },
+
+    connectionStatusOneToOneTextStyle: {
+        marginTop: hp('1.36%'),
+        fontSize: scaleFontSize(13),
+        color: 'black'
+    },
+
+    connectionStatusTeamsTextStyle: {
+        marginTop: hp('1.36%'),
+        fontSize: scaleFontSize(13),
+        color: 'white'
+    },
+
+    toolBoxContainerStyle: {
+        paddingBottom: hp('2.72%'),
+        paddingLeft: wp('4.83%'),
+        paddingRight: wp('4.83%'),
+        flexDirection: 'column' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'space-between' as const,
+        width: '100%',
+        flexShrink: 0
+    },
+
+    toolBoxSectionContainerStyle: {
+        flexDirection: 'row' as const,
+        justifyContent: 'space-between' as const,
+        width: '100%',
+        alignItems: 'center' as const
+    },
+
+    toolBoxFunctionContainerStyle: {
+        flexDirection: 'column' as const,
+        justifyContent: 'flex-start' as const,
+        alignItems: 'center' as const,
+        width: wp('24.15%'),
+        paddingTop: hp('3.3%'),
+        paddingBottom: hp('3.3%')
+    },
+
+    endCallFunctionContainerStyle: {
+        marginTop: getRatio() === 1 ? 2 : 5,
+        height: getRatio() === 1 ? 90 : getRatio() === 2 ? 110 : getRatio() === 3 ? 110 : 135,
+        width: getRatio() === 1 ? 90 : getRatio() === 2 ? 110 : getRatio() === 3 ? 110 : 135,
+        flex: 1,
+        justifyContent: 'center' as const,
+        flexDirection: 'column' as const
+    },
+
+    messageFunctionContainerStyle: {
+        marginTop: hp('0.69%'),
+        flexDirection: 'column' as const,
+        justifyContent: 'flex-start' as const,
+        alignItems: 'center' as const,
+        width: wp('24.15%'),
+        paddingTop: hp('1.35%'),
+        paddingBottom: hp('1.35%'),
+        paddingLeft: wp('2.415%'),
+        paddingRight: wp('2.415%')
+    },
+
+    holdFunctionContainerStyle: {
+        marginTop: hp('0.69%'),
+        flexDirection: 'column' as const,
+        justifyContent: 'flex-start' as const,
+        alignItems: 'center' as const,
+        width: wp('24.15%'),
+        paddingTop: hp('1.35%'),
+        paddingBottom: hp('1.35%'),
+        paddingLeft: wp('2.415%'),
+        paddingRight: wp('2.415%')
+    },
+
+    toolBoxIconStyle: {
+        height: hp('6.00%'),
+        width: hp('6.00%')
+    },
+
+    speakerIconStyle: {
+        width: wp(calculatePercentageWidth(31)),
+        height: 30 / 31 * wp(calculatePercentageWidth(31)),
+        marginBottom: hp(`${11.4 / HEIGHT * 100}%`)
+    },
+
+    holdIconStyle: {
+        width: wp(calculatePercentageWidth(30)),
+        height: 24 / 22 * wp(calculatePercentageWidth(22)),
+        marginBottom: hp(`${15.3 / HEIGHT * 100}%`)
+    },
+
+    endIconStyle: {
+        flex: 1,
+        width: undefined,
+        height: undefined,
+        overflow: 'visible' as const
+    },
+
+    muteIconStyle: {
+        width: wp(calculatePercentageWidth(31)),
+        height: (33 / 31) * wp(calculatePercentageWidth(31)),
+        marginBottom: hp(`${9.9 / HEIGHT * 100}%`)
+    },
+
+    messageIconStyle: {
+        width: wp(calculatePercentageWidth(30)),
+        height: (27 / 30) * wp(calculatePercentageWidth(30)),
+        marginBottom: hp(`${14 / HEIGHT * 100}%`)
+    },
+
+    videoIconStyle: {
+        width: wp(calculatePercentageWidth(34)),
+        height: (23 / 34) * wp(calculatePercentageWidth(34)),
+        marginBottom: hp(`${14.7 / HEIGHT * 100}%`),
+        marginTop: 3
+    },
+
+    attendeesIconStyle: {
+        width: wp(calculatePercentageWidth(38)),
+        height: 25 / 38 * wp(calculatePercentageWidth(38)),
+        marginBottom: hp(`${16 / HEIGHT * 100}%`)
+    },
+
+    desktopIconStyle: {
+        width: wp(calculatePercentageWidth(22)),
+        height: (30 / 22) * wp(calculatePercentageWidth(22)),
+        marginBottom: hp(`${10 / HEIGHT * 100}%`)
+    },
+
+    addCallIconStyle: {
+        width: wp(calculatePercentageWidth(27)),
+        height: wp(calculatePercentageWidth(27)),
+        marginBottom: hp(`${16.3 / HEIGHT * 100}%`)
+    },
+
+    endCallIconStyle: {
+        flex: 1
+    },
+    toolBoxFunctionTextTeamStyle: {
+        fontSize: scaleFontSize(8),
+        textAlign: 'center' as const,
+        color: 'white',
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+
+    toolBoxFunctionInactiveTeamStyle: {
+        fontSize: scaleFontSize(8),
+        textAlign: 'center' as const,
+        color: 'white',
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+
+    toolBoxFunctionInactiveOneToOneStyle: {
+        fontSize: scaleFontSize(8),
+        textAlign: 'center' as const,
+        color: 'rgb(34,32,32)',
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+
+    toolBoxFunctionTextOneToOneStyle: {
+        fontSize: scaleFontSize(8),
+        textAlign: 'center' as const,
+        color: 'rgb(34,32,32)',
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+    toolBoxFunctionTextDisableDialpadStyle: {
+        fontSize: scaleFontSize(8),
+        textAlign: 'center' as const,
+        color: 'rgba(64,58,100, 0.2)',
+        fontFamily: 'AkzidenzGroteskPro-Bold'
+    },
+
+    attendeesContainer: {
+        ...commonStyles.attendeesContainer
+    },
+
+    attendeesTopContainer: {
+        ...commonStyles.attendeesTopContainer
+    },
+
+    attendeesTeamsContainer: {
+        ...commonStyles.attendeesContainer,
+        backgroundColor: 'rgb(39,36,36)'
+    },
+    attendeesTeamsTopContainer: {
+        ...commonStyles.attendeesTopContainer,
+        backgroundColor: 'rgb(39,36,36)'
+    },
+    listContainerStyle: {
+        flex: 1,
+        paddingLeft: 20,
+        paddingRight: 20,
+        marginTop: 25
+    },
+
+    participantImageStyle: {
+        height: 46,
+        width: 46,
+        borderRadius: 6
+    },
+
+    participantNameContainerStyle: {
+        flexDirection: 'column' as const,
+        justifyContent: 'flex-start' as const
+    },
+
+    pariticipantNameTextStyle: {
+        ...commonStyles.pariticipantNameTextStyle
+    },
+
+    pariticipantPositionTextStyle: {
+        ...commonStyles.pariticipantPositionTextStyle
+    },
+
+    pariticipantTeamsNameTextStyle: {
+        ...commonStyles.pariticipantNameTextStyle,
+        color: 'rgb(255,255,255)'
+    },
+
+    pariticipantTeamsPositionTextStyle: {
+        ...commonStyles.pariticipantPositionTextStyle,
+        color: 'rgb(157,151,151)'
+    },
+
+    participantItemContainerStyle: {
+        ...commonStyles.participantItemContainerStyle
+    },
+
+    participantNameSectionStyle: {
+        ...commonStyles.participantNameSectionStyle
+    },
+
+    participantTeamsItemContainerStyle: {
+        ...commonStyles.participantItemContainerStyle,
+        backgroundColor: 'rgb(37,33,33)'
+    },
+
+    participantTeamsNameSectionStyle: {
+        ...commonStyles.participantItemContainerStyle,
+        backgroundColor: 'rgb(37,33,33)'
+    },
+
+    backIconStyle: {
+        width: 26,
+        height: 16
+    },
+
+    addIconStyle: {
+        height: 23,
+        width: 23
     }
 };
+

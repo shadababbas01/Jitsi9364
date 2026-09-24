@@ -410,66 +410,6 @@ export default function S2SV2TranslationPanel({ onPress }: IProps) {
                             src = { theme === 'dark' ? IconVolumeOff : IconVolumeUpToolBox } />
                     </Pressable>
                 </View>
-
-                {/*
-                 * ============================================================
-                 * FOOTER
-                 * ============================================================
-                 */}
-                <View
-                    style = {
-                        [
-                            styles.panelFooter,
-                            {
-                                flexShrink: 0
-                            }
-                        ] as ViewStyle[]
-                    }>
-
-                    <Text
-                        allowFontScaling = { false }
-                        style = {
-                            styles.disclaimer as TextStyle
-                        }>
-                        {
-                            t(
-                                's2sV2.panel.disclaimer'
-                            )
-                        }
-                    </Text>
-
-                    {/*
-                     * Only moderators can stop translation for everyone.
-                     *
-                     * The X button in the header opens the same confirmation.
-                     */}
-                    { moderator && (
-                        <Pressable
-                            accessibilityLabel = {
-                                t(
-                                    's2sV2.panel.closeTranscript'
-                                )
-                            }
-                            { ...claim }
-                            accessibilityRole = 'button'
-                            onPress = { closeTranscript }
-                            style = {
-                                styles.closeTranscript as ViewStyle
-                            }>
-                            <Text
-                                allowFontScaling = { false }
-                                style = {
-                                    styles.closeTranscriptLabel as TextStyle
-                                }>
-                                {
-                                    t(
-                                        's2sV2.panel.closeTranscript'
-                                    )
-                                }
-                            </Text>
-                        </Pressable>
-                    ) }
-                </View>
             </View>
         </Animated.View>
     );
