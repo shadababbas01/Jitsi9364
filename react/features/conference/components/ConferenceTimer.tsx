@@ -12,6 +12,11 @@ import { ConferenceTimerDisplay } from './index';
 interface IProps {
 
     /**
+     * Whether the timer should only be shown after the connection is established.
+     */
+    onlyWhenConnected?: boolean;
+
+    /**
      * Style to be applied to the rendered text.
      */
     textStyle?: Object;
@@ -30,9 +35,14 @@ export interface IDisplayProps {
     timerValue: string;
 }
 
-const ConferenceTimer = ({ textStyle }: IProps) => {
-    const connectedTimestamp = useSelector(
+const ConferenceTimer = ({ onlyWhenConnected = false, textStyle }: IProps) => {
+    const { connectionStatus } = useSelector(
+        (state: IReduxState) => state['features/base/conference']);
+    const timerTimestamp = useSelector(
         (state: IReduxState) => state['features/base/conference'].connectedTimestamp);
+    const effectiveTimestamp = onlyWhenConnected && connectionStatus !== 'connected'
+        ? undefined
+        : timerTimestamp;
     const [ timerValue, setTimerValue ] = useState(getLocalizedDurationFormatter(0));
     const interval = useRef<number>();
 
@@ -66,14 +76,14 @@ const ConferenceTimer = ({ textStyle }: IProps) => {
      * @returns {void}
      */
     const startTimer = useCallback(() => {
-        if (!interval.current && connectedTimestamp) {
-            setStateFromUTC(connectedTimestamp, new Date().getTime());
+        if (!interval.current && effectiveTimestamp) {
+            setStateFromUTC(effectiveTimestamp, new Date().getTime());
 
             interval.current = window.setInterval(() => {
-                setStateFromUTC(connectedTimestamp, new Date().getTime());
+                setStateFromUTC(effectiveTimestamp, new Date().getTime());
             }, 1000);
         }
-    }, [ connectedTimestamp, interval ]);
+    }, [ effectiveTimestamp, interval ]);
 
     /**
      * Stop conference timer.
@@ -93,10 +103,10 @@ const ConferenceTimer = ({ textStyle }: IProps) => {
         startTimer();
 
         return () => stopTimer();
-    }, [ connectedTimestamp ]);
+    }, [ effectiveTimestamp ]);
 
 
-    if (!connectedTimestamp) {
+    if (!effectiveTimestamp) {
         return null;
     }
 

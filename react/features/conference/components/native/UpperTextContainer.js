@@ -72,7 +72,9 @@ class UpperTextContainer extends Component {
                 <View style={styles.pipButtonContainer}>
                     <PictureInPictureButton styles={styles.pipButton} />
                 </View>
-                <View>
+                <View
+                    pointerEvents = 'none'
+                    style = { styles.headerTitleContainer }>
                     <Text style={upperTextContainerStyle}>{upperhead}</Text>
                     <Text style={encryptedTextStyle}>
                         {getTranslatedText('encrypted')}

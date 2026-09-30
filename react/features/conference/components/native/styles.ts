@@ -566,7 +566,7 @@ export default {
         flexDirection: 'row' as const,
         alignItems: 'center' as const,
         justifyContent: 'flex-end' as const,
-        marginRight: 15
+        marginRight: 15,
     },
     headerTranslationButtonWrapper: {
         marginRight: 6,
@@ -632,9 +632,15 @@ export default {
     },
     parentViewStyle: {
         flexDirection: 'row' as const,
-        marginTop: 20,
+        marginTop: 5,
         justifyContent: 'space-between' as const,
         alignItems: 'center' as const
+    },
+    headerTitleContainer: {
+        alignItems: 'center' as const,
+        left: 0,
+        position: 'absolute' as const,
+        right: 0
     },
     encryptedContainerStyle: {
         flexDirection: 'row' as const,
@@ -649,18 +655,16 @@ export default {
     encryptedTextTeamStyle: {
         color: 'white',
         fontSize: scaleFontSize(8),
-        marginRight: wp('2.415%'),
         marginTop: hp('0.679%'),
-        marginLeft: hp('3.0%'),
-        fontFamily: 'AkzidenzGroteskPro-Bold'
+        fontFamily: 'AkzidenzGroteskPro-Bold',
+        textAlign: 'center' as const
     },
     encryptedTextOneToOneStyle: {
         color: 'rgb(201,207,215)',
         fontSize: scaleFontSize(8),
-        marginRight: wp('2.415%'),
         marginTop: hp('0.679%'),
-        marginLeft: hp('3.0%'),
-        fontFamily: 'AkzidenzGroteskPro-Bold'
+        fontFamily: 'AkzidenzGroteskPro-Bold',
+        textAlign: 'center' as const
     },
     calleeContainerStyle: {
         marginTop: hp('4.07%'),
@@ -764,15 +768,23 @@ export default {
     },
 
     connectionStatusOneToOneTextStyle: {
+        alignSelf: 'stretch',
+        includeFontPadding: false,
+        maxWidth: '100%',
         marginTop: hp('1.36%'),
         fontSize: scaleFontSize(13),
-        color: 'black'
+        color: 'black',
+        textAlign: 'center' as const
     },
 
     connectionStatusTeamsTextStyle: {
+        alignSelf: 'stretch',
+        includeFontPadding: false,
+        maxWidth: '100%',
         marginTop: hp('1.36%'),
         fontSize: scaleFontSize(13),
-        color: 'white'
+        color: 'white',
+        textAlign: 'center' as const
     },
 
     toolBoxContainerStyle: {
@@ -1013,4 +1025,3 @@ export default {
         width: 23
     }
 };
-

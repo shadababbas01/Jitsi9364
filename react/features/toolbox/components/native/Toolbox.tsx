@@ -159,9 +159,9 @@ function Toolbox(props: IProps) {
         pick('hangup')
     ].filter(Boolean) as IToolboxNativeButton[];
 
-    const iconSize = isLandscape ? 22 : 27;
-    const buttonSize = isLandscape ? 44 : 50;
-    const buttonRadius = isLandscape ? 21 : 24;
+    const iconSize = isLandscape ? 25 : 27;
+    const buttonSize = isLandscape ? 48 : 50;
+    const buttonRadius = isLandscape ? 24 : 24;
     const buttonMarginHorizontal = isLandscape ? 5 : 6;
 
     const baseButtonStyle = {

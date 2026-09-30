@@ -48,15 +48,15 @@ const VirtualBackgroundScreen = () => {
 
     const onSelectNone = useCallback(() => {
         dispatch(selectVirtualBackground(VIRTUAL_BACKGROUND_TYPE.NONE));
-    }, [ dispatch ]);
+    }, [dispatch]);
 
     const onSelectBlur = useCallback(() => {
         dispatch(selectVirtualBackground(VIRTUAL_BACKGROUND_TYPE.BLUR));
-    }, [ dispatch ]);
+    }, [dispatch]);
 
     const onImport = useCallback(() => {
         dispatch(importVirtualBackgroundImage());
-    }, [ dispatch ]);
+    }, [dispatch]);
 
     const onSelectImage = useCallback((imageUri: string) => {
         if (backgroundType === VIRTUAL_BACKGROUND_TYPE.IMAGE && selectedUri === imageUri) {
@@ -68,7 +68,7 @@ const VirtualBackgroundScreen = () => {
         }
 
         dispatch(selectVirtualBackground(VIRTUAL_BACKGROUND_TYPE.IMAGE, imageUri));
-    }, [ backgroundType, dispatch, selectedUri ]);
+    }, [backgroundType, dispatch, selectedUri]);
 
     const onDeleteImage = useCallback((imageUri: string) => {
         Alert.alert(
@@ -82,13 +82,13 @@ const VirtualBackgroundScreen = () => {
                     text: t('dialog.Remove')
                 }
             ]);
-    }, [ dispatch, t ]);
+    }, [dispatch, t]);
 
     if (!supported) {
         return (
-            <JitsiScreen style = { styles.container }>
-                <Text style = { styles.unsupported as TextStyle }>
-                    { t('virtualBackground.unsupported') }
+            <JitsiScreen style={styles.container}>
+                <Text style={styles.unsupported as TextStyle}>
+                    {t('virtualBackground.unsupported')}
                 </Text>
             </JitsiScreen>
         );
@@ -107,111 +107,111 @@ const VirtualBackgroundScreen = () => {
         onPress: () => void;
         selected: boolean;
     }) => (
-        <View style = { styles.tileWrapper as ViewStyle }>
+        <View style={styles.tileWrapper as ViewStyle}>
             <TouchableOpacity
-                accessibilityLabel = { accessibilityLabel }
-                accessibilityRole = 'button'
-                onPress = { onPress }
-                style = { [ styles.tile, selected && styles.tileSelected ] as ViewStyle[] }>
-                <View style = { styles.tilePlaceholder as ViewStyle }>
+                accessibilityLabel={accessibilityLabel}
+                accessibilityRole='button'
+                onPress={onPress}
+                style={[styles.tile, selected && styles.tileSelected] as ViewStyle[]}>
+                <View style={styles.tilePlaceholder as ViewStyle}>
                     <Icon
-                        color = { BaseTheme.palette.icon01 }
-                        size = { 24 }
-                        src = { icon } />
+                        color={BaseTheme.palette.icon01}
+                        size={24}
+                        src={icon} />
                     <Text
-                        adjustsFontSizeToFit = { true }
-                        allowFontScaling = { false }
-                        minimumFontScale = { 0.75 }
-                        numberOfLines = { 2 }
-                        style = { styles.tileLabel as TextStyle }>
-                        { label }
+                        adjustsFontSizeToFit={true}
+                        allowFontScaling={false}
+                        minimumFontScale={0.75}
+                        numberOfLines={2}
+                        style={styles.tileLabel as TextStyle}>
+                        {label}
                     </Text>
                 </View>
-                { selected && (
-                    <View style = { styles.tileCheck as ViewStyle }>
+                {selected && (
+                    <View style={styles.tileCheck as ViewStyle}>
                         <Icon
-                            color = { BaseTheme.palette.icon04 }
-                            size = { 14 }
-                            src = { IconCheck } />
+                            color={BaseTheme.palette.icon04}
+                            size={14}
+                            src={IconCheck} />
                     </View>
-                ) }
+                )}
             </TouchableOpacity>
         </View>
     );
 
     return (
-        <JitsiScreen style = { styles.container }>
+        <JitsiScreen style={styles.container}>
             <ScrollView>
-                <Text style = { styles.sectionLabel as TextStyle }>
-                    { t('virtualBackground.pickBackground') }
+                <Text style={styles.sectionLabel as TextStyle}>
+                    {t('virtualBackground.pickBackground')}
                 </Text>
-                <View style = { styles.grid as ViewStyle }>
-                    { renderPlaceholderTile({
+                <View style={styles.grid as ViewStyle}>
+                    {renderPlaceholderTile({
                         accessibilityLabel: t('virtualBackground.none'),
                         icon: IconCloseLarge,
                         label: t('virtualBackground.none'),
                         onPress: onSelectNone,
                         selected: backgroundType === VIRTUAL_BACKGROUND_TYPE.NONE
-                    }) }
-                    { renderPlaceholderTile({
+                    })}
+                    {renderPlaceholderTile({
                         accessibilityLabel: t('virtualBackground.blur'),
                         icon: IconUser,
                         label: t('virtualBackground.blur'),
                         onPress: onSelectBlur,
                         selected: backgroundType === VIRTUAL_BACKGROUND_TYPE.BLUR
-                    }) }
-                    { renderPlaceholderTile({
+                    })}
+                    {renderPlaceholderTile({
                         accessibilityLabel: t('virtualBackground.addBackground'),
                         icon: IconPlus,
                         label: t('virtualBackground.addBackground'),
                         onPress: onImport,
                         selected: false
-                    }) }
-                    { images.map(image => {
+                    })}
+                    {images.map(image => {
                         const selected = backgroundType === VIRTUAL_BACKGROUND_TYPE.IMAGE
                             && selectedUri === image.uri;
 
                         return (
                             <View
-                                key = { image.id }
-                                style = { styles.tileWrapper as ViewStyle }>
+                                key={image.id}
+                                style={styles.tileWrapper as ViewStyle}>
                                 <TouchableOpacity
-                                    accessibilityLabel = { t('virtualBackground.image') }
-                                    accessibilityRole = 'button'
+                                    accessibilityLabel={t('virtualBackground.image')}
+                                    accessibilityRole='button'
 
                                     /* eslint-disable-next-line react/jsx-no-bind */
-                                    onPress = { () => onSelectImage(image.uri) }
-                                    style = { [ styles.tile, selected && styles.tileSelected ] as ViewStyle[] }>
+                                    onPress={() => onSelectImage(image.uri)}
+                                    style={[styles.tile, selected && styles.tileSelected] as ViewStyle[]}>
                                     <Image
-                                        resizeMode = 'cover'
-                                        source = {{ uri: image.uri }}
-                                        style = { styles.tileImage as ImageStyle } />
-                                    { selected && (
-                                        <View style = { styles.tileCheck as ViewStyle }>
+                                        resizeMode='cover'
+                                        source={{ uri: image.uri }}
+                                        style={styles.tileImage as ImageStyle} />
+                                    {selected && (
+                                        <View style={styles.tileCheck as ViewStyle}>
                                             <Icon
-                                                color = { BaseTheme.palette.icon04 }
-                                                size = { 14 }
-                                                src = { IconCheck } />
+                                                color={BaseTheme.palette.icon04}
+                                                size={14}
+                                                src={IconCheck} />
                                         </View>
-                                    ) }
-                                    { image.stored && (
+                                    )}
+                                    {image.stored && (
                                         <TouchableOpacity
-                                            accessibilityLabel = { t('virtualBackground.deleteImage') }
-                                            accessibilityRole = 'button'
+                                            accessibilityLabel={t('virtualBackground.deleteImage')}
+                                            accessibilityRole='button'
 
                                             /* eslint-disable-next-line react/jsx-no-bind */
-                                            onPress = { () => onDeleteImage(image.uri) }
-                                            style = { styles.tileDelete as ViewStyle }>
+                                            onPress={() => onDeleteImage(image.uri)}
+                                            style={styles.tileDelete as ViewStyle}>
                                             <Icon
-                                                color = { BaseTheme.palette.icon01 }
-                                                size = { 14 }
-                                                src = { IconCloseLarge } />
+                                                color={BaseTheme.palette.icon01}
+                                                size={14}
+                                                src={IconCloseLarge} />
                                         </TouchableOpacity>
-                                    ) }
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         );
-                    }) }
+                    })}
                 </View>
             </ScrollView>
         </JitsiScreen>

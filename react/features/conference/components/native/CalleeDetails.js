@@ -52,33 +52,24 @@ class CalleeDetails extends Component {
         } else {
             participantText = callerName || '';
             updatedcallerDetails = callerDetails || '';
-            if (participants && participants.length > 1) {
-                const filterarray = participants.filter(p => !p?.local);
-                for (const attendee of filterarray) {
-                    if (attendee?.name) {
-                        participantText = attendee.name;
-                        break;
-                    }
-                }
-                if ((this.props.participantsCount - 1) === 0) {
-                    participantText = participantText;
-                } else {
-                    participantText = participantText + " + " + (this.props.participantsCount - 1) + " " + getTranslatedText('others');
-                    callerDetails = 'Conference Call';
-                }
-                
-                NativeModules.NativeCallsNew?.updatedUserName?.(participantText);
-            } else if (participants && participants.length === 1) {
-                const filterarray = participants.filter(p => !p?.local);
-                for (const attendee of filterarray) {
-                    if (attendee?.name) {
-                        participantText = attendee.name;
-                        break;
-                    }
-                }
-                callerDetails = updatedcallerDetails;
-                NativeModules.NativeCallsNew?.updatedUserName?.(participantText);
+            const remoteParticipants = (otherParticipants || []).filter(p => !p?.local);
+            const remoteParticipant = remoteParticipants.find(p => p?.name || p?.displayName);
+
+            // Always prefer the remote participant's name. This covers both incoming and outgoing
+            // one-to-one calls, including the period before the remote participant is the only
+            // participant left in the Redux list.
+            if (remoteParticipant) {
+                participantText = remoteParticipant.name || remoteParticipant.displayName;
             }
+
+            if (remoteParticipants.length > 1) {
+                participantText = `${participantText} + ${remoteParticipants.length - 1} ${getTranslatedText('others')}`;
+                callerDetails = 'Conference Call';
+            } else {
+                callerDetails = updatedcallerDetails;
+            }
+
+            NativeModules.NativeCallsNew?.updatedUserName?.(participantText);
         }
         if (participants && participants.length > 0) {
             if (connectionState === 'Reconnecting') {
@@ -132,7 +123,16 @@ class CalleeDetails extends Component {
                 <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants?.length || 0} participant = {participant}/>
                 <Text style = {isTeamsCall? styles.teamTextStyle: styles.oneToOneTextStyle }>{participantText}</Text>
                 <Text style = { styles.participantTextStyle }>{participantsDetails}</Text>
-                <Text style = { isTeamsCall? styles.connectionStatusTeamsTextStyle : styles.connectionStatusOneToOneTextStyle } >{status}</Text>
+                <Text
+                    adjustsFontSizeToFit = { true }
+                    allowFontScaling = { false }
+                    minimumFontScale = { 0.75 }
+                    numberOfLines = { 1 }
+                    style = { isTeamsCall
+                        ? styles.connectionStatusTeamsTextStyle
+                        : styles.connectionStatusOneToOneTextStyle }>
+                    { status }
+                </Text>
             </View>
         );
     }

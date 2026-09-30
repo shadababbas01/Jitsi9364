@@ -73,13 +73,13 @@ const SideToolbar = (props: IProps) => {
     const sideToolbarButton = isLandscape ? {
         iconStyle: {
             ...styles.sideToolbarButton.iconStyle,
-            fontSize: 18
+            fontSize: 21
         },
         style: {
             ...styles.sideToolbarButton.style,
-            height: 42,
-            width: 42,
-            borderRadius: 26
+            height: 48,
+            width: 48,
+            borderRadius: 24
         },
         underlayColor: 'transparent'
     } : styles.sideToolbarButton;
@@ -87,11 +87,11 @@ const SideToolbar = (props: IProps) => {
     const sideToolbarButtonRaiseHand = isLandscape ? {
         iconStyle: {
             ...styles.sideToolbarButtonRaiseHand.iconStyle,
-            fontSize: 15
+            fontSize: 18
         },
         style: {
             ...styles.sideToolbarButtonRaiseHand.style,
-            borderRadius: 18
+            borderRadius: 20
         },
         underlayColor: 'transparent'
     } : styles.sideToolbarButtonRaiseHand;
@@ -103,9 +103,9 @@ const SideToolbar = (props: IProps) => {
 
     const sideToolbarButtonBadgeWrapper = isLandscape ? {
         ...styles.sideToolbarButtonBadgeWrapper,
-        height: 36,
-        width: 44,
-        borderRadius: 18
+        height: 40,
+        width: 50,
+        borderRadius: 20
     } : styles.sideToolbarButtonBadgeWrapper;
 
     return (

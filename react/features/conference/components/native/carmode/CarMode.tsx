@@ -69,7 +69,9 @@ const CarMode = (): JSX.Element => {
                     style = { styles.titleBar as ViewStyle }>
                     <TitleBar />
                 </View>
-                <ConferenceTimer textStyle = { styles.roomTimer } />
+                <ConferenceTimer
+                    onlyWhenConnected = { true }
+                    textStyle = { styles.roomTimer } />
             </View>
             {
                 isLandscape

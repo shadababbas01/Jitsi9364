@@ -22,7 +22,7 @@ class CallTimer extends Component {
     
     
     render() {
-        const { isTeamsCall, participant } = this.props;
+        const { isTeamsCall } = this.props;
         const callerTimeStyle = isTeamsCall ? styles.callerTimeTeamContainerStyle : styles.callerTimeOneToOneContainerStyle;
         const timerTextStyle = isTeamsCall ? styles.timerTextTeamStyle : styles.timerTextOneToOneStyle;
         const callIcon = isTeamsCall ? CALL_ICON : CALL_ONETOONE_ICON;
@@ -31,7 +31,7 @@ class CallTimer extends Component {
         return (
             <View style={callerTimeStyle}>
                 <Image source={callIcon} style={callIconStyle} />
-                <ConferenceTimer textStyle={timerTextStyle} participant={participant} />
+                <ConferenceTimer onlyWhenConnected = { true } textStyle = { timerTextStyle } />
             </View>
         );
     }

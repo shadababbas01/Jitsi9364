@@ -38,6 +38,12 @@ export interface IVirtualBackgroundImage {
     id: string;
 
     /**
+     * The Metro-bundled source used by React Native to render the picker thumbnail. The native
+     * processor continues to use {@link uri}.
+     */
+    source?: ImageSourcePropType;
+
+    /**
      * Whether the image was imported from the device gallery, as opposed to being bundled with the
      * app. Only imported images can be deleted.
      */
@@ -54,11 +60,23 @@ export interface IVirtualBackgroundImage {
  * The backgrounds bundled with the app.
  *
  * These are the same pictures the web client ships, copied into the Android SDK's assets so that
- * the native frame processor can decode them. React Native's {@code Image} understands the
- * {@code file:///android_asset/} form as well, which lets the picker show a thumbnail off the very
+ * the native frame processor can decode them. React Native's Android image loader uses the
+ * {@code asset:/} scheme for bundled assets, which lets the picker show a thumbnail off the very
  * same URI that gets composited.
  */
+const BUNDLED_IMAGE_SOURCES: ImageSourcePropType[] = [
+    require('../../../../images/virtual-background/background-1.jpg'),
+    require('../../../../images/virtual-background/background-2.jpg'),
+    require('../../../../images/virtual-background/background-3.jpg'),
+    require('../../../../images/virtual-background/background-4.jpg'),
+    require('../../../../images/virtual-background/background-5.jpg'),
+    require('../../../../images/virtual-background/background-6.jpg'),
+    require('../../../../images/virtual-background/background-7.jpg')
+];
+
 export const BUNDLED_IMAGES: IVirtualBackgroundImage[] = [ 1, 2, 3, 4, 5, 6, 7 ].map(index => ({
     id: `bundled-${index}`,
-    uri: `file:///android_asset/virtual-background/background-${index}.jpg`
+    source: BUNDLED_IMAGE_SOURCES[index - 1],
+    uri: `asset:/virtual-background/background-${index}.jpg`
 }));
+import { ImageSourcePropType } from 'react-native';

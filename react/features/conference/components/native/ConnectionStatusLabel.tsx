@@ -3,6 +3,7 @@ import { Text, TextStyle, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
+import ConferenceTimer from '../ConferenceTimer';
 
 import styles from './styles';
 
@@ -54,6 +55,9 @@ export default function ConnectionStatusLabel() {
     }
 
     let statusText = STATUS_DISPLAY_TEXT[effectiveStatus] || effectiveStatus;
+    const showConferenceTimer = effectiveStatus === 'connected'
+        && effectiveConnectedTimestamp
+        && now - effectiveConnectedTimestamp >= CONNECTED_PHASE_ENCRYPTED_MS;
 
     if (effectiveStatus === 'connected' && effectiveConnectedTimestamp) {
         const elapsedMs = Math.max(0, now - effectiveConnectedTimestamp);
@@ -62,28 +66,21 @@ export default function ConnectionStatusLabel() {
             statusText = STATUS_DISPLAY_TEXT.connected;
         } else if (elapsedMs < CONNECTED_PHASE_ENCRYPTED_MS) {
             statusText = CONNECTED_ENCRYPTED_TEXT;
-        } else {
-            const totalSeconds = Math.max(0, Math.floor((now - effectiveConnectedTimestamp) / 1000));
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
-            statusText = hours > 0
-                ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-                : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 
     return (
         <View style = { styles.connectionStatusContainer as ViewStyle }>
-            <Text
-                adjustsFontSizeToFit = { true }
-                allowFontScaling = { false }
-                minimumFontScale = { 0.75 }
-                numberOfLines = { 1 }
-                style = { styles.connectionStatusText as TextStyle }>
-                { statusText }
-            </Text>
+            { showConferenceTimer
+                ? <ConferenceTimer textStyle = { styles.connectionStatusText } />
+                : <Text
+                    adjustsFontSizeToFit = { true }
+                    allowFontScaling = { false }
+                    minimumFontScale = { 0.75 }
+                    numberOfLines = { 1 }
+                    style = { styles.connectionStatusText as TextStyle }>
+                    { statusText }
+                </Text> }
         </View>
     );
 }

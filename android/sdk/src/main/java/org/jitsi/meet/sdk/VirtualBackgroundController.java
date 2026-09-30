@@ -340,8 +340,8 @@ class VirtualBackgroundController {
 
     /**
      * Opens an image URI. Bundled backgrounds live in the SDK's assets and are addressed with the
-     * {@code file:///android_asset/} form React Native's {@code Image} understands, so that the
-     * same URI can be used for the picker thumbnails and for compositing.
+     * {@code asset:/} form React Native's {@code Image} understands, so that the same URI can be
+     * used for the picker thumbnails and for compositing.
      *
      * @param context - Context used to resolve {@code uri}.
      * @param uri - The image location.
@@ -349,14 +349,19 @@ class VirtualBackgroundController {
      * @throws IOException If the image cannot be opened.
      */
     private static InputStream openStream(Context context, String uri) throws IOException {
+        String reactNativeAssetPrefix = "asset:/";
         String assetPrefix = "file:///android_asset/";
-
-        if (uri.startsWith(assetPrefix)) {
-            return context.getAssets().open(uri.substring(assetPrefix.length()));
-        }
 
         if (uri.startsWith("asset:///")) {
             return context.getAssets().open(uri.substring("asset:///".length()));
+        }
+
+        if (uri.startsWith(reactNativeAssetPrefix)) {
+            return context.getAssets().open(uri.substring(reactNativeAssetPrefix.length()));
+        }
+
+        if (uri.startsWith(assetPrefix)) {
+            return context.getAssets().open(uri.substring(assetPrefix.length()));
         }
 
         if (uri.startsWith(ContentResolver.SCHEME_CONTENT + ":")) {

@@ -73,13 +73,13 @@ const TitleBar = (props: IProps) => {
     const titleBarRoundButton = isLandscape ? {
         iconStyle: {
             ...styles.titleBarRoundButton.iconStyle,
-            fontSize: 14
+            fontSize: 18
         },
         style: {
             ...styles.titleBarRoundButton.style,
-            height: 34,
-            width: 34,
-            borderRadius: 17
+            height: 40,
+            width: 40,
+            borderRadius: 20
         },
         underlayColor: 'transparent'
     } : styles.titleBarRoundButton;
