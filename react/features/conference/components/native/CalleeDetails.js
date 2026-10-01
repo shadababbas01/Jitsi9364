@@ -7,8 +7,10 @@ import AudioPageTranslation from '../../../../AudioPageTranslation';
 import {
     getParticipants,
     getLocalParticipant,
+    getParticipantCount,
     getParticipantCountRemoteOnly
 } from '../../../base/participants/functions';
+import { getConferenceName } from '../../../base/conference/functions';
 import { connect } from 'react-redux';
 import CalleeBoxView from './CalleeBoxView';
 import {NativeModules} from 'react-native';
@@ -25,7 +27,7 @@ class CalleeDetails extends Component {
     }
     render() {
 
-        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState: propConnectionState, participant} = this.props;   
+        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState: propConnectionState, participant, conferenceName} = this.props;   
         let connectionState = propConnectionState;
         if(connectionState === '' || !connectionState){
             connectionState = 'Connecting...'
@@ -46,31 +48,36 @@ class CalleeDetails extends Component {
         if (!isTeamsCall && otherParticipants && otherParticipants.length === 1) {
             otherParticipant = otherParticipants[0];
         }
-        let participantText = '';
+        let participantText = conferenceName || '';
         if (isTeamsCall) {
-            participantText = decodeURI(roomName || '');
+            if (!participantText) {
+                participantText = decodeURI(roomName || '');
+            }
         } else {
-            participantText = callerName || '';
             updatedcallerDetails = callerDetails || '';
             const remoteParticipants = (otherParticipants || []).filter(p => !p?.local);
             const remoteParticipant = remoteParticipants.find(p => p?.name || p?.displayName);
 
-            // Always prefer the remote participant's name. This covers both incoming and outgoing
-            // one-to-one calls, including the period before the remote participant is the only
-            // participant left in the Redux list.
-            if (remoteParticipant) {
-                participantText = remoteParticipant.name || remoteParticipant.displayName;
+            // Always prefer the video call title (conferenceName) so both screens are in sync.
+            // If conferenceName is not available, fallback to remote participant's name, callerName, or roomName.
+            if (!participantText) {
+                if (remoteParticipant) {
+                    participantText = remoteParticipant.name || remoteParticipant.displayName;
+                } else if (callerName) {
+                    participantText = callerName;
+                } else if (roomName) {
+                    participantText = decodeURI(roomName);
+                }
             }
 
             if (remoteParticipants.length > 1) {
-                participantText = `${participantText} + ${remoteParticipants.length - 1} ${getTranslatedText('others')}`;
                 callerDetails = 'Conference Call';
             } else {
                 callerDetails = updatedcallerDetails;
             }
-
-            NativeModules.NativeCallsNew?.updatedUserName?.(participantText);
         }
+
+        NativeModules.NativeCallsNew?.updatedUserName?.(participantText);
         if (participants && participants.length > 0) {
             if (connectionState === 'Reconnecting') {
                connectionState = 'Reconnecting';
@@ -89,9 +96,6 @@ class CalleeDetails extends Component {
             participantsDetails = callerDetails;
         }
 
-        if (participantText && participantText.length > 25) {
-            participantText = participantText.slice(0, 22) + "...";
-        }
         if (connectionState === ' ') {
             connectionState = 'Connecting...';
         }
@@ -121,7 +125,15 @@ class CalleeDetails extends Component {
             <View style = {styles.calleeContainerStyle}>
                 <CalleeBoxView isTeamsCall={isTeamsCall} participantsss = {participants}  roomName = {participantText} userPicUrl ={userPicUrl}/>
                 <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants?.length || 0} participant = {participant}/>
-                <Text style = {isTeamsCall? styles.teamTextStyle: styles.oneToOneTextStyle }>{participantText}</Text>
+                <Text
+                    adjustsFontSizeToFit = { true }
+                    allowFontScaling = { false }
+                    ellipsizeMode = 'tail'
+                    minimumFontScale = { 0.7 }
+                    numberOfLines = { 1 }
+                    style = { isTeamsCall ? styles.teamTextStyle : styles.oneToOneTextStyle }>
+                    { participantText }
+                </Text>
                 <Text style = { styles.participantTextStyle }>{participantsDetails}</Text>
                 <Text
                     adjustsFontSizeToFit = { true }
@@ -148,7 +160,13 @@ function _mapStateToProps(state: Object, ownProps: Props) {
     } else if (Array.isArray(participantsMap)) {
         participants.push(...participantsMap);
     }
-    const participantsCount = getParticipantCountRemoteOnly(state);
+    // The native call timeout uses this value as the total number of people in
+    // the room, including the local participant.  Do not send the remote-only
+    // count here: a call with only the local participant must be reported as 1
+    // (not 0), otherwise the native side cannot distinguish it from a call
+    // which has not joined yet.
+    const participantsCount = getParticipantCount(state);
+    const remoteParticipantsCount = getParticipantCountRemoteOnly(state);
 
     if (totalUser != participantsCount) {
         totalUser = participantsCount;
@@ -166,7 +184,8 @@ function _mapStateToProps(state: Object, ownProps: Props) {
         otherParticipants,
         callerName,
         callerDetails,
-        participantsCount
+        participantsCount: remoteParticipantsCount,
+        conferenceName: getConferenceName(state)
     };
 }
 

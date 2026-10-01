@@ -20,6 +20,7 @@ import { IReduxState, IStore } from '../../../app/types';
 import Avatar from '../../../base/avatar/components/Avatar';
 import { CONFERENCE_BLURRED, CONFERENCE_FOCUSED } from '../../../base/conference/actionTypes';
 import { setConnectionStatus } from '../../../base/conference/actions.any';
+import { getConferenceName } from '../../../base/conference/functions';
 import {
     getLocalParticipant,
     getParticipantCountRemoteOnly,
@@ -1113,7 +1114,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         participant: getParticipantCountRemoteOnly(state),
         participants: getParticipants(state),
         _participants: state['features/base/participants'],
-        roomName: settings?.teamName || ''
+        roomName: settings?.teamName || getConferenceName(state) || ''
     };
 }
 

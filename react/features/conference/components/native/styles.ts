@@ -730,14 +730,20 @@ export default {
         marginTop: hp('4.07%'),
         fontSize: scaleFontSize(24),
         fontFamily: 'AkzidenzGroteskPro-Bold',
-        color: 'white'
+        color: 'white',
+        maxWidth: '100%',
+        paddingHorizontal: wp('5%'),
+        textAlign: 'center' as const
     },
 
     oneToOneTextStyle: {
         marginTop: hp('4.07%'),
         fontSize: scaleFontSize(24),
         fontFamily: 'AkzidenzGroteskPro-Bold',
-        color: 'rgb(34,32,32)'
+        color: 'rgb(34,32,32)',
+        maxWidth: '100%',
+        paddingHorizontal: wp('5%'),
+        textAlign: 'center' as const
     },
 
     participantTextStyle: {

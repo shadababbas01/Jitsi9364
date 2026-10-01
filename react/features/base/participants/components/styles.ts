@@ -60,8 +60,8 @@ export default {
     connectionInfoText: {
         color: ColorPalette.white,
         fontSize: 12,
-        marginVertical: BoxModel.margin,
         marginHorizontal: BoxModel.margin,
+        lineHeight: 16,
         textAlign: 'center'
     },
 
