@@ -173,6 +173,27 @@ export class App extends AbstractApp<IProps> {
         if (typeof callIntegrationEnabled !== 'undefined') {
             dispatch?.(updateSettings({ disableCallIntegration: !callIntegrationEnabled }));
         }
+
+        // Melp call identity is supplied as conference config by the Android host.
+        // Mirror it into settings during bootstrap so the initial call render has the
+        // identity before participant state or remote tracks are available.
+        if (this.props.url?.config) {
+            const callConfig = this.props.url.config as any;
+
+            dispatch?.(updateSettings({
+                callIdentityType: callConfig.callIdentityType,
+                callEntityId: callConfig.callEntityId,
+                callDisplayName: callConfig.callDisplayName,
+                callDisplayImage: callConfig.callDisplayImage,
+                callerName: callConfig.callerName,
+                callerAvatarURL: callConfig.callerAvatarURL,
+                callerDetails: callConfig.callerDetails,
+                groupAvatarURL: callConfig.groupAvatarURL,
+                isGroupCall: callConfig.isGroupCall,
+                teamName: callConfig.teamName,
+                userPicUrl: callConfig.userPicUrl
+            } as any));
+        }
     }
 
     /**

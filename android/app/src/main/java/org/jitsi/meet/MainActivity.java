@@ -226,6 +226,7 @@ public class MainActivity extends JitsiMeetActivity {
             .setConfigOverride("customToolbarButtons", customToolbarButtons)
             // .setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb252aWQiOiIxMTY1NjMzNzMwXzhzYzRscW12IiwiYXVkIjoibWVscF9jb25mIiwic3ViIjoibWVldGRldi5tZWxwLnVzIiwibW9kZXJhdG9yIjp0cnVlLCJpc3MiOiJtZWxwX2NvbmZfOCIsImlzV29ya3Nob3AiOmZhbHNlLCJjb250ZXh0Ijp7ImNhbGxlZSI6eyJuYW1lIjoiIiwiaWQiOiI4c2M0bHFtdiIsImF2YXRhciI6IiIsImVtYWlsIjoiIn0sInVzZXIiOnsibmFtZSI6IlNoYWRhYiBFaWdodHkiLCJpZCI6IjhzYzRscW12IiwiYXZhdGFyIjoiaHR0cHM6Ly9jZG5tZWRpYS1mbS5tZWxwYXBwLmNvbS84c2M0bHFqY2RhdGMvYmY5eHZtcWxyaHRzLmpwZz9zZXNzaW9uaWQ9QTNCeEMxeXRZR0lRa1F1dFA2T2ZGYXMwOXVVVVRxRDd5alh6dG9KbTZCYyZpc3RodW1iPTEiLCJlbWFpbCI6IjhzYzRscW12QG1lbHAuY29tIn0sImdyb3VwIjoib25ldG9vbmUifSwiaWF0IjoxNzg2MjE1ODQzLCJyb29tIjoiNjBhMzZjNTYxODRiZjU4NzAzOTdmNzVjNzNiYzkzMGYiLCJyb29tTmFtZSI6IlNoYWRhYiBFaWdodHkiLCJleHAiOjE3ODYyNTkwNDN9.TAd24gv0yQqxATIifBPjcvePzKI-ZvyEbMOTW2KoPms")
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
+            .setAudioOnly(true)
             
             .build();
         JitsiMeet.setDefaultConferenceOptions(defaultOptions);

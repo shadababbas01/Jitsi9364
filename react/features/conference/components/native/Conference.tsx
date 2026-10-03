@@ -715,6 +715,7 @@ class Conference extends AbstractConference<IProps, State> {
             _audioOnlyEnabled,
             _connecting,
             _filmstripVisible,
+            _hasConnectedRemoteParticipant,
             _isNativePipMode,
             _liveTranslationPanelWidth,
             _localParticipantId,
@@ -871,6 +872,12 @@ class Conference extends AbstractConference<IProps, State> {
                   */
                     <CalleeInfoContainer />
                 }
+
+                {_connecting && !_hasConnectedRemoteParticipant && <CalleeDetails
+                    connected = { _connecting }
+                    connectionState = { this.state.connectionStatus }
+                    isTeamsCall = { this.props.isTeamsCall }
+                    roomName = { this.props.roomName } />}
 
                 {/*
                   * The activity/loading indicator goes above everything, except
@@ -1111,11 +1118,14 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
         _toolboxVisible: isToolboxVisible(state),
-        isTeamsCall: Boolean(settings?.isGroupCall ?? config.isGroupCall),
+        isTeamsCall: (settings?.callIdentityType || config.callIdentityType)
+            ? (settings?.callIdentityType || config.callIdentityType) !== 'direct'
+            : Boolean(settings?.isGroupCall ?? config.isGroupCall),
         participant: getParticipantCountRemoteOnly(state),
         participants: getParticipants(state),
         _participants: state['features/base/participants'],
-        roomName: settings?.teamName || config.teamName || getConferenceName(state) || ''
+        roomName: settings?.callDisplayName || config.callDisplayName
+            || settings?.teamName || config.teamName || getConferenceName(state) || ''
     };
 }
 

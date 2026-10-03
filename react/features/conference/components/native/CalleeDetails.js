@@ -27,7 +27,7 @@ class CalleeDetails extends Component {
     }
     render() {
 
-        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState: propConnectionState, participant, conferenceName} = this.props;   
+        let {userPicUrl,roomName, participants, isTeamsCall, connected, otherParticipants, secsToMinString, callerName, callerDetails, connectionState: propConnectionState, participant, conferenceName, identityName, identityImage} = this.props;
         let connectionState = propConnectionState;
         if(connectionState === '' || !connectionState){
             connectionState = 'Connecting...'
@@ -48,23 +48,25 @@ class CalleeDetails extends Component {
         if (!isTeamsCall && otherParticipants && otherParticipants.length === 1) {
             otherParticipant = otherParticipants[0];
         }
-        let participantText = isTeamsCall ? roomName || conferenceName || '' : conferenceName || '';
+        let participantText = identityName || '';
         if (isTeamsCall) {
             if (!participantText) {
-                participantText = decodeURI(roomName || '');
+                participantText = roomName || conferenceName || '';
             }
         } else {
             updatedcallerDetails = callerDetails || '';
             const remoteParticipants = (otherParticipants || []).filter(p => !p?.local);
             const remoteParticipant = remoteParticipants.find(p => p?.name || p?.displayName);
 
-            // Always prefer the video call title (conferenceName) so both screens are in sync.
-            // If conferenceName is not available, fallback to remote participant's name, callerName, or roomName.
+            // The native call identity is authoritative. Participant state is only a legacy
+            // enrichment/fallback and is never used for group/topic calls.
             if (!participantText) {
                 if (remoteParticipant) {
                     participantText = remoteParticipant.name || remoteParticipant.displayName;
                 } else if (callerName) {
                     participantText = callerName;
+                } else if (conferenceName) {
+                    participantText = conferenceName;
                 } else if (roomName) {
                     participantText = decodeURI(roomName);
                 }
@@ -119,7 +121,7 @@ class CalleeDetails extends Component {
         }
         return (
             <View style = {styles.calleeContainerStyle}>
-                <CalleeBoxView isTeamsCall={isTeamsCall} participantsss = {participants}  roomName = {participantText} userPicUrl ={userPicUrl}/>
+                <CalleeBoxView isTeamsCall={isTeamsCall} participantsss = {participants} roomName = {participantText} userPicUrl ={userPicUrl} identityImage={identityImage}/>
                 <CallTimer isTeamsCall={isTeamsCall} secsToMinString = {participants?.length || 0} participant = {participant}/>
                 <Text
                     adjustsFontSizeToFit = { true }
@@ -182,11 +184,15 @@ function _mapStateToProps(state: Object, ownProps: Props) {
 
     const callerName = _settings.callerName || _config.callerName || '';
     const callerDetails = _settings.callerDetails || _config.callerDetails || '';
+    const identityName = _settings.callDisplayName || _config.callDisplayName || '';
+    const identityImage = _settings.callDisplayImage || _config.callDisplayImage || '';
     return {
         participants,
         otherParticipants,
         callerName,
         callerDetails,
+        identityName,
+        identityImage,
         participantsCount: remoteParticipantsCount,
         conferenceName: getConferenceName(state)
     };
