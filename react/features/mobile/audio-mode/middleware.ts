@@ -17,6 +17,8 @@ import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import { parseURIString } from '../../base/util/uri';
 
 import { _SET_AUDIOMODE_DEVICES, _SET_AUDIOMODE_SUBSCRIPTIONS } from './actionTypes';
+import { AUDIO_DEVICE_EARPIECE, AUDIO_DEVICE_SPEAKER } from './constants';
+import { getAudioDevices, isPrivateAudioDeviceSelected, selectAudioDevice } from './functions';
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
@@ -59,8 +61,10 @@ MiddlewareRegistry.register(store => next => action => {
     * conference after the password prompt appears.
     */
     case CONFERENCE_JOINED:
-    case SET_AUDIO_ONLY:
         return _updateAudioMode(store, next, action);
+
+    case SET_AUDIO_ONLY:
+        return _setAudioOnly(store, next, action);
 
     case SET_CONFIG: {
         const { locationURL } = store.getState()['features/base/connection'];
@@ -141,6 +145,41 @@ function _setSubscriptions({ getState }: IStore) {
             subscription.remove();
         }
     }
+}
+
+/**
+ * Updates the audio mode and, when the call switches between the audio and the video screen, moves the call to the
+ * loudspeaker (video) or the earpiece (audio). A headset, earbuds or a car are left alone.
+ *
+ * @param {Store} store - The redux store in which the specified {@code action}
+ * is being dispatched.
+ * @param {Dispatch} next - The redux {@code dispatch} function to dispatch the
+ * specified {@code action} in the specified {@code store}.
+ * @param {Action} action - The redux action {@code SET_AUDIO_ONLY}.
+ * @private
+ * @returns {*} The value returned by {@code next(action)}.
+ */
+function _setAudioOnly(store: IStore, next: Function, action: AnyAction) {
+    const wasAudioOnly = Boolean(store.getState()['features/base/audio-only'].enabled);
+    const result = _updateAudioMode(store, next, action);
+    const state = store.getState();
+    const audioOnly = Boolean(state['features/base/audio-only'].enabled);
+
+    if (wasAudioOnly === audioOnly
+            || !getCurrentConference(state)
+            || getFeatureFlag(state, AUDIO_FOCUS_DISABLED, false)
+            || isPrivateAudioDeviceSelected(state)) {
+        return result;
+    }
+
+    const speakerOn = !audioOnly;
+    const type = speakerOn ? AUDIO_DEVICE_SPEAKER : AUDIO_DEVICE_EARPIECE;
+    const device = getAudioDevices(state).find(d => d.type === type);
+
+    selectAudioDevice(device?.uid || type);
+    AudioMode.setSpeakerOn?.(speakerOn)?.catch?.(() => { /* not every platform answers */ });
+
+    return result;
 }
 
 /**

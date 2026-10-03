@@ -775,22 +775,30 @@ export default {
 
     connectionStatusOneToOneTextStyle: {
         alignSelf: 'stretch',
-        includeFontPadding: false,
+        includeFontPadding: true,
         maxWidth: '100%',
-        marginTop: hp('1.36%'),
+        marginTop: hp('0.5%'),
         fontSize: scaleFontSize(13),
+        lineHeight: scaleFontSize(20),
+        paddingBottom: 2,
         color: 'black',
         textAlign: 'center' as const
     },
 
     connectionStatusTeamsTextStyle: {
         alignSelf: 'stretch',
-        includeFontPadding: false,
+        includeFontPadding: true,
         maxWidth: '100%',
-        marginTop: hp('1.36%'),
+        marginTop: hp('0.5%'),
         fontSize: scaleFontSize(13),
+        lineHeight: scaleFontSize(20),
+        paddingBottom: 2,
         color: 'white',
         textAlign: 'center' as const
+    },
+
+    connectionStatusHiddenTextStyle: {
+        marginTop: hp('-0.5%')
     },
 
     toolBoxContainerStyle: {

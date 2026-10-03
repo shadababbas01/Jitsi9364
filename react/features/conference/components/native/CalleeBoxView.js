@@ -3,7 +3,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import styles from './styles';
 import { View, Image, Text } from 'react-native';
-export const VIDEO_TEAMS_INACTIVE_ICON = require('../../../../../images/team_icon.png');
+export const GROUP_CALL_ICON = require('../../../../../images/team_icon.png');
+export const ONE_TO_ONE_FALLBACK_ICON = require('../../../../../images/avatar.png');
 
 class CalleeBoxView extends Component {
     render() {
@@ -22,15 +23,13 @@ class CalleeBoxView extends Component {
         }
         if (avatarImageUrl == null) {
             avatarImageUrl = userPicUrl;
-        }   
+        }
         if (isTeamsCall) {
             return (
-                userPicUrl ?
-                (<View style = { styles.imageViewBoxStyle } >
-                    <Image source={{uri: userPicUrl}} style = { {flex: 1, width: undefined, height: undefined, borderRadius: 1, overflow: 'hidden'}} resizeMode = 'stretch'/>
-                </View>) :
                 <View style = { styles.imageViewBoxStyle } >
-                    <Image source={VIDEO_TEAMS_INACTIVE_ICON} style = { {flex: 1, width: undefined, height: undefined, borderRadius: 18, overflow: 'hidden'}} resizeMode = 'stretch'/>
+                    <Image source={GROUP_CALL_ICON}
+                        style = { { flex: 1, width: undefined, height: undefined, borderRadius: 18, overflow: 'hidden' } }
+                        resizeMode = 'stretch'/>
                 </View>
             );
         } else {
@@ -40,7 +39,7 @@ class CalleeBoxView extends Component {
                     <Image source={{uri: avatarImageUrl}} style = { {flex: 1, width: undefined, height: undefined, borderRadius: 18, overflow: 'hidden'}} resizeMode = 'stretch'/>
                 </View>) :
                 <View style = { styles.imageViewBoxStyle } >
-                    <Image source={VIDEO_TEAMS_INACTIVE_ICON} style = { {flex: 1, width: undefined, height: undefined, borderRadius: 18, overflow: 'hidden'}} resizeMode = 'stretch'/>
+                    <Image source={ONE_TO_ONE_FALLBACK_ICON} style = { {flex: 1, width: undefined, height: undefined, borderRadius: 18, overflow: 'hidden'}} resizeMode = 'stretch'/>
                 </View>
             ); 
         }
@@ -50,9 +49,10 @@ class CalleeBoxView extends Component {
 function _mapStateToProps(state, ownProps) {
     const _participantId = state['features/large-video']?.participantId;
     const _settings = state['features/base/settings'] || {};
+    const _config = state['features/base/config'] || {};
     return {
         participantId: _participantId,
-        userPicUrl: _settings.callerAvatarURL,
+        userPicUrl: _settings.callerAvatarURL || _config.callerAvatarURL,
     };
 }
 

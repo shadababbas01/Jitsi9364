@@ -1074,6 +1074,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
     const { aspectRatio, reducedUI } = state['features/base/responsive-ui'];
     const { backgroundColor } = state['features/dynamic-branding'];
     const settings: any = state['features/base/settings'];
+    const config: any = state['features/base/config'] || {};
     const { startCarMode } = settings;
     const { enabled: audioOnlyEnabled } = state['features/base/audio-only'];
     const localParticipant = getLocalParticipant(state);
@@ -1110,11 +1111,11 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _showLobby: getIsLobbyVisible(state),
         _startCarMode: startCarMode,
         _toolboxVisible: isToolboxVisible(state),
-        isTeamsCall: Boolean(settings?.isGroupCall),
+        isTeamsCall: Boolean(settings?.isGroupCall ?? config.isGroupCall),
         participant: getParticipantCountRemoteOnly(state),
         participants: getParticipants(state),
         _participants: state['features/base/participants'],
-        roomName: settings?.teamName || getConferenceName(state) || ''
+        roomName: settings?.teamName || config.teamName || getConferenceName(state) || ''
     };
 }
 

@@ -48,7 +48,7 @@ class CalleeDetails extends Component {
         if (!isTeamsCall && otherParticipants && otherParticipants.length === 1) {
             otherParticipant = otherParticipants[0];
         }
-        let participantText = conferenceName || '';
+        let participantText = isTeamsCall ? roomName || conferenceName || '' : conferenceName || '';
         if (isTeamsCall) {
             if (!participantText) {
                 participantText = decodeURI(roomName || '');
@@ -87,11 +87,7 @@ class CalleeDetails extends Component {
         }
         let participantsDetails;
         if (isTeamsCall) {
-            if (participants && participants.length > 0) {
-                participantsDetails = `${(this.props.participantsCount || 0) + 1} ${getTranslatedText('members')}`;
-            } else {
-                participantsDetails = '';
-            }
+            participantsDetails = getTranslatedText('callerdetail');
         } else {
             participantsDetails = callerDetails;
         }
@@ -141,8 +137,14 @@ class CalleeDetails extends Component {
                     minimumFontScale = { 0.75 }
                     numberOfLines = { 1 }
                     style = { isTeamsCall
-                        ? styles.connectionStatusTeamsTextStyle
-                        : styles.connectionStatusOneToOneTextStyle }>
+                        ? [
+                            styles.connectionStatusTeamsTextStyle,
+                            !participantsDetails && styles.connectionStatusHiddenTextStyle
+                        ]
+                        : [
+                            styles.connectionStatusOneToOneTextStyle,
+                            !participantsDetails && styles.connectionStatusHiddenTextStyle
+                        ] }>
                     { status }
                 </Text>
             </View>
@@ -175,10 +177,11 @@ function _mapStateToProps(state: Object, ownProps: Props) {
 
     const localParticipant = getLocalParticipant(state);
     const _settings = state['features/base/settings'] || {};
+    const _config = state['features/base/config'] || {};
     const otherParticipants = localParticipant ? participants.filter(p => p.id !== localParticipant.id) : participants;
-    
-    const callerName = _settings.callerName || '';
-    const callerDetails = _settings.callerDetails || '';
+
+    const callerName = _settings.callerName || _config.callerName || '';
+    const callerDetails = _settings.callerDetails || _config.callerDetails || '';
     return {
         participants,
         otherParticipants,
