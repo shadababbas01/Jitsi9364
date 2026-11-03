@@ -1,7 +1,7 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import { AnyAction } from 'redux';
 
-import { IStore } from '../../app/types';
+import { IReduxState, IStore } from '../../app/types';
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app/actionTypes';
 import { SET_AUDIO_ONLY } from '../../base/audio-only/actionTypes';
 import {
@@ -18,7 +18,12 @@ import { parseURIString } from '../../base/util/uri';
 
 import { _SET_AUDIOMODE_DEVICES, _SET_AUDIOMODE_SUBSCRIPTIONS } from './actionTypes';
 import { AUDIO_DEVICE_EARPIECE, AUDIO_DEVICE_SPEAKER } from './constants';
-import { getAudioDevices, isPrivateAudioDeviceSelected, selectAudioDevice } from './functions';
+import {
+    getAudioDevices,
+    isPrivateAudioDeviceAvailable,
+    isPrivateAudioDeviceSelected,
+    selectAudioDevice
+} from './functions';
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
@@ -61,7 +66,7 @@ MiddlewareRegistry.register(store => next => action => {
     * conference after the password prompt appears.
     */
     case CONFERENCE_JOINED:
-        return _updateAudioMode(store, next, action);
+        return _conferenceJoined(store, next, action);
 
     case SET_AUDIO_ONLY:
         return _setAudioOnly(store, next, action);
@@ -172,14 +177,54 @@ function _setAudioOnly(store: IStore, next: Function, action: AnyAction) {
         return result;
     }
 
+    _routeForCallType(state, audioOnly);
+
+    return result;
+}
+
+/**
+ * Updates the audio mode and, when a video call is joined (picked up or dialled), puts it on the loudspeaker. Native
+ * already starts an audio call on the earpiece, and a headset, earbuds or a car are left alone.
+ *
+ * @param {Store} store - The redux store in which the specified {@code action}
+ * is being dispatched.
+ * @param {Dispatch} next - The redux {@code dispatch} function to dispatch the
+ * specified {@code action} in the specified {@code store}.
+ * @param {Action} action - The redux action {@code CONFERENCE_JOINED}.
+ * @private
+ * @returns {*} The value returned by {@code next(action)}.
+ */
+function _conferenceJoined(store: IStore, next: Function, action: AnyAction) {
+    const result = _updateAudioMode(store, next, action);
+    const state = store.getState();
+    const audioOnly = Boolean(state['features/base/audio-only'].enabled);
+
+    if (audioOnly
+            || getFeatureFlag(state, AUDIO_FOCUS_DISABLED, false)
+            || isPrivateAudioDeviceAvailable(state)) {
+        return result;
+    }
+
+    _routeForCallType(state, audioOnly);
+
+    return result;
+}
+
+/**
+ * Puts the call on the loudspeaker for a video call and on the earpiece for an audio call.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @param {boolean} audioOnly - Whether the call is an audio call.
+ * @private
+ * @returns {void}
+ */
+function _routeForCallType(state: IReduxState, audioOnly: boolean) {
     const speakerOn = !audioOnly;
     const type = speakerOn ? AUDIO_DEVICE_SPEAKER : AUDIO_DEVICE_EARPIECE;
     const device = getAudioDevices(state).find(d => d.type === type);
 
     selectAudioDevice(device?.uid || type);
     AudioMode.setSpeakerOn?.(speakerOn)?.catch?.(() => { /* not every platform answers */ });
-
-    return result;
 }
 
 /**

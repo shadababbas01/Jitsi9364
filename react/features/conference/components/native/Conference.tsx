@@ -715,7 +715,6 @@ class Conference extends AbstractConference<IProps, State> {
             _audioOnlyEnabled,
             _connecting,
             _filmstripVisible,
-            _hasConnectedRemoteParticipant,
             _isNativePipMode,
             _liveTranslationPanelWidth,
             _localParticipantId,
@@ -872,12 +871,6 @@ class Conference extends AbstractConference<IProps, State> {
                   */
                     <CalleeInfoContainer />
                 }
-
-                {_connecting && !_hasConnectedRemoteParticipant && <CalleeDetails
-                    connected = { _connecting }
-                    connectionState = { this.state.connectionStatus }
-                    isTeamsCall = { this.props.isTeamsCall }
-                    roomName = { this.props.roomName } />}
 
                 {/*
                   * The activity/loading indicator goes above everything, except

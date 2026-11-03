@@ -51,6 +51,17 @@ export function isPrivateAudioDeviceSelected(state: IReduxState): boolean {
 }
 
 /**
+ * Returns whether a headset, earbuds or a car is connected, selected or not. Native puts the call on one of these by
+ * default as it joins, before it has announced which route it took.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {boolean}
+ */
+export function isPrivateAudioDeviceAvailable(state: IReduxState): boolean {
+    return getAudioDevices(state).some(device => PRIVATE_AUDIO_DEVICES.includes(device.type));
+}
+
+/**
  * Puts the call on a route, by device type or by the unique identifier native gave it.
  *
  * The one place which asks native for a route, so that a feature which needs the loudspeaker does not have to know how
