@@ -32,8 +32,8 @@ const MIN_HEIGHT_FOR_IMAGE = 520;
  * meeting-duration signals. It renders features/chat.meetingLimitDialog as given and is mounted once, in the app
  * shell, so it is on top of whichever screen the meeting is on, and also just after the meeting has ended.
  *
- * While the meeting runs, Remind me later only closes it and Upgrade asks the Melp host to open its signed-in plans
- * page. Once the meeting has ended there is only OK, which leaves the meeting.
+ * While the meeting runs, Upgrade (on top) asks the Melp host to open its signed-in plans page and Remind me later
+ * (below it) only closes the popup. Once the meeting has ended there is only OK, which leaves the meeting.
  *
  * @returns {ReactElement|null}
  */
@@ -139,17 +139,6 @@ export default function MeetingLimitDialogContainer() {
                             <>
                                 <Pressable
                                     accessibilityRole = 'button'
-                                    onPress = { onDismiss }
-                                    style = { pressedStyle(styles.secondaryButton as ViewStyle) }
-                                    testID = 'meeting-limit-dialog-remind-later'>
-                                    <Text
-                                        allowFontScaling = { true }
-                                        style = { styles.secondaryButtonText as TextStyle }>
-                                        { t('meetingLimit.remindLater', { defaultValue: 'Remind me later' }) }
-                                    </Text>
-                                </Pressable>
-                                <Pressable
-                                    accessibilityRole = 'button'
                                     onPress = { onUpgrade }
                                     style = { pressedStyle(styles.primaryButton as ViewStyle) }
                                     testID = 'meeting-limit-dialog-upgrade'>
@@ -157,6 +146,17 @@ export default function MeetingLimitDialogContainer() {
                                         allowFontScaling = { true }
                                         style = { styles.primaryButtonText as TextStyle }>
                                         { t('meetingLimit.upgrade', { defaultValue: 'Upgrade' }) }
+                                    </Text>
+                                </Pressable>
+                                <Pressable
+                                    accessibilityRole = 'button'
+                                    onPress = { onDismiss }
+                                    style = { pressedStyle(styles.secondaryButton as ViewStyle) }
+                                    testID = 'meeting-limit-dialog-remind-later'>
+                                    <Text
+                                        allowFontScaling = { true }
+                                        style = { styles.secondaryButtonText as TextStyle }>
+                                        { t('meetingLimit.remindLater', { defaultValue: 'Remind me later' }) }
                                     </Text>
                                 </Pressable>
                             </>

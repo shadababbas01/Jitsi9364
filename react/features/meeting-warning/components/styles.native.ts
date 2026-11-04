@@ -22,14 +22,12 @@ const TEXT_BLACK = '#222020';
 
 const BUTTON = {
     alignItems: 'center' as const,
+    alignSelf: 'stretch' as const,
     borderRadius: 8,
     borderWidth: 1.5,
-    flex: 1,
-    flexBasis: 0,
-    minWidth: 0,
     justifyContent: 'center' as const,
     minHeight: 48,
-    paddingHorizontal: BaseTheme.spacing[2],
+    paddingHorizontal: BaseTheme.spacing[3],
     paddingVertical: 10
 };
 
@@ -45,13 +43,14 @@ const BUTTON_TEXT = {
 
 /**
  * The capping popup, styled as Melp's other capping popups: white card, illustration on a light panel, bold heading,
- * the server's message in full, and Remind me later beside a red Upgrade. It stays light in a dark call by design.
- * Nothing is truncated or shrunk: long copy wraps, and the card scrolls if it ever outgrows the screen.
+ * the server's message in full, and full-width buttons stacked with the red Upgrade above Remind me later. It stays
+ * light in a dark call by design. Nothing is truncated or shrunk: long copy wraps, and the card scrolls if it ever
+ * outgrows the screen.
  */
 export default {
     actions: {
         alignItems: 'stretch',
-        flexDirection: 'row',
+        flexDirection: 'column',
         gap: BaseTheme.spacing[3],
         marginTop: BaseTheme.spacing[4],
         width: '100%'
