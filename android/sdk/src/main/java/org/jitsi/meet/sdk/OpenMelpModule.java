@@ -88,6 +88,17 @@ public class OpenMelpModule extends ReactContextBaseJavaModule {
         getReactApplicationContext().sendBroadcast(i);
     }
 
+    /**
+     * Asks the host app to open its plans page, from the meeting's capping popup. The host owns the signed-in
+     * payment page, so the meeting only says that the user asked for it.
+     */
+    @ReactMethod
+    public void openUpgradePlan() {
+        Intent i = new Intent();
+        i.setAction("MeetCallBackUpgradePlan");
+        getReactApplicationContext().sendBroadcast(i);
+    }
+
     @ReactMethod
     public void pipMode() {
 

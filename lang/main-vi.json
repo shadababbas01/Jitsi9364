@@ -747,6 +747,34 @@
         "youAreAlone": "Chỉ có một mình bạn trong cuộc họp"
     },
     "me": "Tôi",
+    "meetingLimit": {
+        "remindLater": "Nhắc tôi sau",
+        "upgrade": "Nâng cấp",
+        "defaultTitle": "Cuộc họp sắp kết thúc",
+        "defaultMessage": "Phiên này sẽ kết thúc sau 15 phút. Hãy nâng cấp để tiếp tục mà không bị giới hạn thời gian.",
+        "softTitle": "Cảnh báo giới hạn {{feature}}",
+        "softMessage": "Bạn đã dùng {{used}}/{{limit}} hạn mức {{feature}}. Hãy nâng cấp để tránh bị gián đoạn.",
+        "hardTitle": "Đã đạt giới hạn {{feature}}",
+        "hardMessage": "Bạn đã đạt giới hạn {{feature}} ({{limit}}). Hãy nâng cấp gói để tiếp tục.",
+        "blockedTitle": "{{feature}} không khả dụng",
+        "blockedMessage": "{{feature}} không có trong gói hiện tại của bạn. Hãy nâng cấp để tiếp tục.",
+        "blockedMessagePlural": "{{feature}} không có trong gói hiện tại của bạn. Hãy nâng cấp để tiếp tục.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Chế độ đánh giá",
+            "polls": "Thăm dò ý kiến",
+            "recording": "Ghi hình",
+            "summary": "Tóm tắt bằng AI",
+            "transcription": "Phiên âm",
+            "speech_to_speech": "Dịch theo thời gian thực",
+            "evaluation_questions": "Câu hỏi phỏng vấn bằng AI",
+            "breakoutrooms": "Phòng nhóm",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Khử tiếng ồn",
+            "whiteboard": "Bảng trắng",
+            "webinar": "Hội thảo trực tuyến"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Lỗ hổng bảo mật!",
         "allowAction": "Cho phép",

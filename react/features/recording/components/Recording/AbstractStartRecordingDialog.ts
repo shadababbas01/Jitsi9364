@@ -8,6 +8,7 @@ import { IJitsiConference } from '../../../base/conference/reducer';
 import { JitsiRecordingConstants } from '../../../base/lib-jitsi-meet';
 import { updateDropboxToken } from '../../../dropbox/actions';
 import { getDropboxData, getNewAccessToken, isEnabled as isDropboxEnabled } from '../../../dropbox/functions.any';
+import { alertServerCountedUsage, checkFeatureUsage } from '../../../meeting-warning/functions';
 import { showErrorNotification } from '../../../notifications/actions';
 import { setRequestingSubtitles } from '../../../subtitles/actions.any';
 import { setSelectedRecordingService, startLocalVideoRecording } from '../../actions';
@@ -362,6 +363,14 @@ class AbstractStartRecordingDialog extends Component<IProps, IState> {
             type?: string;
         } = {};
 
+        // Plan quota for a recording made by the recording service. Returning true closes the dialog, so the limit
+        // popup is what is left on screen. Local recording is checked where it starts (START_LOCAL_RECORDING).
+        if (this.state.shouldRecordAudioAndVideo
+                && this.state.selectedRecordingService !== RECORDING_TYPES.LOCAL
+                && !dispatch(checkFeatureUsage('recording'))) {
+            return true;
+        }
+
         if (this.state.shouldRecordAudioAndVideo) {
             switch (this.state.selectedRecordingService) {
             case RECORDING_TYPES.DROPBOX: {
@@ -411,6 +420,9 @@ class AbstractStartRecordingDialog extends Component<IProps, IState> {
                 mode: JitsiRecordingConstants.mode.FILE,
                 appData
             });
+
+            // Counted by the server, once per meeting.
+            dispatch(alertServerCountedUsage('recording'));
         }
 
         if (this.state.selectedRecordingService === RECORDING_TYPES.JITSI_REC_SERVICE

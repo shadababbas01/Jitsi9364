@@ -6,6 +6,7 @@ import { IReduxState } from '../../app/types';
 import { translate } from '../../base/i18n/functions';
 import { IconShareDoc } from '../../base/icons/svg';
 import AbstractButton, { IProps as AbstractButtonProps } from '../../base/toolbox/components/AbstractButton';
+import { checkFeatureAccess } from '../../meeting-warning/functions';
 import { navigate } from '../../mobile/navigation/components/conference/ConferenceNavigationContainerRef';
 import { screen } from '../../mobile/navigation/routes';
 
@@ -30,6 +31,11 @@ class SharedDocumentButton extends AbstractButton<AbstractButtonProps> {
         if (handleClick) {
             handleClick();
 
+            return;
+        }
+
+        // Melp Pad not in the plan: the limit popup instead of the document.
+        if (!this.props.dispatch(checkFeatureAccess('melp_pad'))) {
             return;
         }
 

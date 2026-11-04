@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GestureResponderEvent, Platform } from 'react-native';
+import { GestureResponderEvent, Platform, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 
 
@@ -15,6 +16,20 @@ import { isPrejoinEnabledInConfig } from '../../prejoin/functions.native';
 
 import HeaderNavigationButton from './components/HeaderNavigationButton';
 
+
+/**
+ * The room the header of a screen opened over the meeting leaves at its top. In portrait that is the top safe area,
+ * so the title clears the status bar and the camera cutout. In landscape it is nothing, as it always was: the cutout
+ * is at the side there, and pushing the header down would only take height from an already short screen.
+ *
+ * @returns {number}
+ */
+export function useHeaderStatusBarHeight() {
+    const { top } = useSafeAreaInsets();
+    const { height, width } = useWindowDimensions();
+
+    return height > width ? top : 0;
+}
 
 /**
  * Close icon/text button based on platform.

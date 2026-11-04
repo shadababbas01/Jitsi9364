@@ -14,6 +14,7 @@ import DimensionsDetector from '../../base/responsive-ui/components/DimensionsDe
 import { updateSettings } from '../../base/settings/actions';
 import JitsiThemePaperProvider from '../../base/ui/components/JitsiThemeProvider.native';
 import { isEmbedded } from '../../base/util/embedUtils.native';
+import MeetingLimitDialogContainer from '../../meeting-warning/components/MeetingLimitDialogContainer.native';
 import { _getRouteToRender } from '../getRouteToRender.native';
 import logger from '../logger';
 
@@ -298,6 +299,7 @@ export class App extends AbstractApp<IProps> {
                 style = { StyleSheet.absoluteFill }>
                 <BottomSheetContainer />
                 <DialogContainer />
+                <MeetingLimitDialogContainer />
             </DialogContainerWrapper>
         );
     }

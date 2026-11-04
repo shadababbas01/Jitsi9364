@@ -31,6 +31,7 @@ import { navigate } from '../../../mobile/navigation/components/conference/Confe
 import { screen } from '../../../mobile/navigation/routes';
 import VirtualBackgroundButton
     from '../../../mobile/virtual-background/components/VirtualBackgroundButton';
+import PollsButton from '../../../polls/components/native/PollsButton';
 import { getUnreadPollCount } from '../../../polls/functions';
 import ReactionMenu from '../../../reactions/components/native/ReactionMenu';
 import { shouldDisplayReactionsButtons } from '../../../reactions/functions.any';
@@ -526,6 +527,8 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <AudioOnlyButton { ...rowProps } />
                     { this._renderRaiseHandButton(rowProps) }
                     {_isBreakoutRoomsSupported && <><D /><BreakoutRoomsButton { ...rowProps } /></>}
+                    <D />
+                    <PollsButton { ...rowProps } />
                     <D />
                     {(Boolean(OpenMelpChat?.showAttendees) || Boolean(NativeCallsNew?.showAttendees) || Boolean(NativeCallsNew?.showAttendeeeees))
                         && <><D /><TranslatedOverflowAttendeesButton { ...topRowProps } /></>}

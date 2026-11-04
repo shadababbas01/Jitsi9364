@@ -12,6 +12,7 @@ import {
     CLOSE_CHAT,
     DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
+    HIDE_MEETING_LIMIT_DIALOG,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
     OPEN_CHAT,
     REMOVE_LOBBY_CHAT_PARTICIPANT,
@@ -23,6 +24,7 @@ import {
     SET_PRIVATE_MESSAGE_RECIPIENT,
     SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
     SET_USER_CHAT_WIDTH,
+    SHOW_MEETING_LIMIT_DIALOG,
     SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { CHAT_SIZE, ChatTabs } from './constants';
@@ -46,11 +48,22 @@ const DEFAULT_STATE = {
     transcriptionStartedByCurrentUser: false,
     transcriptionStarterId: null,
     consentDismissedForSession: false,
+    meetingLimitDialog: { open: false },
     width: {
         current: CHAT_SIZE,
         userSet: null
     }
 };
+
+/**
+ * The plan-capping popup: quota warnings and blocks, and the server's meeting-duration signals.
+ */
+export interface IMeetingLimitDialogState {
+    ended?: boolean;
+    message?: string;
+    open: boolean;
+    title?: string;
+}
 
 export interface IChatState {
     consentDismissedForSession: boolean;
@@ -64,6 +77,7 @@ export interface IChatState {
         id: string;
         name: string;
     } | ILocalParticipant;
+    meetingLimitDialog: IMeetingLimitDialogState;
     messages: IMessage[];
     notifyPrivateRecipientsChangedTimestamp?: number;
     privateMessageRecipient?: IParticipant | IVisitorChatParticipant;
@@ -316,6 +330,23 @@ ReducerRegistry.register<IChatState>('features/chat', (state = DEFAULT_STATE, ac
         return {
             ...state,
             transcriptionStartedByCurrentUser: action.startedByCurrentUser
+        };
+
+    case SHOW_MEETING_LIMIT_DIALOG:
+        return {
+            ...state,
+            meetingLimitDialog: {
+                open: true,
+                title: action.payload.title,
+                message: action.payload.message,
+                ended: action.payload.ended ?? false
+            }
+        };
+
+    case HIDE_MEETING_LIMIT_DIALOG:
+        return {
+            ...state,
+            meetingLimitDialog: { open: false }
         };
 
     case SET_REQUESTING_SUBTITLES:

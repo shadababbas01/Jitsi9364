@@ -28,3 +28,13 @@ export const SET_JWT = 'SET_JWT';
  * }
  */
 export const SET_KNOWN_AVATAR_URL = 'SET_KNOWN_AVATAR_URL';
+
+/**
+ * Increments local usage for one tracked feature.
+ *
+ * {
+ *     type: INCREMENT_FEATURE_USAGE,
+ *     feature: string
+ * }
+ */
+export const INCREMENT_FEATURE_USAGE = 'INCREMENT_FEATURE_USAGE';

@@ -842,6 +842,35 @@
         "youAreAlone": "You are the only one in the meeting"
     },
     "me": "me",
+    "meetingLimit": {
+        "remindLater": "Remind me later",
+        "upgrade": "Upgrade",
+        "defaultTitle": "Meeting ending soon",
+        "endedTitle": "Meeting ended",
+        "defaultMessage": "This session will end in 15 minutes. Upgrade to continue without time restrictions.",
+        "softTitle": "{{feature}} limit warning",
+        "softMessage": "You have used {{used}}/{{limit}} of your {{feature}} quota. Upgrade to avoid interruption.",
+        "hardTitle": "{{feature}} limit reached",
+        "hardMessage": "You have reached your {{feature}} limit ({{limit}}). Upgrade your plan to continue.",
+        "blockedTitle": "{{feature}} unavailable",
+        "blockedMessage": "{{feature}} is not available in your current plan. Upgrade to continue.",
+        "blockedMessagePlural": "{{feature}} are not available in your current plan. Upgrade to continue.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Evaluation mode",
+            "polls": "Polls",
+            "recording": "Recording",
+            "summary": "AI summary",
+            "transcription": "Transcription",
+            "speech_to_speech": "Real-time translation",
+            "evaluation_questions": "AI interview questions",
+            "breakoutrooms": "Breakout rooms",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Noise suppression",
+            "whiteboard": "Whiteboard",
+            "webinar": "Webinar"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Security vulnerability!",
         "allowAction": "Allow",

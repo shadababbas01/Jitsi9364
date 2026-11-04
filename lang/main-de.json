@@ -803,6 +803,34 @@
         "youAreAlone": "Nur Sie sind in dieser Konferenz"
     },
     "me": "ich",
+    "meetingLimit": {
+        "remindLater": "Später erinnern",
+        "upgrade": "Upgrade",
+        "defaultTitle": "Meeting endet bald",
+        "defaultMessage": "Diese Sitzung endet in 15 Minuten. Führen Sie ein Upgrade durch, um ohne Zeitbeschränkung fortzufahren.",
+        "softTitle": "{{feature}}: Limit fast erreicht",
+        "softMessage": "Sie haben {{used}}/{{limit}} Ihres {{feature}}-Kontingents genutzt. Führen Sie ein Upgrade durch, um Unterbrechungen zu vermeiden.",
+        "hardTitle": "{{feature}}: Limit erreicht",
+        "hardMessage": "Sie haben Ihr {{feature}}-Limit ({{limit}}) erreicht. Führen Sie ein Upgrade Ihres Tarifs durch, um fortzufahren.",
+        "blockedTitle": "{{feature}} nicht verfügbar",
+        "blockedMessage": "{{feature}} ist in Ihrem aktuellen Tarif nicht verfügbar. Führen Sie ein Upgrade durch, um fortzufahren.",
+        "blockedMessagePlural": "{{feature}} sind in Ihrem aktuellen Tarif nicht verfügbar. Führen Sie ein Upgrade durch, um fortzufahren.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Bewertungsmodus",
+            "polls": "Umfragen",
+            "recording": "Aufnahme",
+            "summary": "KI-Zusammenfassung",
+            "transcription": "Transkription",
+            "speech_to_speech": "Echtzeitübersetzung",
+            "evaluation_questions": "KI-Interviewfragen",
+            "breakoutrooms": "Breakout-Räume",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Rauschunterdrückung",
+            "whiteboard": "Whiteboard",
+            "webinar": "Webinar"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Sicherheitslücke!",
         "allowAll": "Alles einschalten",

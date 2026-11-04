@@ -1,4 +1,5 @@
 import { IReduxState, IStore } from '../../app/types';
+import { maybeDeferConferenceEnd } from '../../meeting-warning/actions';
 import { readyToClose } from '../../mobile/external-api/actions';
 import { transcriberJoined, transcriberLeft } from '../../transcribing/actions';
 import { setIAmVisitor } from '../../visitors/actions';
@@ -115,7 +116,15 @@ function _addConferenceListeners(conference: IJitsiConference, dispatch: IStore[
 
     conference.on(
         JitsiConferenceEvents.CONFERENCE_FAILED,
-        (err: string, ...args: any[]) => dispatch(conferenceFailed(conference, err, ...args)));
+        (err: string, ...args: any[]) => {
+            const action = conferenceFailed(conference, err, ...args);
+
+            // A meeting that hit its plan duration stays up behind the "Meeting ended" popup; the failure is
+            // dispatched once that is dismissed.
+            if (!dispatch(maybeDeferConferenceEnd(action))) {
+                dispatch(action);
+            }
+        });
     conference.on(
         JitsiConferenceEvents.CONFERENCE_JOINED,
         (..._args: any[]) => dispatch(conferenceJoined(conference)));

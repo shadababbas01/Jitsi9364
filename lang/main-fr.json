@@ -789,6 +789,34 @@
         "youAreAlone": "Vous êtes le seul participant de la réunion"
     },
     "me": "moi",
+    "meetingLimit": {
+        "remindLater": "Me le rappeler plus tard",
+        "upgrade": "Mettre à niveau",
+        "defaultTitle": "La réunion se termine bientôt",
+        "defaultMessage": "Cette session se terminera dans 15 minutes. Mettez à niveau votre offre pour continuer sans limite de temps.",
+        "softTitle": "Avertissement de limite : {{feature}}",
+        "softMessage": "Vous avez utilisé {{used}}/{{limit}} de votre quota {{feature}}. Mettez à niveau pour éviter toute interruption.",
+        "hardTitle": "Limite atteinte : {{feature}}",
+        "hardMessage": "Vous avez atteint votre limite {{feature}} ({{limit}}). Mettez à niveau votre offre pour continuer.",
+        "blockedTitle": "{{feature}} indisponible",
+        "blockedMessage": "{{feature}} n'est pas disponible dans votre offre actuelle. Mettez à niveau pour continuer.",
+        "blockedMessagePlural": "{{feature}} ne sont pas disponibles dans votre offre actuelle. Mettez à niveau pour continuer.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Mode évaluation",
+            "polls": "Sondages",
+            "recording": "Enregistrement",
+            "summary": "Résumé IA",
+            "transcription": "Transcription",
+            "speech_to_speech": "Traduction en temps réel",
+            "evaluation_questions": "Questions d'entretien IA",
+            "breakoutrooms": "Salles de sous-groupe",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Suppression du bruit",
+            "whiteboard": "Tableau blanc",
+            "webinar": "Webinaire"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Faille de sécurité !",
         "allowAll": "Tout autoriser",

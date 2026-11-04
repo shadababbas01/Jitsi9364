@@ -1,3 +1,5 @@
+// First: the plan-capping gates must see a feature's action before the feature's own middleware handles it.
+import '../meeting-warning/middleware';
 import '../base/config/middleware';
 import '../caption-tts/chatMiddleware.native';
 import '../caption-tts/middleware.native';

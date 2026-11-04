@@ -19,6 +19,104 @@ import { setDelayedLoadOfAvatarUrl, setJWT, setKnownAvatarUrl } from './actions'
 import { parseJWTFromURLParams } from './functions';
 import logger from './logger';
 
+// Must stay in sync with TrackedFeature in meeting-warning/functions.ts.
+const TRACKED_FEATURE_USAGE_KEYS = [
+    'ask_ai', 'evaluationmode', 'summary', 'transcription', 'recording', 'polls',
+    'speech_to_speech', 'evaluation_questions'
+];
+const BLOCKED_FEATURE_FLAGS = [
+    'noisesupression', 'noisesuppression', 'breakoutrooms', 'whiteboard',
+    'evaluationmode', 'webinar', 'ask_ai', 'melp_pad'
+];
+
+/**
+ * Accepts the JWT features claim as an object or a JSON string.
+ *
+ * @param {any} rawFeatures - The raw claim.
+ * @returns {Object|undefined}
+ */
+function _normalizeFeatures(rawFeatures: any) {
+    if (typeof rawFeatures === 'string') {
+        try {
+            const parsed = JSON.parse(rawFeatures);
+
+            return parsed && typeof parsed === 'object' ? parsed : undefined;
+        } catch (error) {
+            logger.warn('Failed to parse JWT features payload string.', error);
+
+            return undefined;
+        }
+    }
+
+    return rawFeatures && typeof rawFeatures === 'object' ? rawFeatures : undefined;
+}
+
+/**
+ * Picks the tracked usage quotas out of the JWT features claim.
+ *
+ * @param {any} rawLimits - The features claim.
+ * @returns {Object|undefined}
+ */
+function _normalizeFeatureUsageLimits(rawLimits: any) {
+    const normalizedLimits = _normalizeFeatures(rawLimits);
+
+    if (!normalizedLimits) {
+        return undefined;
+    }
+
+    const normalized: Record<string, {
+        alertlimit: number;
+        enabled: boolean;
+        limit: number;
+        used: number;
+    }> = {};
+
+    TRACKED_FEATURE_USAGE_KEYS.forEach(feature => {
+        const value = normalizedLimits[feature];
+
+        if (!value || typeof value !== 'object') {
+            return;
+        }
+
+        const limit = Number(value.limit);
+        const alertlimit = Number(value.alertlimit);
+        const used = Number(value.used);
+
+        normalized[feature] = {
+            alertlimit: Number.isFinite(alertlimit) ? alertlimit : 0,
+            enabled: Boolean(value.enabled),
+            limit: Number.isFinite(limit) ? limit : 0,
+            used: Number.isFinite(used) ? used : 0
+        };
+    });
+
+    return Object.keys(normalized).length ? normalized : undefined;
+}
+
+/**
+ * Picks the on/off plan entitlements out of the JWT features claim.
+ *
+ * @param {any} rawFeatures - The features claim.
+ * @returns {Object|undefined}
+ */
+function _normalizeFeatureAccessFlags(rawFeatures: any) {
+    const normalizedFeatures = _normalizeFeatures(rawFeatures);
+
+    if (!normalizedFeatures) {
+        return undefined;
+    }
+
+    const normalized: Record<string, boolean> = {};
+
+    BLOCKED_FEATURE_FLAGS.forEach(feature => {
+        if (typeof normalizedFeatures[feature] === 'boolean') {
+            normalized[feature] = normalizedFeatures[feature];
+        }
+    });
+
+    return Object.keys(normalized).length ? normalized : undefined;
+}
+
 /**
  * Set up a state change listener to perform maintenance tasks when the conference
  * is left or failed, e.g. Clear any delayed load avatar url.
@@ -164,12 +262,16 @@ function _setJWT(store: IStore, next: Function, action: AnyAction) {
             }
 
             if (jwtPayload) {
-                const { context, iss, sub, roomName } = jwtPayload;
+                const { context, features, iss, sub, roomName } = jwtPayload;
                 const { tokenGetUserInfoOutOfContext, tokenRespectTenant } = state['features/base/config'];
+                const featuresPayload = _normalizeFeatures(features)
+                    || _normalizeFeatures(context?.features);
 
                 action.jwt = jwt;
                 action.issuer = iss;
                 action.roomName = roomName;
+                action.featureUsageLimits = _normalizeFeatureUsageLimits(featuresPayload);
+                action.featureAccessFlags = _normalizeFeatureAccessFlags(featuresPayload);
                 if (context) {
                     const user = _user2participant(context.user || {});
 
@@ -181,7 +283,7 @@ function _setJWT(store: IStore, next: Function, action: AnyAction) {
 
                     const newUser = user ? { ...user } : {};
 
-                    let features = context.features;
+                    let participantFeatures = context.features;
 
                     // eslint-disable-next-line max-depth
                     if (!isVpaasMeeting(state) && tokenRespectTenant && context.tenant) {
@@ -190,7 +292,7 @@ function _setJWT(store: IStore, next: Function, action: AnyAction) {
                         const { locationURL = { href: '' } as URL } = state['features/base/connection'];
                         const { tenant = '' } = parseURIString(locationURL.href) || {};
 
-                        features = context.tenant === tenant || tenant === '' ? features : {};
+                        participantFeatures = context.tenant === tenant || tenant === '' ? participantFeatures : {};
                     }
 
                     if (newUser.avatarURL) {
@@ -205,7 +307,7 @@ function _setJWT(store: IStore, next: Function, action: AnyAction) {
 
                     _overwriteLocalParticipant(
                         store, { ...newUser,
-                            features });
+                            features: participantFeatures });
 
                     // eslint-disable-next-line max-depth
                     if (context.user && context.user.role === 'visitor') {

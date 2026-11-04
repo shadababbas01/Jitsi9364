@@ -192,3 +192,18 @@ export const SHOW_TRANSCRIPTION_CONSENT = 'SHOW_TRANSCRIPTION_CONSENT';
  * The type of action that dismisses the live captions consent notice.
  */
 export const DISMISS_TRANSCRIPTION_CONSENT = 'DISMISS_TRANSCRIPTION_CONSENT';
+
+/**
+ * The type of action that opens the plan-capping popup.
+ *
+ * {
+ *     type: SHOW_MEETING_LIMIT_DIALOG,
+ *     payload: { title: string, message: string, ended?: boolean }
+ * }
+ */
+export const SHOW_MEETING_LIMIT_DIALOG = 'SHOW_MEETING_LIMIT_DIALOG';
+
+/**
+ * The type of action that closes the plan-capping popup.
+ */
+export const HIDE_MEETING_LIMIT_DIALOG = 'HIDE_MEETING_LIMIT_DIALOG';

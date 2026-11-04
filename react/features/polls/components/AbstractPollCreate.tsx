@@ -1,10 +1,11 @@
 import React, { ComponentType, FormEvent, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { createPollEvent } from '../../analytics/AnalyticsEvents';
 import { sendAnalytics } from '../../analytics/functions';
 import { IReduxState } from '../../app/types';
+import { checkFeatureUsage, commitFeatureUsage } from '../../meeting-warning/functions';
 import { COMMAND_NEW_POLL } from '../constants';
 import { hasIdenticalAnswers } from '../functions';
 
@@ -78,6 +79,7 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
     }, [ answers ]);
 
     const conference = useSelector((state: IReduxState) => state['features/base/conference'].conference);
+    const dispatch = useDispatch();
 
     const onSubmit = useCallback(ev => {
         if (ev) {
@@ -90,6 +92,12 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
             return;
         }
 
+        // A new poll is sent straight to the conference, so its quota is checked here rather than by the
+        // meeting-warning middleware. The form stays open when it is refused, so nothing typed is lost.
+        if (!dispatch(checkFeatureUsage('polls'))) {
+            return;
+        }
+
         conference?.sendMessage({
             type: COMMAND_NEW_POLL,
             pollId: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
@@ -98,9 +106,12 @@ const AbstractPollCreate = (Component: ComponentType<AbstractProps>) => (props: 
         });
         sendAnalytics(createPollEvent('created'));
 
+        // The limit popup belongs to the Create a poll button, so there is no post-use alert for the last unit.
+        dispatch(commitFeatureUsage('polls', { showPostLimitAlert: false }));
+
         setCreateMode(false);
 
-    }, [ conference, question, answers ]);
+    }, [ conference, dispatch, question, answers ]);
 
     // Check if the poll create form can be submitted i.e. if the send button should be disabled.
     const isSubmitDisabled

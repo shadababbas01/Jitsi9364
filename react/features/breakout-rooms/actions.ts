@@ -19,6 +19,7 @@ import {
     getLocalTracks,
     isLocalTrackMuted
 } from '../base/tracks/functions';
+import { checkFeatureAccess } from '../meeting-warning/functions';
 import { clearNotifications, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 
@@ -40,6 +41,12 @@ import logger from './logger';
 export function createBreakoutRoom(name?: string) {
     return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const state = getState();
+
+        // Not in the plan: the limit popup instead of a room.
+        if (!dispatch(checkFeatureAccess('breakoutrooms'))) {
+            return;
+        }
+
         let { roomCounter } = state[FEATURE_KEY];
         const subject = name || i18next.t('breakoutRooms.defaultName', { index: ++roomCounter });
 

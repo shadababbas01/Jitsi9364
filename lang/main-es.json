@@ -694,6 +694,34 @@
         "youAreAlone": "Estás solo"
     },
     "me": "yo",
+    "meetingLimit": {
+        "remindLater": "Recordarme más tarde",
+        "upgrade": "Actualizar",
+        "defaultTitle": "La reunión terminará pronto",
+        "defaultMessage": "Esta sesión terminará en 15 minutos. Actualiza tu plan para continuar sin límite de tiempo.",
+        "softTitle": "Aviso de límite de {{feature}}",
+        "softMessage": "Has usado {{used}}/{{limit}} de tu cuota de {{feature}}. Actualiza tu plan para evitar interrupciones.",
+        "hardTitle": "Límite de {{feature}} alcanzado",
+        "hardMessage": "Has alcanzado tu límite de {{feature}} ({{limit}}). Actualiza tu plan para continuar.",
+        "blockedTitle": "{{feature}} no disponible",
+        "blockedMessage": "{{feature}} no está disponible en tu plan actual. Actualiza tu plan para continuar.",
+        "blockedMessagePlural": "{{feature}} no están disponibles en tu plan actual. Actualiza tu plan para continuar.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Modo de evaluación",
+            "polls": "Encuestas",
+            "recording": "Grabación",
+            "summary": "Resumen con IA",
+            "transcription": "Transcripción",
+            "speech_to_speech": "Traducción en tiempo real",
+            "evaluation_questions": "Preguntas de entrevista con IA",
+            "breakoutrooms": "Salas para grupos",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Supresión de ruido",
+            "whiteboard": "Pizarra",
+            "webinar": "Seminario web"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "¡Aplicación obsoleta e insegura!",
         "allowAction": "Permitir",

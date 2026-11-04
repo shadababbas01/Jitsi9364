@@ -7,6 +7,7 @@ import { getLocalParticipant, getParticipantDisplayName } from '../base/particip
 import { BUTTON_TYPES } from '../base/ui/constants.any';
 import { copyText } from '../base/util/copyText';
 import { getVpaasTenant, isVpaasMeeting } from '../jaas/functions';
+import { alertServerCountedUsage, checkFeatureUsage } from '../meeting-warning/functions';
 import {
     hideNotification,
     showErrorNotification,
@@ -444,6 +445,13 @@ export function showStartRecordingNotificationWithCallback(openRecordingDialog: 
                     && isJwtFeatureEnabled(state, MEET_FEATURES.RECORDING, false);
 
                 if (canBypassDialog) {
+                    // Plan quota: the limit popup instead of a recording.
+                    if (!dispatch(checkFeatureUsage('recording'))) {
+                        dispatch(hideNotification(START_RECORDING_NOTIFICATION_ID));
+
+                        return;
+                    }
+
                     const options = {
                         'file_recording_metadata': {
                             share: isRecordingSharingEnabled(state)
@@ -457,6 +465,7 @@ export function showStartRecordingNotificationWithCallback(openRecordingDialog: 
                         mode: JitsiRecordingConstants.mode.FILE,
                         appData: JSON.stringify(options)
                     });
+                    dispatch(alertServerCountedUsage('recording'));
 
                     if (autoTranscribeOnRecord) {
                         dispatch(setRequestingSubtitles(true, false, null));

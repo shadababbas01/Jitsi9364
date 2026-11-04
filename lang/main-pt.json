@@ -803,6 +803,34 @@
         "youAreAlone": "É o único na reunião"
     },
     "me": "eu",
+    "meetingLimit": {
+        "remindLater": "Lembrar mais tarde",
+        "upgrade": "Atualizar",
+        "defaultTitle": "A reunião vai terminar em breve",
+        "defaultMessage": "Esta sessão termina em 15 minutos. Atualize o seu plano para continuar sem limite de tempo.",
+        "softTitle": "Aviso de limite de {{feature}}",
+        "softMessage": "Utilizou {{used}}/{{limit}} da sua quota de {{feature}}. Atualize o seu plano para evitar interrupções.",
+        "hardTitle": "Limite de {{feature}} atingido",
+        "hardMessage": "Atingiu o seu limite de {{feature}} ({{limit}}). Atualize o seu plano para continuar.",
+        "blockedTitle": "{{feature}} indisponível",
+        "blockedMessage": "{{feature}} não está disponível no seu plano atual. Atualize o seu plano para continuar.",
+        "blockedMessagePlural": "{{feature}} não estão disponíveis no seu plano atual. Atualize o seu plano para continuar.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Modo de avaliação",
+            "polls": "Sondagens",
+            "recording": "Gravação",
+            "summary": "Resumo com IA",
+            "transcription": "Transcrição",
+            "speech_to_speech": "Tradução em tempo real",
+            "evaluation_questions": "Perguntas de entrevista com IA",
+            "breakoutrooms": "Salas de grupo",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Supressão de ruído",
+            "whiteboard": "Quadro branco",
+            "webinar": "Webinar"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Vulnerabilidade de segurança!",
         "allowAll": "Permitir tudo",

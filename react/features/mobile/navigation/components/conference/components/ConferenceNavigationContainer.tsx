@@ -57,6 +57,7 @@ import VoiceTranslationPanel
 import Whiteboard from '../../../../../whiteboard/components/native/Whiteboard';
 import VirtualBackgroundScreen from '../../../../virtual-background/components/VirtualBackgroundScreen';
 // @ts-ignore
+import { useHeaderStatusBarHeight } from '../../../functions';
 import { screen } from '../../../routes';
 import {
     breakoutRoomsScreenOptions,
@@ -99,6 +100,7 @@ const ConferenceStack = createStackNavigator();
 const ConferenceNavigationContainer = () => {
     const isPollsDisabled = useSelector(arePollsDisabled);
     const { t } = useTranslation();
+    const headerStatusBarHeight = useHeaderStatusBarHeight();
 
     let ChatScreen;
     let chatScreenName;
@@ -122,6 +124,7 @@ const ConferenceNavigationContainer = () => {
                     theme = { navigationContainerTheme as Theme }>
                     <ConferenceStack.Navigator
                         screenOptions = {{
+                            headerStatusBarHeight,
                             presentation: 'modal'
                         }}>
                         <ConferenceStack.Screen

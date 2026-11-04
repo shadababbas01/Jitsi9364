@@ -11,6 +11,7 @@ import {
     CLOSE_CHAT,
     DISMISS_TRANSCRIPTION_CONSENT,
     EDIT_MESSAGE,
+    HIDE_MEETING_LIMIT_DIALOG,
     NOTIFY_PRIVATE_RECIPIENTS_CHANGED,
     NOTIFY_TRANSCRIPTION_STARTED,
     OPEN_CHAT,
@@ -22,6 +23,7 @@ import {
     SET_LOBBY_CHAT_RECIPIENT,
     SET_PRIVATE_MESSAGE_RECIPIENT,
     SET_TRANSCRIPTION_STARTED_BY_CURRENT_USER,
+    SHOW_MEETING_LIMIT_DIALOG,
     SHOW_TRANSCRIPTION_CONSENT
 } from './actionTypes';
 import { ChatTabs } from './constants';
@@ -369,6 +371,33 @@ export function showTranscriptionConsent(moderatorName: string, transcriptionSta
 export function dismissTranscriptionConsent() {
     return {
         type: DISMISS_TRANSCRIPTION_CONSENT
+    };
+}
+
+/**
+ * Opens the plan-capping popup with copy that is already resolved.
+ *
+ * @param {Object} payload - The popup content.
+ * @param {string} payload.title - The title.
+ * @param {string} payload.message - The message.
+ * @param {boolean} [payload.ended] - Whether the meeting has already ended.
+ * @returns {Object}
+ */
+export function showMeetingLimitDialog(payload: { ended?: boolean; message: string; title: string; }) {
+    return {
+        type: SHOW_MEETING_LIMIT_DIALOG,
+        payload
+    };
+}
+
+/**
+ * Closes the plan-capping popup.
+ *
+ * @returns {Object}
+ */
+export function hideMeetingLimitDialog() {
+    return {
+        type: HIDE_MEETING_LIMIT_DIALOG
     };
 }
 

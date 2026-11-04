@@ -76,13 +76,13 @@ export const chatTabBarOptions = {
 };
 
 /**
- * Screen options for presentation type modals.
+ * Screen options for presentation type modals. The room above the header (headerStatusBarHeight) depends on the
+ * orientation, so the navigators showing these set it, from useHeaderStatusBarHeight.
  */
 export const presentationScreenOptions = {
     ...modalPresentation,
     headerBackTitleVisible: false,
     headerLeft: () => screenHeaderCloseButton(goBack),
-    headerStatusBarHeight: 0,
     headerStyle: {
         backgroundColor: BaseTheme.palette.ui01
     },

@@ -606,6 +606,34 @@
         "youAreAlone": "मीटिंग में केवल आप ही हैं"
     },
     "me": "मैं",
+    "meetingLimit": {
+        "remindLater": "बाद में याद दिलाएँ",
+        "upgrade": "अपग्रेड करें",
+        "defaultTitle": "मीटिंग जल्द समाप्त होगी",
+        "defaultMessage": "यह सत्र 15 मिनट में समाप्त हो जाएगा। बिना समय सीमा के जारी रखने के लिए अपग्रेड करें।",
+        "softTitle": "{{feature}} सीमा चेतावनी",
+        "softMessage": "आपने अपने {{feature}} कोटे का {{used}}/{{limit}} उपयोग कर लिया है। रुकावट से बचने के लिए अपग्रेड करें।",
+        "hardTitle": "{{feature}} की सीमा पूरी हो गई",
+        "hardMessage": "आप अपनी {{feature}} सीमा ({{limit}}) तक पहुँच गए हैं। जारी रखने के लिए अपना प्लान अपग्रेड करें।",
+        "blockedTitle": "{{feature}} उपलब्ध नहीं है",
+        "blockedMessage": "{{feature}} आपके वर्तमान प्लान में उपलब्ध नहीं है। जारी रखने के लिए अपग्रेड करें।",
+        "blockedMessagePlural": "{{feature}} आपके वर्तमान प्लान में उपलब्ध नहीं हैं। जारी रखने के लिए अपग्रेड करें।",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "मूल्यांकन मोड",
+            "polls": "पोल",
+            "recording": "रिकॉर्डिंग",
+            "summary": "AI सारांश",
+            "transcription": "ट्रांसक्रिप्शन",
+            "speech_to_speech": "रीयल-टाइम अनुवाद",
+            "evaluation_questions": "AI इंटरव्यू प्रश्न",
+            "breakoutrooms": "ब्रेकआउट रूम",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "शोर दमन",
+            "whiteboard": "व्हाइटबोर्ड",
+            "webinar": "वेबिनार"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Security vulnerability!",
         "connectedOneMember": "{{name}} मीटिंग में शामिल हुए",

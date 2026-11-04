@@ -253,3 +253,4 @@ export { default as IconLaptop } from './laptopIcon.svg';
 export { default as more } from './more.svg';
 export { default as more2 } from './morewhite.svg';
 
+export { default as IconPoll } from './poll.svg';

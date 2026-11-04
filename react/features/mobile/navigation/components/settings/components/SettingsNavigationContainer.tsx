@@ -7,6 +7,7 @@ import LanguageSelectView from '../../../../../settings/components/native/Langua
 import ProfileView from '../../../../../settings/components/native/ProfileView';
 import SettingsView
     from '../../../../../settings/components/native/SettingsView';
+import { useHeaderStatusBarHeight } from '../../../functions';
 import { screen } from '../../../routes';
 import {
     languageSelectScreenOptions,
@@ -36,7 +37,13 @@ interface IProps {
 
 
 const SettingsNavigationContainer = ({ isInWelcomePage }: IProps) => {
-    const baseSettingsScreenOptions = isInWelcomePage ? welcomeScreenOptions : settingsScreenOptions;
+    const headerStatusBarHeight = useHeaderStatusBarHeight();
+    const baseSettingsScreenOptions = isInWelcomePage
+        ? welcomeScreenOptions
+        : {
+            ...settingsScreenOptions,
+            headerStatusBarHeight
+        };
     const { t } = useTranslation();
 
     const SettingsScreen = useCallback(() =>

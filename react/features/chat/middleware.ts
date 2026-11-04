@@ -29,6 +29,11 @@ import { arePollsDisabled } from '../conference/functions.any';
 import { isFileSharingEnabled } from '../file-sharing/functions.any';
 import { addGif } from '../gifs/actions';
 import { extractGifURL, getGifDisplayMode, isGifEnabled, isGifMessage } from '../gifs/function.any';
+import {
+    consumeServerChatMessage,
+    isCallLimitAnnouncement,
+    meetingSignalDialog
+} from '../meeting-warning/functions';
 import { showMessageNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 import { resetUnreadPollsCount } from '../polls/actions';
@@ -58,6 +63,7 @@ import {
     notifyPrivateRecipientsChanged,
     openChat,
     setPrivateMessageRecipient,
+    showMeetingLimitDialog,
     showTranscriptionConsent
 } from './actions';
 import { ChatPrivacyDialog } from './components';
@@ -243,6 +249,13 @@ MiddlewareRegistry.register(store => next => action => {
 
     case NON_PARTICIPANT_MESSAGE_RECEIVED: {
         const { participantId, json: data } = action;
+
+        // The server's meeting warning/ended signal, breakout rooms included.
+        if ((data?.warning || data?.ended) && typeof data?.message === 'string' && data.message) {
+            store.dispatch(showMeetingLimitDialog(meetingSignalDialog(data.message, Boolean(data.ended))));
+
+            break;
+        }
 
         if (data?.type === MESSAGE_TYPE_SYSTEM && data.message) {
             _handleReceivedMessage(store, {
@@ -521,6 +534,9 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
                 displayName: string, isFromVisitor: boolean, messageId: string, source: string) => {
         /* eslint-enable max-params */
             _onConferenceMessageReceived(store, {
+                // A message with no sender and not from a visitor came from the room itself.
+                fromServer: !participantId && !isFromVisitor,
+
                 // in case of messages coming from visitors we can have unknown id
                 participantId: participantId || displayName,
                 message,
@@ -555,6 +571,7 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
         JitsiConferenceEvents.PRIVATE_MESSAGE_RECEIVED,
         (participantId: string, message: string, timestamp: number, messageId: string, displayName?: string, isFromVisitor?: boolean) => {
             _onConferenceMessageReceived(store, {
+                fromServer: !participantId && !isFromVisitor,
                 participantId,
                 message,
                 timestamp,
@@ -580,10 +597,16 @@ function _addChatMsgListener(conference: IJitsiConference, store: IStore) {
  * @returns {void}
  */
 function _onConferenceMessageReceived(store: IStore,
-        { displayName, isFromVisitor, message, messageId, participantId, privateMessage, timestamp, source }: {
-            displayName?: string; isFromVisitor?: boolean; message: string; messageId?: string;
+        { displayName, fromServer = false, isFromVisitor, message, messageId, participantId, privateMessage,
+            timestamp, source }: {
+            displayName?: string; fromServer?: boolean; isFromVisitor?: boolean; message: string; messageId?: string;
             participantId: string; privateMessage: boolean; source?: string; timestamp: number; }
 ) {
+    // The server's meeting time-limit warning or end gets the capping popup rather than a chat line, and its duration
+    // announcement and web's usage telemetry get nothing. A stamped message is room history replayed on join.
+    if (store.dispatch(consumeServerChatMessage(message, fromServer, Boolean(timestamp)))) {
+        return;
+    }
 
     const isGif = isGifEnabled(store.getState()) && isGifMessage(message);
 
@@ -726,6 +749,10 @@ function _handleReceivedMessage({ dispatch, getState }: IStore,
         shouldPlaySound = true,
         isReaction = false
 ) {
+    if (isCallLimitAnnouncement(message)) {
+        return;
+    }
+
     // Logic for all platforms:
     const state = getState();
     const { isOpen: isChatOpen } = state['features/chat'];
