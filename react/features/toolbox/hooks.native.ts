@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 
 import ChatButton from '../chat/components/native/ChatButton';
+import SummaryButton from '../subtitles/components/native/SummaryButton';
 import TileViewButton from '../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../visitors/functions';
 
@@ -61,6 +62,13 @@ const hangup = {
     key: 'hangup',
     Content: HangupContainerButtons,
     group: 3
+};
+
+const summary = {
+    key: 'summary',
+    Content: SummaryButton,
+    group: 2,
+    testID: 'summary-button'
 };
 
 /**
@@ -153,7 +161,8 @@ export function useNativeToolboxButtons(
         raisehand,
         tileview: tileViewButton,
         overflowmenu: overflowMenuButton,
-        hangup
+        hangup,
+        summary
     };
     const buttonKeys = Object.keys(buttons) as NativeToolbarButton[];
 

@@ -91,7 +91,7 @@ export function getVisibleNativeButtons(
         ...order.filter(key => filteredButtons.includes(key)),
         ...MAIN_TOOLBAR_BUTTONS_PRIORITY.filter(key => !order.includes(key) && filteredButtons.includes(key)),
         ...filteredButtons.filter(key => !order.includes(key) && !MAIN_TOOLBAR_BUTTONS_PRIORITY.includes(key))
-    ];
+    ].filter(key => key !== 'summary');
 
     const mainButtonsKeys = mainToolbarButtonKeysOrder.slice(0, order.length);
     const overflowMenuButtons = filteredButtons.reduce((acc, key) => {
@@ -104,7 +104,7 @@ export function getVisibleNativeButtons(
 
     // if we have 1 button in the overflow menu it is better to directly display it in the main toolbar by replacing
     // the "More" menu button with it.
-    if (overflowMenuButtons.length === 1) {
+    if (overflowMenuButtons.length === 1 && overflowMenuButtons[0]?.key !== 'summary') {
         const button = overflowMenuButtons.shift()?.key;
 
         button && mainButtonsKeys.push(button);

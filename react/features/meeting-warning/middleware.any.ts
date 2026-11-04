@@ -6,7 +6,7 @@ import { isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { SET_S2S_V2_LANGUAGE_POPUP, SET_S2S_V2_PANEL, START_S2S_V2_SESSION } from '../s2s-v2/actionTypes';
 import { isS2SV2Active } from '../s2s-v2/functions';
-import { SET_REQUESTING_SUBTITLES, TOGGLE_REQUESTING_SUBTITLES } from '../subtitles/actionTypes';
+import { SET_REQUESTING_SUBTITLES, SET_SUMMARY_ENABLED, TOGGLE_REQUESTING_SUBTITLES } from '../subtitles/actionTypes';
 import { ENABLE_VOICE_TRANSLATION } from '../voice-translation/actionTypes';
 import { disableVoiceTranslation } from '../voice-translation/actions';
 import { isVoiceTranslationEnabled } from '../voice-translation/functions';
@@ -153,6 +153,23 @@ MiddlewareRegistry.register(store => next => action => {
     case SET_REQUESTING_SUBTITLES:
         return _gateCaptionsEnable(
             store, next, action, Boolean(action.enabled) && !state['features/subtitles']?._requestingSubtitles);
+
+    case SET_SUMMARY_ENABLED: {
+        const enabling = Boolean(action.enabled) && !state['features/subtitles']?._summaryEnabled;
+
+        if (!enabling || action.fromRemoteSync || !isLocalParticipantModerator(state)) {
+            return next(action);
+        }
+
+        const result = _consumeFeatureUsage(store, 'summary', () => next(action), false);
+
+        if (result !== undefined && store.getState()['features/subtitles']?._summaryEnabled
+            && getFeatureLimit(state, 'summary')) {
+            store.dispatch({ type: 'INCREMENT_FEATURE_USAGE', feature: 'summary' });
+        }
+
+        return result;
+    }
     }
 
     return next(action);

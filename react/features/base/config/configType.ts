@@ -171,6 +171,7 @@ export interface IConfig {
     _desktopSharingSourceDevice?: string;
     _immediateReloadThreshold?: string;
     _screenshotHistoryRegionUrl?: number;
+    aiSummary?: { defaultEnabled?: boolean; };
     analytics?: {
         amplitudeAPPKey?: string;
         blackListedEvents?: string[];
@@ -442,6 +443,7 @@ export interface IConfig {
     iAmSipGateway?: boolean;
     iAmSpot?: boolean;
     ignoreStartMuted?: boolean;
+    interviewTelemetry?: { requireConsent?: boolean; };
     inviteAppName?: string | null;
     inviteServiceCallFlowsUrl?: string;
     inviteServiceUrl?: string;
@@ -601,6 +603,8 @@ export interface IConfig {
     startWithVideoMuted?: boolean;
     stereo?: boolean;
     subject?: string;
+    summaryCategories?: string[];
+    summaryDefaultCategory?: string;
     testing?: {
         assumeBandwidth?: boolean;
         debugAudioLevels?: boolean;

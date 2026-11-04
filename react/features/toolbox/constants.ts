@@ -173,6 +173,7 @@ export const TOOLBAR_BUTTONS: ToolbarButton[] = [
     'security',
     'select-background',
     'settings',
+    'summary',
     'shareaudio',
     'noisesuppression',
     'sharedvideo',
@@ -198,7 +199,8 @@ export const NATIVE_TOOLBAR_BUTTONS: NativeToolbarButton[] = [
     'overflowmenu',
     'raisehand',
     'desktop',
-    'tileview'
+    'tileview',
+    'summary'
 ];
 
 /**

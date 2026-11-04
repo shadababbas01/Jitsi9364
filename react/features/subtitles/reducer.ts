@@ -6,10 +6,13 @@ import {
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_CAPTIONS_STARTED_BY,
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
+    SET_INTERVIEW_CONSENT,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
     SET_SUBTITLES_PANEL_OPEN,
+    SET_SUMMARY_CATEGORY,
+    SET_SUMMARY_ENABLED,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -30,19 +33,25 @@ const defaultState = {
     stopConfirmVisible: false,
     startedBy: undefined,
     subtitlesHistory: [],
-    _hasError: false
+    _hasError: false,
+    _summaryEnabled: false,
+    _summaryCategory: null,
+    _interviewConsent: undefined
 };
 
 export interface ISubtitlesState {
     _cachedTranscriptMessages: Map<string, ITranscriptMessage>;
     _displaySubtitles: boolean;
     _hasError: boolean;
+    _interviewConsent?: boolean;
     _language: string | null;
     _requestingSubtitles: boolean;
+    _summaryCategory: string | null;
+    _summaryEnabled: boolean;
+
     _transcriptMessages: Map<string, ITranscriptMessage>;
     messages: ITranscriptMessage[];
     panelOpen: boolean;
-
     /**
      * Which participant turned live captions on, as the control message which announced it said.
      *
@@ -62,6 +71,12 @@ export interface ISubtitlesState {
 ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         state = defaultState, action): ISubtitlesState => {
     switch (action.type) {
+    case SET_SUMMARY_ENABLED:
+        return { ...state, _summaryEnabled: Boolean(action.enabled) };
+    case SET_SUMMARY_CATEGORY:
+        return { ...state, _summaryCategory: action.category ?? null };
+    case SET_INTERVIEW_CONSENT:
+        return { ...state, _interviewConsent: Boolean(action.accepted) };
     case REMOVE_TRANSCRIPT_MESSAGE:
         return _removeTranscriptMessage(state, action);
     case REMOVE_CACHED_TRANSCRIPT_MESSAGE:

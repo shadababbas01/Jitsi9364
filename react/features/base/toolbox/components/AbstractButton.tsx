@@ -74,6 +74,8 @@ export interface IProps extends WithTranslation {
      */
     styles?: Styles;
 
+    testID?: string;
+
     /**
      * Collection of styles for the button, when in toggled state.
      */

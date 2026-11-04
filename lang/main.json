@@ -1473,6 +1473,7 @@
             "silence": "Silence",
             "speakerStats": "Toggle participants statistics",
             "stopScreenSharing": "Stop sharing your screen",
+            "summary": "Generate summary",
             "stopSharedVideo": "Stop video",
             "surprised": "Surprised",
             "tileView": "Toggle tile view",
@@ -1571,6 +1572,8 @@
         "stopScreenSharing": "Stop screen sharing",
         "stopSharedVideo": "Stop video",
         "stopSubtitles": "Stop subtitles",
+        "summary": "Generate summary",
+        "summarySettings": "Summary settings",
         "surprised": "Surprised",
         "talkWhileMutedPopup": "Trying to speak? You are muted.",
         "tileViewToggle": "Toggle tile view",
@@ -1611,10 +1614,17 @@
     },
     "summarySetup": {
         "title": "AI Meeting Summary",
+        "settingsTitle": "AI Meeting Summary settings",
         "description": "Get an instant AI-generated summary tailored to your meeting type.",
         "enableLabel": "Enable AI Meeting Summary",
         "disableLabel": "Disable AI Meeting Summary",
         "templateLabel": "Choose a summary template",
+        "interviewConsent": "Allow interview telemetry",
+        "actions": {
+            "start": "Start summary",
+            "stop": "Stop summary",
+            "save": "Save changes"
+        },
         "categories": {
             "meeting": "Meeting",
             "interview": "Interview",

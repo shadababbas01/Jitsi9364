@@ -5,10 +5,13 @@ import {
     REMOVE_TRANSCRIPT_MESSAGE,
     SET_CAPTIONS_STARTED_BY,
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
+    SET_INTERVIEW_CONSENT,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
     SET_SUBTITLES_PANEL_OPEN,
+    SET_SUMMARY_CATEGORY,
+    SET_SUMMARY_ENABLED,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -26,6 +29,18 @@ import { ISubtitle } from './types';
 export interface ICaptionsSyncOptions {
     fromRemoteSync?: boolean;
     startedBy?: string;
+}
+
+export function setSummaryEnabled(enabled: boolean, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_SUMMARY_ENABLED, enabled, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setSummaryCategory(category: string | null, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_SUMMARY_CATEGORY, category, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setInterviewConsent(accepted: boolean, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_INTERVIEW_CONSENT, accepted, fromRemoteSync: Boolean(options.fromRemoteSync) };
 }
 
 /**

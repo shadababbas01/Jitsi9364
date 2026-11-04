@@ -13,6 +13,7 @@ export interface IToolboxNativeButton {
     icon?: string;
     id?: string;
     key: string;
+    testID?: string;
     text?: string;
 }
 
@@ -47,6 +48,7 @@ export type ToolbarButton = 'camera' |
     'security' |
     'select-background' |
     'settings' |
+    'summary' |
     'shareaudio' |
     'sharedvideo' |
     'shortcuts' |
@@ -89,7 +91,8 @@ export type NativeToolbarButton = 'camera' |
     'desktop' |
     'tileview' |
     'overflowmenu' |
-    'hangup';
+    'hangup' |
+    'summary';
 
 export interface IGetVisibleNativeButtonsParams {
     allButtons: { [key: string]: IToolboxNativeButton; };

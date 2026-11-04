@@ -39,6 +39,7 @@ export default class ToolboxItem extends AbstractToolboxItem<IProps> {
             onClick,
             showLabel,
             styles,
+            testID,
             toggled
         } = this.props;
 
@@ -75,6 +76,7 @@ export default class ToolboxItem extends AbstractToolboxItem<IProps> {
                 disabled = { disabled }
                 onPress = { onClick }
                 style = { style as ViewStyle }
+                testID = { testID }
                 underlayColor = { styles?.underlayColor } >
                 { children }
             </TouchableHighlight>

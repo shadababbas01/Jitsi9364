@@ -15,9 +15,9 @@ import {
 import {
     removeCachedTranscriptMessage,
     removeTranscriptMessage,
-    storeSubtitle,
-    updateTranscriptMessage
-} from './actions.any';
+    setSummaryCategory,
+    setSummaryEnabled
+    , storeSubtitle, updateTranscriptMessage } from './actions.any';
 import { notifyTranscriptionChunkReceived } from './functions';
 import { areClosedCaptionsEnabled, isCCTabEnabled } from './functions.any';
 import { ISubtitle, ITranscriptMessage } from './types';
@@ -185,13 +185,21 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
     let json: any = {};
 
     if (action.type === ENDPOINT_MESSAGE_RECEIVED) {
-        if (!action.participant.isHidden()) {
-            return next(action);
-        }
         json = action.data;
     } else if (action.type === NON_PARTICIPANT_MESSAGE_RECEIVED && action.id === TRANSCRIBER_ID) {
         json = action.json;
     } else {
+        return next(action);
+    }
+
+    if (json?.type === 'cc-summary-control') {
+        store.dispatch(setSummaryEnabled(Boolean(json.enabled), { fromRemoteSync: true }));
+        store.dispatch(setSummaryCategory(json.category ?? null, { fromRemoteSync: true }));
+
+        return next(action);
+    }
+
+    if (action.type === ENDPOINT_MESSAGE_RECEIVED && !action.participant.isHidden()) {
         return next(action);
     }
 

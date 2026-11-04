@@ -81,6 +81,8 @@ export interface IProps extends WithTranslation {
      */
     styles?: Styles;
 
+    testID?: string;
+
     /**
      * True if the item is toggled, false otherwise.
      */
