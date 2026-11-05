@@ -1,13 +1,22 @@
 import { AnyAction } from 'redux';
 
-import { IStore } from '../app/types';
-import { ENDPOINT_MESSAGE_RECEIVED, NON_PARTICIPANT_MESSAGE_RECEIVED } from '../base/conference/actionTypes';
+import { IReduxState, IStore } from '../app/types';
+import {
+    CONFERENCE_FAILED,
+    CONFERENCE_JOINED,
+    CONFERENCE_LEFT,
+    ENDPOINT_MESSAGE_RECEIVED,
+    NON_PARTICIPANT_MESSAGE_RECEIVED
+} from '../base/conference/actionTypes';
+import { getCurrentConference } from '../base/conference/functions';
 import { TRANSCRIBER_ID } from '../base/participants/constants';
+import { isLocalParticipantModerator } from '../base/participants/functions';
 import MiddlewareRegistry from '../base/redux/MiddlewareRegistry';
 import { getLocalTranslationPreferences, isVoiceTranslationEnabled } from '../voice-translation/functions';
 import { toBaseVoiceLanguage } from '../voice-translation/languages';
 
 import {
+    RESET_SUMMARY_STATE,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_LANGUAGE,
     TOGGLE_REQUESTING_SUBTITLES
@@ -15,11 +24,27 @@ import {
 import {
     removeCachedTranscriptMessage,
     removeTranscriptMessage,
+    setInterviewConsent,
+    setRequestingSubtitles,
     setSummaryCategory,
-    setSummaryEnabled
-    , storeSubtitle, updateTranscriptMessage } from './actions.any';
+    setSummaryEnabled,
+    setSummaryStateSynchronized,
+    storeSubtitle,
+    updateTranscriptMessage
+} from './actions.any';
 import { notifyTranscriptionChunkReceived } from './functions';
-import { areClosedCaptionsEnabled, isCCTabEnabled } from './functions.any';
+import { areClosedCaptionsEnabled, isCCTabEnabled, isLiveTranscriptionActive } from './functions.any';
+import {
+    buildInterviewConsent,
+    buildSummaryControl,
+    buildSummaryStateAck,
+    buildSummaryStateRequest,
+    isInterviewConsent,
+    isSummaryControl,
+    isSummaryStateAck,
+    isSummaryStateRequest
+} from './sessionProtocol';
+import { getSummaryDefaultCategory, isSummaryCategory, isSummaryFeatureEnabled } from './summary';
 import { ISubtitle, ITranscriptMessage } from './types';
 
 /**
@@ -57,6 +82,30 @@ const TTS_REQUEST_TTL_MS = 5 * 60 * 1000;
 
 function getLocalParticipantId(state: any) {
     return state?.['features/base/participants']?.local?.id;
+}
+
+function canControlSummary(participant?: any) {
+    return !participant || typeof participant.isModerator !== 'function' || participant.isModerator();
+}
+
+function sendSummaryMessage(state: IReduxState, payload: object, target = '') {
+    const conference = getCurrentConference(state);
+
+    if (!conference) {
+        return;
+    }
+
+    try {
+        conference.sendEndpointMessage?.(target, payload);
+    } catch (error) {
+        // Try the room transport below even when the endpoint channel is unavailable.
+    }
+
+    try {
+        conference.sendMessage?.({ ...payload }, target, false);
+    } catch (error) {
+        // Transport failures are non-fatal. The conference can still process captions.
+    }
 }
 
 function normalizeLanguageCode(language?: string | null) {
@@ -139,6 +188,36 @@ function maybeRequestVoiceTranslationAudio(
  */
 MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
+    case CONFERENCE_JOINED: {
+        const result = next(action);
+        const state = store.getState();
+        const localId = getLocalParticipantId(state);
+
+        if (localId) {
+            if (state['features/subtitles']._summaryStateSynchronized) {
+                const category = state['features/subtitles']._summaryCategory
+                    || getSummaryDefaultCategory(state['features/base/config']);
+
+                sendSummaryMessage(state, buildSummaryControl(
+                    Boolean(state['features/subtitles']._summaryEnabled), category));
+
+                if (state['features/subtitles']._summaryEnabled && category === 'interview'
+                        && typeof state['features/subtitles']._interviewConsent === 'boolean') {
+                    sendSummaryMessage(state, buildInterviewConsent(state['features/subtitles']._interviewConsent));
+                }
+            } else {
+                sendSummaryMessage(state, buildSummaryStateRequest(localId));
+            }
+        }
+
+        return result;
+    }
+    case CONFERENCE_LEFT:
+    case CONFERENCE_FAILED:
+        store.dispatch({ type: RESET_SUMMARY_STATE });
+
+        return next(action);
+
     case ENDPOINT_MESSAGE_RECEIVED:
     case NON_PARTICIPANT_MESSAGE_RECEIVED:
         return _endpointMessageReceived(store, next, action);
@@ -188,13 +267,91 @@ function _endpointMessageReceived(store: IStore, next: Function, action: AnyActi
         json = action.data;
     } else if (action.type === NON_PARTICIPANT_MESSAGE_RECEIVED && action.id === TRANSCRIBER_ID) {
         json = action.json;
+    } else if (action.type === NON_PARTICIPANT_MESSAGE_RECEIVED) {
+        json = action.json;
     } else {
         return next(action);
     }
 
-    if (json?.type === 'cc-summary-control') {
-        store.dispatch(setSummaryEnabled(Boolean(json.enabled), { fromRemoteSync: true }));
-        store.dispatch(setSummaryCategory(json.category ?? null, { fromRemoteSync: true }));
+    if (isSummaryControl(json)) {
+        if (canControlSummary(action.participant)
+                && isSummaryFeatureEnabled(store.getState()['features/base/config'])
+                && areClosedCaptionsEnabled(store.getState())) {
+            const state = store.getState();
+
+            store.dispatch(setSummaryEnabled(json.enabled, { fromRemoteSync: true }));
+            if (isSummaryCategory(state['features/base/config'], json.category)) {
+                store.dispatch(setSummaryCategory(json.category, { fromRemoteSync: true }));
+            }
+            store.dispatch(setSummaryStateSynchronized());
+
+            if (json.enabled && !isLiveTranscriptionActive(state)) {
+                store.dispatch(setRequestingSubtitles(
+                    true,
+                    false,
+                    state['features/subtitles']._language,
+                    false,
+                    { fromRemoteSync: true }));
+            }
+        }
+
+        return next(action);
+    }
+
+    if (isInterviewConsent(json)) {
+        if (canControlSummary(action.participant)) {
+            store.dispatch(setInterviewConsent(json.accepted, { fromRemoteSync: true }));
+        }
+
+        return next(action);
+    }
+
+    if (isSummaryStateRequest(json)) {
+        const state = store.getState();
+        const localId = getLocalParticipantId(state);
+
+        if (json.requesterId !== localId
+                && isLocalParticipantModerator(state)
+                && state['features/subtitles']._summaryStateSynchronized) {
+            const category = state['features/subtitles']._summaryCategory
+                || getSummaryDefaultCategory(state['features/base/config']);
+
+            sendSummaryMessage(
+                state,
+                buildSummaryStateAck(
+                    Boolean(state['features/subtitles']._summaryEnabled),
+                    category,
+                    json.requesterId,
+                    json.requestId,
+                    localId),
+                json.requesterId);
+        }
+
+        return next(action);
+    }
+
+    if (isSummaryStateAck(json)) {
+        const state = store.getState();
+
+        if (json.targetId === getLocalParticipantId(state)
+                && canControlSummary(action.participant)
+                && isSummaryFeatureEnabled(state['features/base/config'])
+                && areClosedCaptionsEnabled(state)) {
+            store.dispatch(setSummaryEnabled(json.enabled, { fromRemoteSync: true }));
+            if (isSummaryCategory(state['features/base/config'], json.category)) {
+                store.dispatch(setSummaryCategory(json.category, { fromRemoteSync: true }));
+            }
+            store.dispatch(setSummaryStateSynchronized());
+
+            if (json.enabled && !isLiveTranscriptionActive(state)) {
+                store.dispatch(setRequestingSubtitles(
+                    true,
+                    false,
+                    state['features/subtitles']._language,
+                    false,
+                    { fromRemoteSync: true }));
+            }
+        }
 
         return next(action);
     }

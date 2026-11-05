@@ -1,3 +1,4 @@
+import { NativeModules } from 'react-native';
 import { AnyAction } from 'redux';
 
 import { IReduxState, IStore } from '../app/types';
@@ -25,6 +26,7 @@ import { hideNotification, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE, NOTIFICATION_TYPE } from '../notifications/constants';
 import { setS2SV2PanelVisible } from '../s2s-v2/actions';
 import { isS2SV2Active } from '../s2s-v2/functions';
+import { TRANSCRIBER_LEFT } from '../transcribing/actionTypes';
 
 import {
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
@@ -34,10 +36,13 @@ import {
 } from './actionTypes';
 import {
     removeTranscriptMessage,
+    resetSummaryState,
     setCaptionsStartedBy,
     setCaptionsStopConfirmVisible,
     setRequestingSubtitles,
     setSubtitlesPanelOpen,
+    setSummaryCategory,
+    setSummaryEnabled,
     storeSubtitle,
     updateTranscriptMessage
 } from './actions.any';
@@ -79,6 +84,9 @@ import {
     isNoiseSuppression,
     isTranscript
 } from './sessionProtocol';
+
+const { NativeCallsNew, OpenMelpChat } = NativeModules;
+let summaryDeliverySent = false;
 
 /**
  * The timers still to fire, held so that leaving the conference can drop them.
@@ -579,6 +587,43 @@ function _broadcast({ getState }: IStore, enabled: boolean, startedBy?: string) 
     }
 }
 
+function _broadcastSummaryStop(store: IStore) {
+    const state = store.getState();
+
+    if (!state['features/subtitles']._summaryEnabled) {
+        return;
+    }
+
+    store.dispatch(setSummaryEnabled(false, { fromRemoteSync: true }));
+    store.dispatch(setSummaryCategory(null, { fromRemoteSync: true }));
+    _send(state, { category: '', enabled: false, type: 'cc-summary-control' });
+    store.dispatch(showNotification({
+        descriptionKey: 'summarySetup.notifications.stoppedWithTranscription'
+    }, NOTIFICATION_TIMEOUT_TYPE.SHORT));
+}
+
+function _requestSummaryDelivery(store: IStore) {
+    const state = store.getState();
+    const summary = state['features/subtitles'];
+    const room = state['features/base/conference'].room;
+    const localEmail = getLocalParticipant(state)?.email || '';
+
+    if (!summary._summaryEnabled || summaryDeliverySent || !room) {
+        return;
+    }
+
+    summaryDeliverySent = true;
+
+    try {
+        (NativeCallsNew || OpenMelpChat)?.requestSummaryDelivery?.(
+            room,
+            summary._summaryCategory || 'meeting',
+            localEmail);
+    } catch (error) {
+        logger.warn('Could not hand off the meeting summary for email and Meeting Logs');
+    }
+}
+
 /**
  * Asks the room whether captions are already running.
  *
@@ -719,6 +764,7 @@ function _settle(store: IStore, wasActive: boolean, startedBy?: string) {
     }
 
     if (!isActive) {
+        _broadcastSummaryStop(store);
         _announceListening(store, false);
         listeners.clear();
         _syncCapture(store);
@@ -771,6 +817,7 @@ function _teardown(store: IStore) {
     _syncConnection(store, false);
     _syncNoiseSuppression(false);
     store.dispatch(setSubtitlesPanelOpen(false));
+    store.dispatch(resetSummaryState());
 
     if (store.getState()['features/subtitles'].stopConfirmVisible) {
         store.dispatch(setCaptionsStopConfirmVisible(false));
@@ -796,6 +843,7 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
         const result = next(action);
 
         sessionId = generateCaptionsSessionId();
+        summaryDeliverySent = false;
         _askRoom(store);
 
         return result;
@@ -985,9 +1033,24 @@ MiddlewareRegistry.register((store: IStore) => next => (action: AnyAction) => {
 
     case CONFERENCE_FAILED:
     case CONFERENCE_LEFT: {
+        _requestSummaryDelivery(store);
         const result = next(action);
 
         _teardown(store);
+
+        return result;
+    }
+
+    case TRANSCRIBER_LEFT: {
+        const hadSummary = Boolean(store.getState()['features/subtitles']._summaryEnabled);
+        const result = next(action);
+
+        if (hadSummary) {
+            _send(store.getState(), { category: '', enabled: false, type: 'cc-summary-control' });
+            store.dispatch(showNotification({
+                descriptionKey: 'summarySetup.notifications.stoppedWithTranscription'
+            }, NOTIFICATION_TIMEOUT_TYPE.SHORT));
+        }
 
         return result;
     }

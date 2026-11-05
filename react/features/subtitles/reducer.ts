@@ -4,6 +4,7 @@ import { TRANSCRIBER_LEFT } from '../transcribing/actionTypes';
 import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
+    RESET_SUMMARY_STATE,
     SET_CAPTIONS_STARTED_BY,
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
     SET_INTERVIEW_CONSENT,
@@ -13,6 +14,7 @@ import {
     SET_SUBTITLES_PANEL_OPEN,
     SET_SUMMARY_CATEGORY,
     SET_SUMMARY_ENABLED,
+    SET_SUMMARY_STATE_SYNCHRONIZED,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -36,7 +38,8 @@ const defaultState = {
     _hasError: false,
     _summaryEnabled: false,
     _summaryCategory: null,
-    _interviewConsent: undefined
+    _interviewConsent: undefined,
+    _summaryStateSynchronized: false
 };
 
 export interface ISubtitlesState {
@@ -48,6 +51,7 @@ export interface ISubtitlesState {
     _requestingSubtitles: boolean;
     _summaryCategory: string | null;
     _summaryEnabled: boolean;
+    _summaryStateSynchronized: boolean;
 
     _transcriptMessages: Map<string, ITranscriptMessage>;
     messages: ITranscriptMessage[];
@@ -72,11 +76,21 @@ ReducerRegistry.register<ISubtitlesState>('features/subtitles', (
         state = defaultState, action): ISubtitlesState => {
     switch (action.type) {
     case SET_SUMMARY_ENABLED:
-        return { ...state, _summaryEnabled: Boolean(action.enabled) };
+        return { ...state, _summaryEnabled: Boolean(action.enabled), _summaryStateSynchronized: true };
     case SET_SUMMARY_CATEGORY:
-        return { ...state, _summaryCategory: action.category ?? null };
+        return { ...state, _summaryCategory: action.category ?? null, _summaryStateSynchronized: true };
     case SET_INTERVIEW_CONSENT:
-        return { ...state, _interviewConsent: Boolean(action.accepted) };
+        return { ...state, _interviewConsent: Boolean(action.accepted), _summaryStateSynchronized: true };
+    case SET_SUMMARY_STATE_SYNCHRONIZED:
+        return { ...state, _summaryStateSynchronized: Boolean(action.synchronized) };
+    case RESET_SUMMARY_STATE:
+        return {
+            ...state,
+            _interviewConsent: undefined,
+            _summaryCategory: null,
+            _summaryEnabled: false,
+            _summaryStateSynchronized: false
+        };
     case REMOVE_TRANSCRIPT_MESSAGE:
         return _removeTranscriptMessage(state, action);
     case REMOVE_CACHED_TRANSCRIPT_MESSAGE:

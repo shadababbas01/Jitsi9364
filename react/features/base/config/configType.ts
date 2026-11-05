@@ -171,7 +171,7 @@ export interface IConfig {
     _desktopSharingSourceDevice?: string;
     _immediateReloadThreshold?: string;
     _screenshotHistoryRegionUrl?: number;
-    aiSummary?: { defaultEnabled?: boolean; };
+    aiSummary?: { defaultEnabled?: boolean; enabled?: boolean; };
     analytics?: {
         amplitudeAPPKey?: string;
         blackListedEvents?: string[];

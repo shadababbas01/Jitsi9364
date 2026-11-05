@@ -3,6 +3,7 @@ import { DEFAULT_LANGUAGE } from '../base/i18n/i18next';
 import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
+    RESET_SUMMARY_STATE,
     SET_CAPTIONS_STARTED_BY,
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
     SET_INTERVIEW_CONSENT,
@@ -12,6 +13,7 @@ import {
     SET_SUBTITLES_PANEL_OPEN,
     SET_SUMMARY_CATEGORY,
     SET_SUMMARY_ENABLED,
+    SET_SUMMARY_STATE_SYNCHRONIZED,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -41,6 +43,14 @@ export function setSummaryCategory(category: string | null, options: ICaptionsSy
 
 export function setInterviewConsent(accepted: boolean, options: ICaptionsSyncOptions = {}) {
     return { type: SET_INTERVIEW_CONSENT, accepted, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setSummaryStateSynchronized(synchronized = true) {
+    return { type: SET_SUMMARY_STATE_SYNCHRONIZED, synchronized };
+}
+
+export function resetSummaryState() {
+    return { type: RESET_SUMMARY_STATE };
 }
 
 /**

@@ -1613,17 +1613,18 @@
         "leaveCall": "Leave Call"
     },
     "summarySetup": {
-        "title": "AI Meeting Summary",
-        "settingsTitle": "AI Meeting Summary settings",
-        "description": "Get an instant AI-generated summary tailored to your meeting type.",
-        "enableLabel": "Enable AI Meeting Summary",
-        "disableLabel": "Disable AI Meeting Summary",
+        "title": "Generate Summary",
+        "settingsTitle": "Summary Settings",
+        "description": "Generate an AI summary based on the speech captured during this meeting.",
+        "toggleLabel": "Generate a summary for this meeting",
+        "enableLabel": "Generate a summary for this meeting",
+        "disableLabel": "Generate a summary for this meeting",
         "templateLabel": "Choose a summary template",
         "interviewConsent": "Allow interview telemetry",
         "actions": {
-            "start": "Start summary",
-            "stop": "Stop summary",
-            "save": "Save changes"
+            "start": "Start Summary",
+            "stop": "Stop Summary",
+            "save": "Save Changes"
         },
         "categories": {
             "meeting": "Meeting",
@@ -1631,8 +1632,10 @@
             "standup": "Standup"
         },
         "notifications": {
-            "enabled": "AI Meeting Summary has been enabled.",
-            "disabled": "AI Meeting Summary has been disabled."
+            "enabled": "Summary generation started.",
+            "disabled": "Summary generation stopped.",
+            "saved": "Summary settings saved.",
+            "stoppedWithTranscription": "Summary generation stopped because speech to text translation was stopped."
         },
         "statusEnabled": "AI summary is active for this meeting.",
         "statusDisabled": "AI summary is paused until you turn it back on."

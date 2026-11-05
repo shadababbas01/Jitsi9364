@@ -196,6 +196,22 @@ public class OpenMelpModule extends ReactContextBaseJavaModule {
         getReactApplicationContext().sendBroadcast(i);
     }
 
+    /**
+     * Notifies the host Melp app that an enabled meeting summary should be delivered after the call. The host owns the
+     * email service and Drive meeting-log persistence; this SDK only supplies the meeting metadata.
+     */
+    @ReactMethod
+    public void requestSummaryDelivery(String roomName, String category, String recipientEmail) {
+        Intent i = new Intent("MeetCallBackSummaryDelivery");
+        i.putExtra("roomName", roomName);
+        i.putExtra("summaryCategory", category);
+        i.putExtra("recipientEmail", recipientEmail);
+        i.putExtra("sendSummaryEmail", true);
+        i.putExtra("saveSummaryToMeetingLogs", true);
+        i.putExtra("summaryDeliveryTimestamp", System.currentTimeMillis());
+        getReactApplicationContext().sendBroadcast(i);
+    }
+
     @ReactMethod
     public void showAttendees(ReadableArray strings) {
         try {

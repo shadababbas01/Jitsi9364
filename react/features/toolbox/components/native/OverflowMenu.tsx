@@ -39,6 +39,7 @@ import S2SV2Button from '../../../s2s-v2/components/native/S2SV2Button';
 import { MAX_S2S_V2_PARTICIPANTS } from '../../../s2s-v2/constants';
 import { isS2SV2Active } from '../../../s2s-v2/functions';
 import { setRequestingSubtitles, setSubtitlesPanelOpen } from '../../../subtitles/actions.any';
+import SummaryButton from '../../../subtitles/components/native/SummaryButton';
 import { areClosedCaptionsEnabled, isLiveTranscriptionActive } from '../../../subtitles/functions.any';
 import TileViewButton from '../../../video-layout/components/TileViewButton';
 import { iAmVisitor } from '../../../visitors/functions';
@@ -404,14 +405,14 @@ interface IProps {
     _isClosedCaptionsEnabled: boolean;
 
     /**
-     * Whether the voice translation overflow row should be visible.
-     */
-    _isVoiceTranslationButtonVisible: boolean;
-
-    /**
      * Whether the S2S-v2 row should be visible.
      */
     _isS2SV2ButtonVisible: boolean;
+
+    /**
+     * Whether the voice translation overflow row should be visible.
+     */
+    _isVoiceTranslationButtonVisible: boolean;
 
     /**
      * Toolbar buttons.
@@ -515,6 +516,10 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <OpenCarmodeButton { ...topRowProps } />
                     <D />
                     <TranslatedLiveCaptionsOverflowButton { ...topRowProps } />
+                    <D />
+                    <SummaryButton
+                        { ...sheetRowProps }
+                        testID = 'summary-button' />
 
                     {/*
                       * Shown to moderators only, and it says which of the two things it does: a session is started and
@@ -541,7 +546,7 @@ class OverflowMenu extends PureComponent<IProps, IState> {
                     <ZoomButton { ...rowProps } />
                     <D />
                     { this._renderOverflowMenuButtons(topRowProps,
-                        [ 'audio-extraction', 'chat', 'desktop', 'tileview', 'raisehand', 'polls' ]) }
+                        [ 'audio-extraction', 'chat', 'desktop', 'summary', 'tileview', 'raisehand', 'polls' ]) }
                     <D />
                 </View>
             </BottomSheet>
