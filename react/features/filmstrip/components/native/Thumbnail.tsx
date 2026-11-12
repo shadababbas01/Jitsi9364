@@ -48,6 +48,7 @@ import VoiceTranslationTileIndicators from '../../../voice-translation/component
 import { SQUARE_TILE_ASPECT_RATIO } from '../../constants';
 import { isS2SV2ParticipantTranslating } from '../../../s2s-v2/functions';
 
+import AudioMutedIndicator from './AudioMutedIndicator';
 import ModeratorIndicator from './ModeratorIndicator';
 import PinnedIndicator from './PinnedIndicator';
 import RaisedHandIndicator from './RaisedHandIndicator';
@@ -201,6 +202,12 @@ interface IProps {
      * The ID of the participant related to the thumbnail.
      */
     participantID?: string;
+
+    /**
+     * Whether the caller draws its own indicators over the thumbnail (e.g. the local thumbnail's own muted badge), in
+     * which case the thumbnail does not draw the muted indicator itself.
+     */
+    hideIndicators?: boolean;
 
     /**
      * Whether to display or hide the display name of the participant in the thumbnail.
@@ -448,6 +455,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
      */
     _renderIndicators() {
         const {
+            _audioMuted,
             _fakeParticipant,
             _isScreenShare: isScreenShare,
             _isVirtualScreenshare,
@@ -455,17 +463,22 @@ class Thumbnail extends PureComponent<IProps, IState> {
             _pinned,
             _renderModeratorIndicator: renderModeratorIndicator,
             _shouldDisplayTileView,
+            hideIndicators,
             renderDisplayName,
             tileView,
             _deviceType
         } = this.props;
         const indicators = [];
+        const renderAudioMutedIndicator = _audioMuted
+            && !hideIndicators
+            && !isScreenShare
+            && !_isVirtualScreenshare;
 
         let bottomIndicatorsContainerStyle;
 
         if (_shouldDisplayTileView) {
             bottomIndicatorsContainerStyle = styles.bottomIndicatorsContainer;
-        } else if (renderModeratorIndicator) {
+        } else if (renderModeratorIndicator || renderAudioMutedIndicator) {
             bottomIndicatorsContainerStyle = styles.bottomIndicatorsContainer;
         } else {
             bottomIndicatorsContainerStyle = null;
@@ -489,6 +502,7 @@ class Thumbnail extends PureComponent<IProps, IState> {
                 <Container
                     style = { bottomIndicatorsContainerStyle as StyleType }>
                     {/* { !tileView && _pinned && <PinnedIndicator />} */}
+                    { renderAudioMutedIndicator && <AudioMutedIndicator /> }
                     { renderModeratorIndicator && !_isVirtualScreenshare && <ModeratorIndicator />}
                     { !tileView && (isScreenShare || _isVirtualScreenshare) && <ScreenShareIndicator /> }
                 </Container>

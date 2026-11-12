@@ -959,12 +959,18 @@ class Conference extends AbstractConference<IProps, State> {
                   */}
                 <S2SV2TranslationPanel onPress={this._onClick} />
 
-                {
+                {/*
+                  * Overlaid on the tile grid rather than laid out below it: in the flow the toolbox shrank the grid's
+                  * container, and the paged grid (more than six participants) clips to that container, which left a
+                  * black strip behind the toolbox.
+                  */
                     _shouldDisplayTileView
-                    && <>
+                    && <View
+                        pointerEvents='box-none'
+                        style={styles.toolboxAndFilmstripContainer as ViewStyle}>
                         {this._renderNotificationsContainer()}
                         <Toolbox />
-                    </>
+                    </View>
                 }
             </>
         );
