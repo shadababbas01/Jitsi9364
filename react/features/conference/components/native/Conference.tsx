@@ -61,6 +61,7 @@ import S2SV2TranslationPanel from '../../../s2s-v2/components/native/S2SV2Transl
 import { getS2SV2PanelWidth, isS2SV2Active } from '../../../s2s-v2/functions';
 import Captions from '../../../subtitles/components/native/Captions';
 import LiveCaptionsPanel from '../../../subtitles/components/native/LiveCaptionsPanel';
+import { getCaptionsPanelWidth } from '../../../subtitles/functions.any';
 import { setToolboxVisible } from '../../../toolbox/actions.native';
 import Toolbox from '../../../toolbox/components/native/Toolbox';
 import { isToolboxVisible } from '../../../toolbox/functions.native';
@@ -182,6 +183,12 @@ interface IProps extends AbstractProps {
      * docked to the side - either it is not open, or the device is in portrait, where it takes no width at all.
      */
     _liveTranslationPanelWidth: number;
+
+    /**
+     * The width the live captions (live speech translation) panel takes away from the large video in landscape, or 0
+     * when it is not docked to the side.
+     */
+    _captionsPanelWidth: number;
 
     /**
      * Local participant's display name.
@@ -716,6 +723,7 @@ class Conference extends AbstractConference<IProps, State> {
             _connecting,
             _filmstripVisible,
             _isNativePipMode,
+            _captionsPanelWidth,
             _liveTranslationPanelWidth,
             _localParticipantId,
             _reducedUI,
@@ -857,8 +865,12 @@ class Conference extends AbstractConference<IProps, State> {
                             <View
                                 style={[
                                     styles.largeVideoContainer,
-                                    _s2sV2PanelWidth || _liveTranslationPanelWidth
-                                        ? { marginRight: _s2sV2PanelWidth + _liveTranslationPanelWidth }
+                                    _s2sV2PanelWidth || _liveTranslationPanelWidth || _captionsPanelWidth
+                                        ? {
+                                            marginRight: _s2sV2PanelWidth
+                                                + _liveTranslationPanelWidth
+                                                + _captionsPanelWidth
+                                        }
                                         : null
                                 ] as ViewStyle[]}>
                                 <LargeVideo onClick={this._onClick} />
@@ -1108,6 +1120,7 @@ function _mapStateToProps(state: IReduxState, _ownProps: any) {
         _isParticipantsPaneOpen: isOpen,
         _isS2SV2Active: isS2SV2Active(state),
         _largeVideoParticipantId: state['features/large-video'].participantId,
+        _captionsPanelWidth: getCaptionsPanelWidth(state),
         _liveTranslationPanelWidth: getLiveTranslationPanelWidth(state),
         _localParticipantId: localParticipant?.id,
         _nativeCallStatus: settings?.nativeCallStatus || '',

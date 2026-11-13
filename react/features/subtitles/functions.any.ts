@@ -2,11 +2,13 @@ import { IReduxState } from '../app/types';
 import { IStateful } from '../base/app/types';
 import { TRANSLATION_LANGUAGES, TRANSLATION_LANGUAGES_HEAD } from '../base/i18n/i18next';
 import { toState } from '../base/redux/functions';
+import { ASPECT_RATIO_NARROW } from '../base/responsive-ui/constants';
 import { canAddTranscriber, isTranscribing } from '../transcribing/functions';
 
 import {
     CAPTIONS_PANEL_HEIGHT_RATIO,
-    CAPTIONS_PANEL_MIN_HEIGHT
+    CAPTIONS_PANEL_MIN_HEIGHT,
+    CAPTIONS_PANEL_WIDTH_RATIO_LANDSCAPE
 } from './constants';
 
 /**
@@ -143,9 +145,38 @@ export function getCaptionsPanelHeight(state: IReduxState) {
         return 0;
     }
 
-    const { clientHeight = 0 } = state['features/base/responsive-ui'];
+    const { aspectRatio, clientHeight = 0 } = state['features/base/responsive-ui'];
+
+    // In landscape the panel docks to the side instead - see getCaptionsPanelWidth - and takes no height away.
+    if (aspectRatio !== ASPECT_RATIO_NARROW) {
+        return 0;
+    }
 
     return Math.min(
         clientHeight,
         Math.max(CAPTIONS_PANEL_MIN_HEIGHT, Math.round(clientHeight * CAPTIONS_PANEL_HEIGHT_RATIO)));
+}
+
+/**
+ * Returns the width the live captions panel takes away from the video in landscape, or 0 when it is not shown or the
+ * device is in portrait.
+ *
+ * Docked to the right like the voice translation panel. The tile grid and the large video are sized from the same
+ * number so they reflow beside the panel instead of being drawn underneath it.
+ *
+ * @param {IReduxState} state - The redux state.
+ * @returns {number}
+ */
+export function getCaptionsPanelWidth(state: IReduxState): number {
+    if (!isCaptionsPanelOpen(state)) {
+        return 0;
+    }
+
+    const { aspectRatio, clientWidth = 0 } = state['features/base/responsive-ui'];
+
+    if (aspectRatio === ASPECT_RATIO_NARROW) {
+        return 0;
+    }
+
+    return Math.round(clientWidth * CAPTIONS_PANEL_WIDTH_RATIO_LANDSCAPE);
 }

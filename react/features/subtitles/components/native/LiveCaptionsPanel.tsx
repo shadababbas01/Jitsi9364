@@ -9,12 +9,15 @@ import {
     View,
     ViewStyle
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { IReduxState } from '../../../app/types';
 import Icon from '../../../base/icons/components/Icon';
 import { IconCloseLarge, IconTheme } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 import { getSpeakingCaptionId } from '../../../caption-tts/functions.any';
 import { setS2SV2Theme } from '../../../s2s-v2/actions';
 import S2SV2LanguageDropdown from '../../../s2s-v2/components/native/S2SV2LanguageDropdown';
@@ -28,7 +31,7 @@ import {
     setSubtitlesPanelOpen
 } from '../../actions.any';
 import { CAPTIONS_STT_LANGUAGE } from '../../constants';
-import { getCaptionsPanelHeight, isLiveTranscriptionActive } from '../../functions.any';
+import { getCaptionsPanelHeight, getCaptionsPanelWidth, isLiveTranscriptionActive } from '../../functions.any';
 import { normalizeSubtitlesLanguage, toSubtitlesLanguageValue } from '../../languages';
 import { ISubtitle } from '../../types';
 
@@ -110,6 +113,11 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
     const active = useSelector(isLiveTranscriptionActive);
     const visible = useSelector((state: IReduxState) => state['features/subtitles'].panelOpen);
     const measuredHeight = useSelector(getCaptionsPanelHeight);
+    const measuredWidth = useSelector(getCaptionsPanelWidth);
+    const landscape = useSelector(
+        (state: IReduxState) => state['features/base/responsive-ui'].aspectRatio !== ASPECT_RATIO_NARROW
+    );
+    const insets = useSafeAreaInsets();
     const history = useSelector((state: IReduxState) => state['features/subtitles'].subtitlesHistory);
     const language = useSelector((state: IReduxState) => state['features/subtitles']._language);
     const speakingId = useSelector(getSpeakingCaptionId);
@@ -189,17 +197,30 @@ export default function LiveCaptionsPanel({ onPress }: IProps) {
     }
 
     const height = measuredHeight || '50%';
+    const width = measuredWidth || '40%';
     const iconColor = theme === 'dark' ? '#FFFFFF' : '#202124';
+
+    // Laid out exactly like the voice translation panel: a bottom sheet in portrait, docked to the right in
+    // landscape. Docked, it reaches the top, right and bottom edges of the screen, so the safe area is added on top of
+    // the panel's own padding to keep the header controls and the footer clear of a notch or home indicator.
+    const landscapeStyle = {
+        paddingBottom: BaseTheme.spacing[3] + insets.bottom,
+        paddingRight: BaseTheme.spacing[3] + insets.right,
+        paddingTop: BaseTheme.spacing[3] + insets.top,
+        transform: [ { translateY } ],
+        width
+    };
+    const portraitStyle = {
+        height,
+        transform: [ { translateY } ]
+    };
 
     return (
         <Animated.View
             onLayout = { onLayout }
             style = { [
-                styles.panel,
-                {
-                    height,
-                    transform: [ { translateY } ]
-                }
+                landscape ? styles.panelWide : styles.panel,
+                landscape ? landscapeStyle : portraitStyle
             ] as ViewStyle[] }>
             <View style = { styles.topRow as ViewStyle }>
                 <Pressable

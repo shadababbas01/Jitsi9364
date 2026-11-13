@@ -9,6 +9,12 @@ export const MIN_SUBTITLES_FONT_SIZE = 16;
 export const CAPTIONS_PANEL_HEIGHT_RATIO = 0.4;
 
 /**
+ * The share of the viewport width taken by the live captions panel in landscape, where it docks to the right the way
+ * the voice translation panel does instead of being a bottom sheet.
+ */
+export const CAPTIONS_PANEL_WIDTH_RATIO_LANDSCAPE = 0.4;
+
+/**
  * The smallest useful height of the live captions panel, in pixels. Below this the transcript cannot show a line of text
  * together with its controls.
  */
