@@ -1616,9 +1616,9 @@
         "title": "Generate Summary",
         "settingsTitle": "Summary Settings",
         "description": "Generate an AI summary based on the speech captured during this meeting.",
-        "toggleLabel": "Generate a summary for this meeting",
-        "enableLabel": "Generate a summary for this meeting",
-        "disableLabel": "Generate a summary for this meeting",
+        "toggleLabel": "Generate AI summary",
+        "enableLabel": "Generate AI summary",
+        "disableLabel": "Generate AI summary",
         "templateLabel": "Choose a summary template",
         "interviewConsent": "Allow interview telemetry",
         "actions": {

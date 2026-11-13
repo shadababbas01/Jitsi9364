@@ -9,6 +9,8 @@ import { hideDialog } from '../../../base/dialog/actions';
 import Icon from '../../../base/icons/components/Icon';
 import { IconArrowDown, IconArrowUp, IconCloseLarge, IconShareDoc } from '../../../base/icons/svg';
 import { isLocalParticipantModerator } from '../../../base/participants/functions';
+import Button from '../../../base/ui/components/native/Button';
+import { BUTTON_MODES, BUTTON_TYPES } from '../../../base/ui/constants.native';
 import { setTranscriptionStartedByCurrentUser } from '../../../chat/actions.any';
 import { showNotification } from '../../../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../../../notifications/constants';
@@ -26,6 +28,11 @@ import {
     isSummaryCategory,
     isSummaryFeatureEnabled
 } from '../../summary';
+
+/**
+ * Caps Dynamic Type / Android font scaling so labels never overflow the fixed-width card.
+ */
+const MAX_FONT_SCALE = 1.2;
 
 function sendSummaryMessage(state: IReduxState, payload: object) {
     const conference = state['features/base/conference'].conference;
@@ -165,7 +172,11 @@ export default function SummarySetupDialog() {
                                 size = { 18 }
                                 src = { IconShareDoc } />
                         </View>
-                        <Text style = { styles.title }>{ t(previous ? 'summarySetup.settingsTitle' : 'summarySetup.title') }</Text>
+                        <Text
+                            maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                            numberOfLines = { 2 }
+                            style = { styles.title }
+                            textBreakStrategy = 'simple'>{ t(previous ? 'summarySetup.settingsTitle' : 'summarySetup.title') }</Text>
                     </View>
                     <Pressable
                         accessibilityLabel = { t('dialog.close', { defaultValue: 'Close' }) }
@@ -182,9 +193,15 @@ export default function SummarySetupDialog() {
                     bounces = { false }
                     contentContainerStyle = { styles.content }
                     showsVerticalScrollIndicator = { false }>
-                    <Text style = { styles.description }>{ t('summarySetup.description') }</Text>
+                    <Text
+                        maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                        style = { styles.description }
+                        textBreakStrategy = 'simple'>{ t('summarySetup.description') }</Text>
                     <View style = { styles.row }>
-                        <Text style = { styles.rowLabel }>{ t('summarySetup.toggleLabel') }</Text>
+                        <Text
+                            maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                            style = { styles.rowLabel }
+                            textBreakStrategy = 'simple'>{ t('summarySetup.toggleLabel') }</Text>
                         <Switch
                             accessibilityLabel = { t('summarySetup.toggleLabel') }
                             accessibilityRole = 'switch'
@@ -195,14 +212,20 @@ export default function SummarySetupDialog() {
                             trackColor = {{ false: '#554D4D', true: '#EE4136' }}
                             value = { enabled } />
                     </View>
-                    <Text style = { styles.label }>{ t('summarySetup.templateLabel') }</Text>
+                    <Text
+                        maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                        style = { styles.label }
+                        textBreakStrategy = 'simple'>{ t('summarySetup.templateLabel') }</Text>
                     <Pressable
                         accessibilityLabel = { t('summarySetup.templateLabel') }
                         accessibilityRole = 'button'
                         accessibilityState = {{ expanded: categoryOpen }}
                         onPress = { () => setCategoryOpen(open => !open) }
                         style = { styles.selector }>
-                        <Text style = { styles.selectorText }>{ t(`summarySetup.categories.${category}`, { defaultValue: category }) }</Text>
+                        <Text
+                            maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                            numberOfLines = { 1 }
+                            style = { styles.selectorText }>{ t(`summarySetup.categories.${category}`, { defaultValue: category }) }</Text>
                         <Icon
                             color = '#667085'
                             size = { 18 }
@@ -219,13 +242,18 @@ export default function SummarySetupDialog() {
                                 setCategoryOpen(false);
                             } }
                             style = { [ styles.option, category === value && styles.selectedOption ] }>
-                            <Text style = { [ styles.optionText, category === value && styles.selectedText ] }>
+                            <Text
+                                maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                                style = { [ styles.optionText, category === value && styles.selectedText ] }>
                                 { t(`summarySetup.categories.${value}`, { defaultValue: value }) }
                             </Text>
                         </Pressable>))}
                     </View>}
                     {requiresConsent && <View style = { styles.row }>
-                        <Text style = { styles.rowLabel }>{ t('summarySetup.interviewConsent') }</Text>
+                        <Text
+                            maxFontSizeMultiplier = { MAX_FONT_SCALE }
+                            style = { styles.rowLabel }
+                            textBreakStrategy = 'simple'>{ t('summarySetup.interviewConsent') }</Text>
                         <Switch
                             accessibilityLabel = { t('summarySetup.interviewConsent') }
                             ios_backgroundColor = '#554D4D'
@@ -235,25 +263,27 @@ export default function SummarySetupDialog() {
                             value = { consent } />
                     </View>}
                     <View style = { styles.actions }>
-                        <Pressable
-                            accessibilityRole = 'button'
-                            onPress = { close }
+                        <Button
+                            accessibilityLabel = 'dialog.Cancel'
+                            contentStyle = { styles.buttonContent }
+                            labelKey = 'dialog.Cancel'
+                            mode = { BUTTON_MODES.TEXT }
+                            onClick = { close }
                             style = { styles.cancelButton }
-                            testID = 'summary-setup-cancel'>
-                            <Text style = { styles.cancelText }>{ t('dialog.cancel', { defaultValue: 'Cancel' }) }</Text>
-                        </Pressable>
-                        <Pressable
-                            accessibilityRole = 'button'
+                            type = { BUTTON_TYPES.SECONDARY } />
+                        <Button
+                            accessibilityLabel = { submitLabel }
+                            contentStyle = { styles.buttonContent }
                             disabled = { !submitEnabled || submitting.current }
-                            onPress = { submit }
+                            labelKey = { submitLabel }
+                            mode = { BUTTON_MODES.CONTAINED }
+                            onClick = { submit }
                             style = { [
                                 styles.submitButton,
                                 !submitEnabled && styles.disabledButton,
                                 previous && !enabled && styles.stopButton
                             ] }
-                            testID = 'summary-setup-submit'>
-                            <Text style = { styles.submitText }>{ t(submitLabel) }</Text>
-                        </Pressable>
+                            type = { BUTTON_TYPES.PRIMARY } />
                     </View>
                 </ScrollView>
             </View>
@@ -262,29 +292,28 @@ export default function SummarySetupDialog() {
 }
 
 const styles = StyleSheet.create({
-    actions: { flexDirection: 'row', gap: 12, marginTop: 26 },
-    backdrop: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,.65)', flex: 1, justifyContent: 'center', padding: 24 },
-    cancelButton: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#D0D5DD', borderRadius: 12, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 50, minWidth: 0, paddingHorizontal: 16 },
-    cancelText: { color: '#101828', flexShrink: 1, fontSize: 16, fontWeight: '600', textAlign: 'center' },
-    card: { backgroundColor: '#FFFFFF', borderRadius: 20, maxHeight: '90%', overflow: 'hidden', padding: 24, width: '100%' },
-    content: { paddingBottom: 4 },
+    actions: { alignItems: 'stretch', flexDirection: 'row', gap: 12, marginTop: 24 },
+    backdrop: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,.65)', flex: 1, justifyContent: 'center', padding: 20 },
+    buttonContent: { height: 50, width: '100%' },
+    cancelButton: { backgroundColor: '#FFFFFF', borderColor: '#D0D5DD', borderRadius: 12, borderWidth: 1, flex: 1, minHeight: 50 },
+    card: { backgroundColor: '#FFFFFF', borderRadius: 20, maxHeight: '90%', maxWidth: 440, overflow: 'hidden', paddingHorizontal: 22, paddingVertical: 24, width: '100%' },
+    content: { paddingBottom: 2 },
     description: { color: '#667085', fontSize: 15, lineHeight: 22, marginBottom: 20 },
-    disabledButton: { backgroundColor: '#FFA09B' },
+    disabledButton: { backgroundColor: '#F2F4F7' },
     header: { alignItems: 'center', flexDirection: 'row', marginBottom: 16 },
     iconContainer: { alignItems: 'center', backgroundColor: '#EE4136', borderRadius: 8, height: 36, justifyContent: 'center', width: 36 },
-    label: { color: '#101828', fontSize: 16, fontWeight: '600', marginBottom: 10, marginTop: 4 },
+    label: { color: '#101828', fontSize: 16, fontWeight: '600', lineHeight: 22, marginBottom: 10, marginTop: 4 },
     option: { justifyContent: 'center', minHeight: 48, paddingHorizontal: 16 },
-    optionText: { color: '#101828', fontSize: 16 },
+    optionText: { color: '#101828', fontSize: 16, lineHeight: 22 },
     options: { backgroundColor: '#FFFFFF', borderColor: '#D0D5DD', borderRadius: 12, borderWidth: 1, marginTop: 6, overflow: 'hidden' },
-    row: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, minHeight: 48 },
-    rowLabel: { color: '#101828', flex: 1, fontSize: 16, fontWeight: '600', lineHeight: 22, marginRight: 16 },
+    row: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, minHeight: 48 },
+    rowLabel: { color: '#101828', flex: 1, fontSize: 16, fontWeight: '600', lineHeight: 22, marginRight: 12, paddingRight: 2 },
     selectedOption: { backgroundColor: '#F8F9FA' },
     selectedText: { color: '#EE4136', fontWeight: '600' },
-    selector: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#D0D5DD', borderRadius: 12, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 52, minWidth: 0, paddingHorizontal: 16 },
-    selectorText: { color: '#101828', flex: 1, flexShrink: 1, fontSize: 16, marginRight: 12 },
+    selector: { alignItems: 'center', backgroundColor: '#F8F9FA', borderColor: '#D0D5DD', borderRadius: 12, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 52, paddingHorizontal: 16 },
+    selectorText: { color: '#101828', flex: 1, fontSize: 16, lineHeight: 22, marginRight: 12 },
     stopButton: { backgroundColor: '#D92D20' },
-    submitButton: { alignItems: 'center', backgroundColor: '#EE4136', borderRadius: 12, flex: 1, justifyContent: 'center', minHeight: 50, minWidth: 0, paddingHorizontal: 16 },
-    submitText: { color: '#FFFFFF', flexShrink: 1, fontSize: 16, fontWeight: '600', textAlign: 'center' },
-    title: { color: '#101828', flexShrink: 1, fontSize: 20, fontWeight: '700', marginLeft: 12 },
-    titleRow: { alignItems: 'center', flex: 1, flexDirection: 'row', minWidth: 0 }
+    submitButton: { backgroundColor: '#EE4136', borderRadius: 12, flex: 1, minHeight: 50 },
+    title: { color: '#101828', flex: 1, fontSize: 20, fontWeight: '700', lineHeight: 26, marginLeft: 12, paddingRight: 2 },
+    titleRow: { alignItems: 'center', flex: 1, flexDirection: 'row', marginRight: 12 }
 });
