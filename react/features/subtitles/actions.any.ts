@@ -3,12 +3,17 @@ import { DEFAULT_LANGUAGE } from '../base/i18n/i18next';
 import {
     REMOVE_CACHED_TRANSCRIPT_MESSAGE,
     REMOVE_TRANSCRIPT_MESSAGE,
+    RESET_SUMMARY_STATE,
     SET_CAPTIONS_STARTED_BY,
     SET_CAPTIONS_STOP_CONFIRM_VISIBLE,
+    SET_INTERVIEW_CONSENT,
     SET_REQUESTING_SUBTITLES,
     SET_SUBTITLES_ERROR,
     SET_SUBTITLES_LANGUAGE,
     SET_SUBTITLES_PANEL_OPEN,
+    SET_SUMMARY_CATEGORY,
+    SET_SUMMARY_ENABLED,
+    SET_SUMMARY_STATE_SYNCHRONIZED,
     STORE_SUBTITLE,
     TOGGLE_REQUESTING_SUBTITLES,
     UPDATE_TRANSCRIPT_MESSAGE
@@ -26,6 +31,26 @@ import { ISubtitle } from './types';
 export interface ICaptionsSyncOptions {
     fromRemoteSync?: boolean;
     startedBy?: string;
+}
+
+export function setSummaryEnabled(enabled: boolean, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_SUMMARY_ENABLED, enabled, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setSummaryCategory(category: string | null, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_SUMMARY_CATEGORY, category, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setInterviewConsent(accepted: boolean, options: ICaptionsSyncOptions = {}) {
+    return { type: SET_INTERVIEW_CONSENT, accepted, fromRemoteSync: Boolean(options.fromRemoteSync) };
+}
+
+export function setSummaryStateSynchronized(synchronized = true) {
+    return { type: SET_SUMMARY_STATE_SYNCHRONIZED, synchronized };
+}
+
+export function resetSummaryState() {
+    return { type: RESET_SUMMARY_STATE };
 }
 
 /**

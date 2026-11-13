@@ -842,6 +842,35 @@
         "youAreAlone": "You are the only one in the meeting"
     },
     "me": "me",
+    "meetingLimit": {
+        "remindLater": "Remind me later",
+        "upgrade": "Upgrade",
+        "defaultTitle": "Meeting ending soon",
+        "endedTitle": "Meeting ended",
+        "defaultMessage": "This session will end in 15 minutes. Upgrade to continue without time restrictions.",
+        "softTitle": "{{feature}} limit warning",
+        "softMessage": "You have used {{used}}/{{limit}} of your {{feature}} quota. Upgrade to avoid interruption.",
+        "hardTitle": "{{feature}} limit reached",
+        "hardMessage": "You have reached your {{feature}} limit ({{limit}}). Upgrade your plan to continue.",
+        "blockedTitle": "{{feature}} unavailable",
+        "blockedMessage": "{{feature}} is not available in your current plan. Upgrade to continue.",
+        "blockedMessagePlural": "{{feature}} are not available in your current plan. Upgrade to continue.",
+        "features": {
+            "ask_ai": "Ask AI",
+            "evaluationmode": "Evaluation mode",
+            "polls": "Polls",
+            "recording": "Recording",
+            "summary": "AI summary",
+            "transcription": "Transcription",
+            "speech_to_speech": "Real-time translation",
+            "evaluation_questions": "AI interview questions",
+            "breakoutrooms": "Breakout rooms",
+            "melp_pad": "Melp Pad",
+            "noisesupression": "Noise suppression",
+            "whiteboard": "Whiteboard",
+            "webinar": "Webinar"
+        }
+    },
     "notify": {
         "OldElectronAPPTitle": "Security vulnerability!",
         "allowAction": "Allow",
@@ -1444,6 +1473,7 @@
             "silence": "Silence",
             "speakerStats": "Toggle participants statistics",
             "stopScreenSharing": "Stop sharing your screen",
+            "summary": "Generate summary",
             "stopSharedVideo": "Stop video",
             "surprised": "Surprised",
             "tileView": "Toggle tile view",
@@ -1542,6 +1572,8 @@
         "stopScreenSharing": "Stop screen sharing",
         "stopSharedVideo": "Stop video",
         "stopSubtitles": "Stop subtitles",
+        "summary": "Generate summary",
+        "summarySettings": "Summary settings",
         "surprised": "Surprised",
         "talkWhileMutedPopup": "Trying to speak? You are muted.",
         "tileViewToggle": "Toggle tile view",
@@ -1581,19 +1613,29 @@
         "leaveCall": "Leave Call"
     },
     "summarySetup": {
-        "title": "AI Meeting Summary",
-        "description": "Get an instant AI-generated summary tailored to your meeting type.",
-        "enableLabel": "Enable AI Meeting Summary",
-        "disableLabel": "Disable AI Meeting Summary",
+        "title": "Generate Summary",
+        "settingsTitle": "Summary Settings",
+        "description": "Generate an AI summary based on the speech captured during this meeting.",
+        "toggleLabel": "Generate a summary for this meeting",
+        "enableLabel": "Generate a summary for this meeting",
+        "disableLabel": "Generate a summary for this meeting",
         "templateLabel": "Choose a summary template",
+        "interviewConsent": "Allow interview telemetry",
+        "actions": {
+            "start": "Start Summary",
+            "stop": "Stop Summary",
+            "save": "Save Changes"
+        },
         "categories": {
             "meeting": "Meeting",
             "interview": "Interview",
             "standup": "Standup"
         },
         "notifications": {
-            "enabled": "AI Meeting Summary has been enabled.",
-            "disabled": "AI Meeting Summary has been disabled."
+            "enabled": "Summary generation started.",
+            "disabled": "Summary generation stopped.",
+            "saved": "Summary settings saved.",
+            "stoppedWithTranscription": "Summary generation stopped because speech to text translation was stopped."
         },
         "statusEnabled": "AI summary is active for this meeting.",
         "statusDisabled": "AI summary is paused until you turn it back on."

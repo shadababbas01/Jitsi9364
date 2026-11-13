@@ -39,6 +39,21 @@ public class OpenMelpChatModule extends ReactContextBaseJavaModule {
 
     }
 
+    /**
+     * Hands summary delivery to the host app after a meeting ends. The host sends the email and stores the Drive log.
+     */
+    @ReactMethod
+    public void requestSummaryDelivery(String roomName, String category, String recipientEmail) {
+        Intent i = new Intent("MeetCallBackSummaryDelivery");
+        i.putExtra("roomName", roomName);
+        i.putExtra("summaryCategory", category);
+        i.putExtra("recipientEmail", recipientEmail);
+        i.putExtra("sendSummaryEmail", true);
+        i.putExtra("saveSummaryToMeetingLogs", true);
+        i.putExtra("summaryDeliveryTimestamp", System.currentTimeMillis());
+        getReactApplicationContext().sendBroadcast(i);
+    }
+
     @ReactMethod
     public void showAttendees(ReadableArray strings) {
         try {

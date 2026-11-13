@@ -31,6 +31,11 @@ export const CC_CAPTIONS_STATE_REQUEST = 'cc-captions-state-request';
  */
 export const CC_CAPTIONS_STATE_ACK = 'cc-captions-state-ack';
 
+export const CC_SUMMARY_CONTROL = 'cc-summary-control';
+export const CC_SUMMARY_STATE_REQUEST = 'cc-summary-state-request';
+export const CC_SUMMARY_STATE_ACK = 'cc-summary-state-ack';
+export const INTERVIEW_CONSENT = 'interview-consent';
+
 /**
  * Synchronizes the microphone effect the captions own.
  */
@@ -89,6 +94,32 @@ export interface ICaptionsStateAck {
     enabled: boolean;
     startedBy?: string;
     targetId: string;
+    type: string;
+}
+
+export interface ISummaryControl {
+    category?: string;
+    enabled: boolean;
+    type: string;
+}
+
+export interface ISummaryStateRequest {
+    requestId: string;
+    requesterId: string;
+    type: string;
+}
+
+export interface ISummaryStateAck {
+    category?: string;
+    enabled: boolean;
+    requestId: string;
+    responderId?: string;
+    targetId: string;
+    type: string;
+}
+
+export interface IInterviewConsent {
+    accepted: boolean;
     type: string;
 }
 
@@ -215,6 +246,38 @@ export function buildCaptionsStateAck(enabled: boolean, targetId: string, starte
     };
 }
 
+export function buildSummaryControl(enabled: boolean, category: string): ISummaryControl {
+    return { category, enabled, type: CC_SUMMARY_CONTROL };
+}
+
+export function buildSummaryStateRequest(requesterId: string, requestId = `${requesterId}-${Date.now()}`): ISummaryStateRequest {
+    return {
+        requestId,
+        requesterId,
+        type: CC_SUMMARY_STATE_REQUEST
+    };
+}
+
+export function buildSummaryStateAck(
+        enabled: boolean,
+        category: string,
+        targetId: string,
+        requestId: string,
+        responderId?: string): ISummaryStateAck {
+    return {
+        category,
+        enabled,
+        requestId,
+        responderId,
+        targetId,
+        type: CC_SUMMARY_STATE_ACK
+    };
+}
+
+export function buildInterviewConsent(accepted: boolean): IInterviewConsent {
+    return { accepted, type: INTERVIEW_CONSENT };
+}
+
 /**
  * Builds the microphone effect announcement.
  *
@@ -298,6 +361,27 @@ function _isType(payload: any, type: string): boolean {
  */
 export function isCaptionsControl(payload: any): payload is ICaptionsControl {
     return _isType(payload, CC_CAPTIONS_CONTROL) && typeof payload.enabled === 'boolean';
+}
+
+export function isSummaryControl(payload: any): payload is ISummaryControl {
+    return _isType(payload, CC_SUMMARY_CONTROL) && typeof payload.enabled === 'boolean';
+}
+
+export function isSummaryStateRequest(payload: any): payload is ISummaryStateRequest {
+    return _isType(payload, CC_SUMMARY_STATE_REQUEST)
+        && typeof payload.requesterId === 'string'
+        && typeof payload.requestId === 'string';
+}
+
+export function isSummaryStateAck(payload: any): payload is ISummaryStateAck {
+    return _isType(payload, CC_SUMMARY_STATE_ACK)
+        && typeof payload.enabled === 'boolean'
+        && typeof payload.targetId === 'string'
+        && typeof payload.requestId === 'string';
+}
+
+export function isInterviewConsent(payload: any): payload is IInterviewConsent {
+    return _isType(payload, INTERVIEW_CONSENT) && typeof payload.accepted === 'boolean';
 }
 
 /**
