@@ -902,15 +902,6 @@ class Conference extends AbstractConference<IProps, State> {
                     <SideToolbar />
 
                     {!_shouldDisplayTileView && <LonelyMeetingExperience />}
-
-                    {
-                        _shouldDisplayTileView
-                        || <>
-                            <Filmstrip />
-                            {this._renderNotificationsContainer()}
-                            <Toolbox />
-                        </>
-                    }
                 </View>
 
                 <FloatingLocalThumbnail />
@@ -972,18 +963,21 @@ class Conference extends AbstractConference<IProps, State> {
                 <S2SV2TranslationPanel onPress={this._onClick} />
 
                 {/*
+                  * The toolbox is overlaid last, in tile view and out of it alike, so that it stacks above the live
+                  * captions, live translation and translated session panels drawn just before it - drawn earlier, a
+                  * panel open over the large video covered it and left no way to reach hangup.
+                  *
                   * Overlaid on the tile grid rather than laid out below it: in the flow the toolbox shrank the grid's
                   * container, and the paged grid (more than six participants) clips to that container, which left a
                   * black strip behind the toolbox.
-                  */
-                    _shouldDisplayTileView
-                    && <View
-                        pointerEvents='box-none'
-                        style={styles.toolboxAndFilmstripContainer as ViewStyle}>
-                        {this._renderNotificationsContainer()}
-                        <Toolbox />
-                    </View>
-                }
+                  */}
+                <View
+                    pointerEvents='box-none'
+                    style={styles.toolboxAndFilmstripContainer as ViewStyle}>
+                    {!_shouldDisplayTileView && <Filmstrip />}
+                    {this._renderNotificationsContainer()}
+                    <Toolbox />
+                </View>
             </>
         );
     }
